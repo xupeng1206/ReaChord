@@ -6,6 +6,7 @@ G_NOTE_LETTERS_X4  = ListX4(G_NOTE_LETTERS)
 G_NOTE_LIST = {"C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"}
 G_FLAT_NOTE_LIST = {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"}
 G_NOTE_LIST_X4 = ListX4(G_NOTE_LIST)
+G_FLAT_NOTE_LIST_X4 = ListX4(G_FLAT_NOTE_LIST)
 
 G_SIMPLE_NOTE_LIST = {
     "1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7",
@@ -217,3 +218,41 @@ function T_FindSimilarChords(chord)
     chords = ListExtend(x3chords, x2chords)
     return chords
 end
+
+function  T_ScaleTrans(scale, diff)
+    local splited = StringSplit(scale, "/")
+    local root = splited[1]
+    local tag = splited[2]
+    local rootIdx = T_NoteIndex(G_NOTE_LIST_X4, root)
+    local newRoot = G_FLAT_NOTE_LIST_X4[rootIdx+diff+12]
+    return newRoot..tag
+end
+
+function  T_ChordTrans(chord, scale, diff)
+    local newScale = T_ScaleTrans(scale, diff)
+    local scaleNotes = T_MakeScale(newScale)[1]
+    
+    local root = "X"
+    local tagStartIdx = 2
+    local b = string.sub(chord, 2, 2)
+    if b == "#" or b == "b" then
+        root = string.sub(chord, 1, 2)
+        tagStartIdx = 3
+    else
+        root = string.sub(chord, 1, 1)
+        tagStartIdx = 2
+    end
+    local tag = string.sub(chord, tagStartIdx, string.len(chord))
+
+    local rootIdx = T_NoteIndex(G_NOTE_LIST_X4, root)
+    local newRootM = G_NOTE_LIST_X4[rootIdx+diff+12]
+    
+    local newRootTable = StringSplit(newRootM)
+    
+    local newRoot = newRootTable[1]
+    if #newRootTable > 1 and FindIndexByValueForList(scaleNotes, newRootTable[2])>0 then
+        newRoot = newRootTable[2]
+    end
+    return newRoot..tag
+end
+
