@@ -256,3 +256,22 @@ function  T_ChordTrans(chord, scale, diff)
     return newRoot..tag
 end
 
+function T_NotePitched(notes)
+    local preIdx = 0
+    local curOct = 0
+    local notePitched = {}
+    local noteIdxes = {}
+    for _, note in ipairs(notes) do
+        local curIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
+        curIdx =curIdx + curOct * 12
+        if curIdx < preIdx then
+            curOct = curOct + 1
+            curIdx = curIdx + 12
+        end
+        table.insert(noteIdxes, curIdx)
+        table.insert(notePitched, note..curOct)
+        preIdx = curIdx
+    end
+    return notePitched, noteIdxes
+end
+
