@@ -97,7 +97,7 @@ G_SCALE_MAP["Oriental"] = "1,b2,3,4,b5,6,b7"
 G_SCALE_MAP["Spanish"] = "1,b2,b3,3,4,b5,b6,b7"
 
 
-local function T_NoteIndex(lst, target)
+function T_NoteIndex(lst, target)
     for idx, notes in ipairs(lst) do
         for _, note in ipairs(StringSplit(notes, "/")) do
             if note == target then
