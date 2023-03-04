@@ -3,11 +3,14 @@ print = r.ShowConsoleMsg
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 
-local ctx = r.ImGui_CreateContext('My script', r.ImGui_ConfigFlags_DockingEnable())
+local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
 r.ImGui_Attach(ctx, G_FONT)
 
-local chords = {"C1", "C2", "Eb2", "G2"}
+local current_chord_bass = "C"
+local current_chord_default_voicing = "C,E,G"
+local current_chord_voicing = "C,E,G"
+local current_chords_pitched = {"C1", "C2", "E2", "G2"}
 
 local MainBgColor = 0xEEE9E9FF
 local ColorWhite = 0xFFFFFFFF
@@ -16,17 +19,26 @@ local ColorGray = 0x696969FF
 local ColorPink = 0xFFAEB9FF
 
 
+local OCT = {"-1", "0", "+1"}
+
 local scale_root_current_index = 1
 local scale_name_current_index = 1
+local oct_current_index = 2
 
 
 
+local function GetWindows()
+  local w
+  local h
+  w, h = r.ImGui_GetWindowSize(ctx)
+  w, h = w-20, h-21
+  return w, h
+end
 
 local function uiPiano()
   local w
   local h
-  w, h = r.ImGui_GetWindowSize(ctx)
-  w, h = w, h-21
+  w, h = GetWindows()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 2, 0)
   -- black
   r.ImGui_InvisibleButton(ctx, "##", w/56-1, 38, r.ImGui_ButtonFlags_None())
@@ -40,10 +52,10 @@ local function uiPiano()
     if note == "-" then
       r.ImGui_InvisibleButton(ctx, "##", w/28-2, 38, r.ImGui_ButtonFlags_None())
     else
-      if FindIndexByValueForList(chords, note) > 0 then
-        r.ImGui_ColorButton(ctx, "##", ColorPink,r.ImGui_ColorEditFlags_NoLabel(), w/28-2, 38)
+      if FindIndexByValueForList(current_chords_pitched, note) > 0 then
+        r.ImGui_ColorButton(ctx, "##", ColorPink,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoLabel(), w/28-2, 38)
+        r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
       end
     end
   end
@@ -61,10 +73,10 @@ local function uiPiano()
     if idx >1 then
       r.ImGui_SameLine(ctx)
     end
-    if FindIndexByValueForList(chords, note) > 0 then
-      r.ImGui_ColorButton(ctx, "##", ColorPink,r.ImGui_ColorEditFlags_NoLabel(), w/28-2, 38)
+    if FindIndexByValueForList(current_chords_pitched, note) > 0 then
+      r.ImGui_ColorButton(ctx, "##", ColorPink,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoLabel(), w/28-2, 38)
+      r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
     end
   end
   -- r.ImGui_SameLine(ctx)
@@ -74,11 +86,8 @@ local function uiPiano()
 end
 
 local function uiScaleRootSelector()
-  -- Scale Root
-  r.ImGui_TextColored(ctx, ColorBlack,"Scale Root")
-  r.ImGui_SameLine(ctx)
   r.ImGui_SetNextItemWidth(ctx, 50)
-  if r.ImGui_BeginCombo(ctx, 'Scale Root', G_FLAT_NOTE_LIST[scale_root_current_index], r.ImGui_ComboFlags_None()) then
+  if r.ImGui_BeginCombo(ctx, '##ScaleRoot', G_FLAT_NOTE_LIST[scale_root_current_index], r.ImGui_ComboFlags_None()) then
     for i, v in ipairs(G_FLAT_NOTE_LIST) do
       local is_selected = scale_root_current_index == i
       if r.ImGui_Selectable(ctx, v, is_selected) then
@@ -94,10 +103,8 @@ local function uiScaleRootSelector()
 end
 
 local function uiScaleNameSelector()
-  r.ImGui_TextColored(ctx, ColorBlack,"Scale Pattern")
-  r.ImGui_SetNextItemWidth(ctx, 250)
-  r.ImGui_SameLine(ctx)
-  if r.ImGui_BeginCombo(ctx, 'Scale Pattern', G_SCALE_NAMES[scale_name_current_index], r.ImGui_ComboFlags_None()) then
+  r.ImGui_SetNextItemWidth(ctx, 200)
+  if r.ImGui_BeginCombo(ctx, '##ScalePattern', G_SCALE_NAMES[scale_name_current_index], r.ImGui_ComboFlags_None()) then
     for i, v in ipairs(G_SCALE_NAMES) do
       local is_selected = scale_name_current_index == i
       if r.ImGui_Selectable(ctx, v, is_selected) then
@@ -112,10 +119,40 @@ local function uiScaleNameSelector()
   end
 end
 
+local function uiOctSelector()
+  r.ImGui_SetNextItemWidth(ctx, 50)
+  local  octs = {}
+  if r.ImGui_BeginCombo(ctx, '##Oct', OCT[oct_current_index], r.ImGui_ComboFlags_None()) then
+    for i, v in ipairs(OCT) do
+      local is_selected = oct_current_index == i
+      if r.ImGui_Selectable(ctx, v, is_selected) then
+        oct_current_index = i
+      end
+
+      if is_selected then
+        r.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    r.ImGui_EndCombo(ctx)
+  end
+end
+
+
 local function uiChordSelector()
   uiScaleRootSelector()
   r.ImGui_SameLine(ctx)
   uiScaleNameSelector()
+  r.ImGui_SameLine(ctx)
+  r.ImGui_TextColored(ctx, ColorBlack,"Oct")
+  r.ImGui_SameLine(ctx)
+  uiOctSelector()
+  r.ImGui_SameLine(ctx)
+  r.ImGui_TextColored(ctx, ColorBlack,"Voicing")
+  r.ImGui_SameLine(ctx)
+  r.ImGui_TextColored(ctx, ColorBlack, current_chord_bass)
+  r.ImGui_SameLine(ctx)
+  _, current_chord_voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
+
   uiPiano()
 end
 
@@ -135,8 +172,8 @@ end
 
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetNextWindowSize(ctx, 600, 400, r.ImGui_Cond_FirstUseEver())
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),0,0)
+  r.ImGui_SetNextWindowSize(ctx, 800, 400, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),10,0)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
   local visible, open = r.ImGui_Begin(ctx, 'My window', true)
