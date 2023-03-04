@@ -31,15 +31,6 @@ function PrintList(lst)
     end
 end
 
-function FindValueByKeyForMap(map, key)
-    for k, v in pairs(map) do
-        if k == key then
-            return v
-        end
-    end
-    return ""
-end
-
 function FindIndexByValueForList (lst, val)
     for idx, v in ipairs(lst) do
         if v == val then
