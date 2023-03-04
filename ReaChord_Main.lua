@@ -1,9 +1,7 @@
 r = reaper
 print = r.ShowConsoleMsg
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
-dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua') -- current version at the time of writing the script
-
--- dofile(r.GetResourcePath() .. '/Scripts/reachord/theory.lua') ('X.Y.Z') -- current version at the time of writing the script
+dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 
 local ctx = r.ImGui_CreateContext('My script', r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
