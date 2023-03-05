@@ -25,6 +25,18 @@ function StringSplit(str, sp)
     return result
 end
 
+function ListJoinToString(lst, sp)
+    local result = ""
+    for idx, item in ipairs(lst) do
+        if idx>1 then
+            result = result..sp..item
+        else
+            result = result..item
+        end
+    end
+    return result
+end
+
 function PrintList(lst)
     for idx, val in ipairs(lst) do
         print(idx, val)

@@ -1,4 +1,6 @@
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
+r = reaper
+print = r.ShowConsoleMsg
 
 G_NOTE_LETTERS = {"C", "D", "E", "F", "G", "A", "B"}
 G_NOTE_LETTERS_X4  = ListX4(G_NOTE_LETTERS)
@@ -228,6 +230,8 @@ end
 
 
 function T_MakeChord(chord)
+    local pure_notes = {}
+    local m_notes = {}
     local root = "X"
     local tagStartIdx = 2
     local b = string.sub(chord, 2, 2)
@@ -242,31 +246,36 @@ function T_MakeChord(chord)
     local fullTag = "X" .. tag
     local chordIdx = ListIndex(G_CHORD_NAMES, fullTag)
     local patten = G_CHORD_PATTERNS[chordIdx]
-    return T_Parse(root, patten)
+    pure_notes, m_notes =  T_Parse(root, patten)
+    return pure_notes, m_notes
 end
 
 function T_MakeScale(scale)
+    local pure_notes = {}
+    local m_notes = {}
     local tmpT = StringSplit(scale, "/")
     local root = tmpT[1]
     local tag = tmpT[2]
     local scaleIdx = ListIndex(G_SCALE_NAMES, tag)
     local patten = G_SCALE_PATTERNS[scaleIdx]
-    return T_Parse(root, patten)
+    pure_notes, m_notes =  T_Parse(root, patten)
+    return pure_notes, m_notes
 end
 
 function T_ChordInScale(chord, scale)
-    local chordNotes = T_MakeChord(chord)[2]
-    local scaleNotes = T_MakeScale(scale)[2]
-    return AListAllInBList(chordNotes, scaleNotes)
+    local _, chordNotes = T_MakeChord(chord)
+    local _, scaleNotes = T_MakeScale(scale)
+    local all_in = AListAllInBList(chordNotes, scaleNotes)
+    return all_in
 end
 
 function T_FindScalesByChord(chord)
-    local chordNotes = T_MakeChord(chord)
+    local _, chordNotes = T_MakeChord(chord)
     local scales = {}
     for _, note in ipairs(G_NOTE_LIST) do
         for idx, scaleTag in ipairs(G_SCALE_NAMES) do
             local scalePattern = G_SCALE_PATTERNS[idx]
-            local tmpScaleNotes = T_Parse(note, scalePattern)[2]
+            local _, tmpScaleNotes = T_Parse(note, scalePattern)
             if AListAllInBList(chordNotes, tmpScaleNotes) then
                 table.insert(scales, note .. "/" .. scaleTag)
             end
@@ -280,7 +289,7 @@ function T_FindSimilarChords(chord)
     local chords = {}
     local x3chords = {}
     local x2chords = {}
-    local chordNotes = T_MakeChord(chord)
+    local _, chordNotes = T_MakeChord(chord)
     if #chordNotes > 4 then
         return chords
     end
@@ -291,7 +300,7 @@ function T_FindSimilarChords(chord)
             local chordPatternNotes = StringSplit(chordPattern, ",")
             if #chordPatternNotes <= 4 then
                 local tmpChord = note .. string.sub(chordTag, 2, string.len(chordTag))
-                local tmpChordNotes = T_Parse(note, chordPattern)[2]
+                local _, tmpChordNotes = T_Parse(note, chordPattern)
                 local simLen = AListInBListLen(tmpChordNotes, chordNotes)
                 if simLen == 2 then
                     table.insert(x2chords, tmpChord)
@@ -316,7 +325,7 @@ end
 
 function  T_ChordTrans(chord, scale, diff)
     local newScale = T_ScaleTrans(scale, diff)
-    local scaleNotes = T_MakeScale(newScale)[1]
+    local scaleNotes, _ = T_MakeScale(newScale)
     
     local root = "X"
     local tagStartIdx = 2
@@ -350,7 +359,7 @@ function T_NotePitched(notes)
     for _, note in ipairs(notes) do
         local curIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
         curIdx =curIdx + curOct * 12
-        if curIdx < preIdx then
+        if curIdx <= preIdx then
             curOct = curOct + 1
             curIdx = curIdx + 12
         end
@@ -360,4 +369,3 @@ function T_NotePitched(notes)
     end
     return notePitched, noteIdxes
 end
-

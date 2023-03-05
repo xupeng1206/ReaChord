@@ -12,15 +12,17 @@ local OctRange = {"-1", "0", "+1"}
 
 local current_scale_root = "C"
 local current_scale_name = "Natural Maj"
-local current_scale_all_notes = {"C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"}
-local current_scale_nice_notes = {"C","D","E","F","G","A","B"}
+local current_scale_all_notes = {}
+local current_scale_nice_notes = {}
 local current_oct = "0"
 
 local current_chord_root = "C"
+local current_chord_name = ""
 local current_chord_bass = "C"
-local current_chord_default_voicing = "C,E,G"
-local current_chord_voicing = "C,E,G"
-local current_chord_pitched = {"C1", "C2", "E2", "G2"}
+local current_chord_default_voicing = ""
+local current_chord_voicing = ""
+local current_chord_pitched = {}
+local current_chord_list = {}
 
 local MainBgColor = 0xEEE9E9FF
 local ColorWhite = 0xFFFFFFFF
@@ -47,32 +49,107 @@ local function refreshWindowSize()
   w_piano_half_key = w/58-1
 end
 
+local function onSelectChordChange(val)
+  -- print(val.."\n")
+  current_chord_name = val
+  
+  local default_voicing = {}
+  local voicing = {}
+  default_voicing, _ = T_MakeChord(current_chord_name)
+  voicing = default_voicing
+  current_chord_default_voicing = ListJoinToString(default_voicing, ",")
+  current_chord_voicing = current_chord_default_voicing
+  local notes = ListExtend({current_chord_bass}, voicing)
+  current_chord_pitched, _ = T_NotePitched(notes)
+end
+
+
+local function refreshScaleAndChordMap()
+  local notes = {}
+  current_scale_nice_notes, _ = T_MakeScale(current_scale_root.."/"..current_scale_name)
+  local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, current_scale_root)
+
+  for i = scale_root_index_start, scale_root_index_start+11 do
+    local note = G_NOTE_LIST_X4[i]
+    local note_split = StringSplit(note, "/")
+    if #note_split == 1 then
+      table.insert(notes, note)
+    else
+      local b_note = note_split[1]
+      local s_note = note_split[2]
+      if ListIndex(current_scale_nice_notes, s_note) > 0 then
+        table.insert(notes, s_note)
+      else
+        table.insert(notes, b_note)
+      end
+    end
+  end
+
+  current_scale_all_notes = notes
+
+  local nice_chords = {}
+  local normal_chords = {}
+  for _, chord_tag in ipairs(G_CHORD_NAMES) do
+    local chord = current_chord_root
+    local chord_tag_split = StringSplit(chord_tag, "X")
+    if #chord_tag_split > 1 then
+      chord = current_chord_root..chord_tag_split[2]
+    end
+    if T_ChordInScale(chord, current_scale_root.."/"..current_scale_name)  then
+      table.insert(nice_chords, chord)
+    else
+      table.insert(normal_chords, chord)
+    end
+  end
+  if #nice_chords>0 then
+    onSelectChordChange(nice_chords[1])
+  else
+    onSelectChordChange(normal_chords[1])
+  end
+  current_chord_list = ListExtend(nice_chords, normal_chords)
+end
+
+refreshScaleAndChordMap()
+
 local function onScaleRootChange(val)
-  print(val.."\n")
+  -- print(val.."\n")
+  current_scale_root = val
+  current_chord_root = val
+  current_chord_bass = val
+  refreshScaleAndChordMap()
 end
 
 local function onScaleNameChange(val)
-  print(val.."\n")
+  -- print(val.."\n")
+  current_scale_name = val
+  current_chord_root = current_scale_root
+  current_chord_bass = current_scale_root
+  refreshScaleAndChordMap()
 end
 
 local function onOctChange(val)
-  print(val.."\n")
+  -- print(val.."\n")
+  current_oct = val
 end
 
 local function onChordRootChange(val)
-  print(val.."\n")
+  -- print(val.."\n")
+  current_chord_root = val
+  current_chord_bass = val
+  refreshScaleAndChordMap()
 end
 
 local function onChordBassChange(val)
-  print(val.."\n")
+  -- print(val.."\n")
+  current_chord_bass = val
 end
 
 local function onListenClick()
-  print("listen".."\n")
+  -- print("listen".."\n")
 end
 
 local function onInsertClick()
-  print("insert".."\n")
+  -- print("insert".."\n")
 end
 
 local function uiReadOnlyColorBtn(text, color, w)
@@ -98,16 +175,17 @@ local function uiPiano()
   -- black
   r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, 38, r.ImGui_ButtonFlags_None())
   for _, note in ipairs({
-    "Db1","Eb1","-","Gb1","Ab1","Bb1","-",
-    "Db2","Eb2","-","Gb2","Ab2","Bb2","-",
-    "Db3","Eb3","-","Gb3","Ab3","Bb3","-",
-    "Db4","Eb4","-","Gb4","Ab4","Bb4"
+    "Db0/C#0","Eb0/D#0","-","Gb0/F#0","Ab0/G#0","Bb0/A#0","-",
+    "Db1/C#1","Eb1/D#1","-","Gb1/F#1","Ab1/G#1","Bb1/A#1","-",
+    "Db2/C#2","Eb2/D#2","-","Gb2/F#2","Ab2/G#2","Bb2/A#2","-",
+    "Db3/C#3","Eb3/D#3","-","Gb3/F#3","Ab3/G#3","Bb3/A#3"
   }) do
     r.ImGui_SameLine(ctx)
     if note == "-" then
       r.ImGui_InvisibleButton(ctx, "##", w_piano_key, 38, r.ImGui_ButtonFlags_None())
     else
-      if ListIndex(current_chord_pitched, note) > 0 then
+      local note_split = StringSplit(note, "/")
+      if ListIndex(current_chord_pitched, note_split[1]) > 0 or ListIndex(current_chord_pitched, note_split[2]) > 0 then
         r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, 38)
       else
         r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, 38)
@@ -119,10 +197,10 @@ local function uiPiano()
   
   -- white
   for idx, note in ipairs({
+    "C0","D0","E0","F0","G0","A0","B0",
     "C1","D1","E1","F1","G1","A1","B1",
     "C2","D2","E2","F2","G2","A2","B2",
-    "C3","D3","E3","F3","G3","A3","B3",
-    "C4","D4","E4","F4","G4","A4","B4"
+    "C3","D3","E3","F3","G3","A3","B3"
   }) do
     if idx >1 then
       r.ImGui_SameLine(ctx)
@@ -222,6 +300,7 @@ local function uiVoicing()
   r.ImGui_SameLine(ctx)
   r.ImGui_SetNextItemWidth(ctx, w-6*w_default_space-60-60-70-40-60-120)
   _, current_chord_voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
+  -- todo check current_scale_root
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
