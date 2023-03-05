@@ -240,7 +240,7 @@ function T_MakeChord(chord)
     end
     local tag = string.sub(chord, tagStartIdx, string.len(chord))
     local fullTag = "X" .. tag
-    local chordIdx = FindIndexByValueForList(G_CHORD_NAMES, fullTag)
+    local chordIdx = ListIndex(G_CHORD_NAMES, fullTag)
     local patten = G_CHORD_PATTERNS[chordIdx]
     return T_Parse(root, patten)
 end
@@ -249,7 +249,7 @@ function T_MakeScale(scale)
     local tmpT = StringSplit(scale, "/")
     local root = tmpT[1]
     local tag = tmpT[2]
-    local scaleIdx = FindIndexByValueForList(G_SCALE_NAMES, tag)
+    local scaleIdx = ListIndex(G_SCALE_NAMES, tag)
     local patten = G_SCALE_PATTERNS[scaleIdx]
     return T_Parse(root, patten)
 end
@@ -336,7 +336,7 @@ function  T_ChordTrans(chord, scale, diff)
     local newRootTable = StringSplit(newRootM)
     
     local newRoot = newRootTable[1]
-    if #newRootTable > 1 and FindIndexByValueForList(scaleNotes, newRootTable[2])>0 then
+    if #newRootTable > 1 and ListIndex(scaleNotes, newRootTable[2])>0 then
         newRoot = newRootTable[2]
     end
     return newRoot..tag

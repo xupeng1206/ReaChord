@@ -31,7 +31,7 @@ function PrintList(lst)
     end
 end
 
-function FindIndexByValueForList (lst, val)
+function ListIndex (lst, val)
     for idx, v in ipairs(lst) do
         if v == val then
             return idx
@@ -42,7 +42,7 @@ end
 
 function AListAllInBList(aLst, bLst)
     for _, aVal in ipairs(aLst) do
-        if FindIndexByValueForList(bLst, aVal) < 0 then
+        if ListIndex(bLst, aVal) < 0 then
             return false
         end
     end
@@ -53,7 +53,7 @@ end
 function AListInBListLen(aLst, bLst)
     local counter = 0
     for _, aVal in ipairs(aLst) do
-        if FindIndexByValueForList(bLst, aVal) > 0 then
+        if ListIndex(bLst, aVal) > 0 then
             counter = counter + 1
         end
     end
