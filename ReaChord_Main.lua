@@ -23,6 +23,7 @@ local current_chord_default_voicing = ""
 local current_chord_voicing = ""
 local current_chord_pitched = {}
 local current_chord_list = {}
+local current_nice_chord_list = {}
 
 local MainBgColor = 0xEEE9E9FF
 local ColorWhite = 0xFFFFFFFF
@@ -40,11 +41,13 @@ local h
 local w_piano_space = 2
 local w_piano_key
 local w_piano_half_key
+local h_piano = 30
 local w_default_space = 4
+local h_default_space = 4
 
 local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
-  w, h = w-main_window_w_padding*2, h
+  w, h = w-main_window_w_padding*2, h-21
   w_piano_key = w/28-2
   w_piano_half_key = w/58-1
 end
@@ -116,6 +119,7 @@ local function refreshScaleAndChordMap()
   else
     onSelectChordChange(normal_chords[1])
   end
+  current_nice_chord_list = nice_chords
   current_chord_list = ListExtend(nice_chords, normal_chords)
 end
 
@@ -170,11 +174,11 @@ local function uiReadOnlyColorBtn(text, color, w)
   r.ImGui_PopStyleColor(ctx, 3)
 end
 
-local function uiColorBtn(text, color, w)
+local function uiColorBtn(text, color, w, h)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), ColorBtnHover)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), ColorBlue)
-  local ret = r.ImGui_Button(ctx, text, w)
+  local ret = r.ImGui_Button(ctx, text, w, h)
   r.ImGui_PopStyleColor(ctx, 3)
   return ret
 end
@@ -183,7 +187,7 @@ end
 local function uiPiano()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, 38, r.ImGui_ButtonFlags_None())
+  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
   for _, note in ipairs({
     "Db0/C#0","Eb0/D#0","-","Gb0/F#0","Ab0/G#0","Bb0/A#0","-",
     "Db1/C#1","Eb1/D#1","-","Gb1/F#1","Ab1/G#1","Bb1/A#1","-",
@@ -192,18 +196,18 @@ local function uiPiano()
   }) do
     r.ImGui_SameLine(ctx)
     if note == "-" then
-      r.ImGui_InvisibleButton(ctx, "##", w_piano_key, 38, r.ImGui_ButtonFlags_None())
+      r.ImGui_InvisibleButton(ctx, "##", w_piano_key, h_piano, r.ImGui_ButtonFlags_None())
     else
       local note_split = StringSplit(note, "/")
       if ListIndex(current_chord_pitched, note_split[1]) > 0 or ListIndex(current_chord_pitched, note_split[2]) > 0 then
-        r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, 38)
+        r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, 38)
+        r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
       end
     end
   end
   r.ImGui_SameLine(ctx)
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, 38, r.ImGui_ButtonFlags_None())
+  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
   
   -- white
   for idx, note in ipairs({
@@ -216,9 +220,9 @@ local function uiPiano()
       r.ImGui_SameLine(ctx)
     end
     if ListIndex(current_chord_pitched, note) > 0 then
-      r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
+      r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoTooltip(), w/28-2, 38)
+      r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
@@ -316,7 +320,6 @@ local function uiVoicing()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn(current_chord_bass..","..current_chord_default_voicing, ColorGray, 120)
 
-
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
@@ -328,15 +331,15 @@ local function uiChordRoot()
   for _, note in ipairs(current_scale_all_notes) do
     r.ImGui_SameLine(ctx)
     if note == current_chord_root then
-      if uiColorBtn(note.."##chord_root", ColorBlue, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_root", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     elseif ListIndex(current_scale_nice_notes, note) > 1 then
-      if uiColorBtn(note.."##chord_root", ColorPink, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_root", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     else
-      if uiColorBtn(note.."##chord_root", ColorNormalNote, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_root", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     end
@@ -353,15 +356,15 @@ local function uiChordBass()
   for _, note in ipairs(current_scale_all_notes) do
     r.ImGui_SameLine(ctx)
     if note == current_chord_bass then
-      if uiColorBtn(note.."##chord_bass", ColorBlue, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     elseif ListIndex(current_scale_nice_notes, note) > 1 then
-      if uiColorBtn(note.."##chord_bass", ColorPink, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_bass", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     else
-      if uiColorBtn(note.."##chord_bass", ColorNormalNote, (w-12*w_default_space-100)/12) then
+      if uiColorBtn(note.."##chord_bass", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     end
@@ -370,6 +373,40 @@ local function uiChordBass()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
+local function uiChordMap()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
+
+  local ww = w
+  local hh = h-main_window_h_padding*2-1*6-h_piano*2-6*25
+  -- 7 x 7
+  for i=0,6 do
+    for j=1,7 do
+      if j>1 then
+        r.ImGui_SameLine(ctx)
+      end
+      local idx = i*7+j
+      if idx > #current_chord_list then
+        break
+      end
+      local chord = current_chord_list[idx]
+      if chord == current_chord_name then
+        if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+          onSelectChordChange(chord)
+        end
+      elseif ListIndex(current_nice_chord_list, chord)>1 then
+        if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+          onSelectChordChange(chord)
+        end
+      else 
+        if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+          onChordBassChange(chord)
+        end
+      end
+    end
+  end
+
+  r.ImGui_PopStyleVar(ctx, 1)
+end
 
 local function uiChordSelector()
   uiTopLine()
@@ -377,6 +414,10 @@ local function uiChordSelector()
   uiChordRoot()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiChordBass()
+  r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+  uiReadOnlyColorBtn("Chord Map", ColorGray, w)
+  -- r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+  uiChordMap()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiVoicing()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
