@@ -63,6 +63,16 @@ local function onSelectChordChange(val)
   current_chord_pitched, _ = T_NotePitched(notes)
 end
 
+local function onVoicingChange(val)
+  local new_voicing = StringSplit(val, ",")
+  local default_voicing = StringSplit(current_chord_default_voicing, ",")
+  if AListAllInBList(new_voicing, default_voicing) then
+    current_chord_voicing = val
+    local notes = ListExtend({current_chord_bass}, new_voicing)
+  current_chord_pitched, _ = T_NotePitched(notes)
+  end
+end
+
 
 local function refreshScaleAndChordMap()
   local notes = {}
@@ -299,8 +309,8 @@ local function uiVoicing()
   uiReadOnlyColorBtn(current_chord_bass, ColorGray, 40)
   r.ImGui_SameLine(ctx)
   r.ImGui_SetNextItemWidth(ctx, w-6*w_default_space-60-60-70-40-60-120)
-  _, current_chord_voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
-  -- todo check current_scale_root
+  local _, voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
+  onVoicingChange(voicing)
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
