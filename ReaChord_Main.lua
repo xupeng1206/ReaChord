@@ -36,6 +36,7 @@ local ColorPink = 0xFF6EB4FF
 local ColorBlue = 0x0000FFFF
 local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
+local ColorChordPadDefault = 0x8DB6CDFF
 
 local main_window_w_padding = 10
 local main_window_h_padding = 5
@@ -284,15 +285,22 @@ local function uiChordPad()
       r.ImGui_InvisibleButton(ctx, "##", w_chord_pad, h_chord_pad, r.ImGui_ButtonFlags_None())
     else
       local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
-    if chord == key then
-      if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
-        onChordPadClick(key)
+      if chord == key then
+        if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
+          onChordPadClick(key)
+        end
+      else
+        local pure_chord = StringSplit(chord, "/")[1]
+        if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
+          if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
+            onChordPadClick(key)
+          end
+        else
+          if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
+            onChordPadClick(key)
+          end
+        end
       end
-    else
-      if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-        onChordPadClick(key)
-      end
-    end
     end
   end
   -- -
@@ -308,12 +316,19 @@ local function uiChordPad()
     end
     local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
     if chord == key then
-      if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
+      if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
         onChordPadClick(key)
       end
     else
-      if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-        onChordPadClick(key)
+      local pure_chord = StringSplit(chord, "/")[1]
+      if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
+        if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
+          onChordPadClick(key)
+        end
+      else
+        if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
+          onChordPadClick(key)
+        end
       end
     end
   end
