@@ -76,8 +76,31 @@ local function onVoicingChange(val)
   end
 end
 
+local function refreshUIWhenChordRootChange()
+  local nice_chords = {}
+  local normal_chords = {}
+  for _, chord_tag in ipairs(G_CHORD_NAMES) do
+    local chord = current_chord_root
+    local chord_tag_split = StringSplit(chord_tag, "X")
+    if #chord_tag_split > 1 then
+      chord = current_chord_root..chord_tag_split[2]
+    end
+    if T_ChordInScale(chord, current_scale_root.."/"..current_scale_name)  then
+      table.insert(nice_chords, chord)
+    else
+      table.insert(normal_chords, chord)
+    end
+  end
+  if #nice_chords>0 then
+    onSelectChordChange(nice_chords[1])
+  else
+    onSelectChordChange(normal_chords[1])
+  end
+  current_nice_chord_list = nice_chords
+  current_chord_list = ListExtend(nice_chords, normal_chords)
+end
 
-local function refreshScaleAndChordMap()
+local function refreshUIWhenScaleChange()
   local notes = {}
   current_scale_nice_notes, _ = T_MakeScale(current_scale_root.."/"..current_scale_name)
   local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, current_scale_root)
@@ -123,14 +146,14 @@ local function refreshScaleAndChordMap()
   current_chord_list = ListExtend(nice_chords, normal_chords)
 end
 
-refreshScaleAndChordMap()
+refreshUIWhenScaleChange()
 
 local function onScaleRootChange(val)
   -- print(val.."\n")
   current_scale_root = val
   current_chord_root = val
   current_chord_bass = val
-  refreshScaleAndChordMap()
+  refreshUIWhenScaleChange()
 end
 
 local function onScaleNameChange(val)
@@ -138,7 +161,7 @@ local function onScaleNameChange(val)
   current_scale_name = val
   current_chord_root = current_scale_root
   current_chord_bass = current_scale_root
-  refreshScaleAndChordMap()
+  refreshUIWhenScaleChange()
 end
 
 local function onOctChange(val)
@@ -150,7 +173,7 @@ local function onChordRootChange(val)
   -- print(val.."\n")
   current_chord_root = val
   current_chord_bass = val
-  refreshScaleAndChordMap()
+  refreshUIWhenChordRootChange()
 end
 
 local function onChordBassChange(val)
@@ -334,7 +357,7 @@ local function uiChordRoot()
       if uiColorBtn(note.."##chord_root", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
-    elseif ListIndex(current_scale_nice_notes, note) > 1 then
+    elseif ListIndex(current_scale_nice_notes, note) > 0 then
       if uiColorBtn(note.."##chord_root", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
@@ -359,7 +382,7 @@ local function uiChordBass()
       if uiColorBtn(note.."##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
-    elseif ListIndex(current_scale_nice_notes, note) > 1 then
+    elseif ListIndex(current_scale_nice_notes, note) > 0 then
       if uiColorBtn(note.."##chord_bass", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
@@ -393,13 +416,13 @@ local function uiChordMap()
         if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
         end
-      elseif ListIndex(current_nice_chord_list, chord)>1 then
+      elseif ListIndex(current_nice_chord_list, chord)>0 then
         if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
         end
       else 
         if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
-          onChordBassChange(chord)
+          onSelectChordChange(chord)
         end
       end
     end
