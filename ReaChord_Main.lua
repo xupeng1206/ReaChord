@@ -7,6 +7,9 @@ local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable(
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
 r.ImGui_Attach(ctx, G_FONT)
 
+local CHORD_PAD_KEYS = {"A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J"}
+local CHORD_PAD_VALUES = {"A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J"}
+local CHORD_PAD_METAS = {"", "", "", "", "", "", "", "", "", "", "", ""}
 
 local OctRange = {"-1", "0", "+1"}
 
@@ -44,12 +47,19 @@ local w_piano_half_key
 local h_piano = 30
 local w_default_space = 4
 local h_default_space = 4
+local w_chord_pad_space = 2
+local h_chord_pad_space = 2
+local w_chord_pad
+local w_chord_pad_half
+local h_chord_pad = 60
 
 local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
   w, h = w-main_window_w_padding*2, h-21
   w_piano_key = w/28-2
-  w_piano_half_key = w/58-1
+  w_piano_half_key = w/56-1
+  w_chord_pad = w/7-2
+  w_chord_pad_half = w/14-1
 end
 
 local function onSelectChordChange(val)
@@ -189,6 +199,16 @@ local function onInsertClick()
   -- print("insert".."\n")
 end
 
+local function onChordPadClick(key)
+  local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+  if current_chord_root == current_chord_bass then
+    CHORD_PAD_VALUES[key_idx] = current_chord_name
+  else
+    CHORD_PAD_VALUES[key_idx] = current_chord_name.."/"..current_chord_bass
+  end
+  -- todo meta
+end
+
 local function uiReadOnlyColorBtn(text, color, w)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color)
@@ -197,11 +217,11 @@ local function uiReadOnlyColorBtn(text, color, w)
   r.ImGui_PopStyleColor(ctx, 3)
 end
 
-local function uiColorBtn(text, color, w, h)
+local function uiColorBtn(text, color, ww, hh)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), ColorBtnHover)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), ColorBlue)
-  local ret = r.ImGui_Button(ctx, text, w, h)
+  local ret = r.ImGui_Button(ctx, text, ww, hh)
   r.ImGui_PopStyleColor(ctx, 3)
   return ret
 end
@@ -250,6 +270,57 @@ local function uiPiano()
   end
   r.ImGui_PopStyleVar(ctx, 1)
 end
+
+local function uiChordPad()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_chord_pad_space, h_chord_pad_space)
+  -- -
+  r.ImGui_InvisibleButton(ctx, "##", w_chord_pad_half, h_chord_pad, r.ImGui_ButtonFlags_None())
+  -- black
+  for idx, key in ipairs({
+    "W","E","-","T","Y","U"
+  }) do
+    r.ImGui_SameLine(ctx)
+    if key == "-" then
+      r.ImGui_InvisibleButton(ctx, "##", w_chord_pad, h_chord_pad, r.ImGui_ButtonFlags_None())
+    else
+      local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
+    if chord == key then
+      if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
+        onChordPadClick(key)
+      end
+    else
+      if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
+        onChordPadClick(key)
+      end
+    end
+    end
+  end
+  -- -
+  r.ImGui_SameLine(ctx)
+  r.ImGui_InvisibleButton(ctx, "##", w_chord_pad_half, h_chord_pad, r.ImGui_ButtonFlags_None())
+  
+  -- white
+  for idx, key in ipairs({
+    "A","S","D","F","G","H","J"
+  }) do
+    if idx > 1 then
+      r.ImGui_SameLine(ctx)
+    end
+    local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
+    if chord == key then
+      if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
+        onChordPadClick(key)
+      end
+    else
+      if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
+        onChordPadClick(key)
+      end
+    end
+  end
+
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
 
 local function uiScaleRootSelector()
   if r.ImGui_BeginCombo(ctx, '##ScaleRoot', current_scale_root, r.ImGui_ComboFlags_HeightLarge()) then
@@ -400,7 +471,7 @@ local function uiChordMap()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
 
   local ww = w
-  local hh = h-main_window_h_padding*2-1*6-h_piano*2-6*25
+  local hh = h-main_window_h_padding*2-1*7-h_piano*2-7*25-h_chord_pad*2
   -- 7 x 7
   for i=0,6 do
     for j=1,7 do
@@ -445,6 +516,9 @@ local function uiChordSelector()
   uiVoicing()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiPiano()
+  r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+  uiReadOnlyColorBtn("Chord Pad", ColorGray, w)
+  uiChordPad()
 
 end
 
