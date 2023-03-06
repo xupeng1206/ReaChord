@@ -524,12 +524,12 @@ end
 
 local function uiMain() 
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
-    if r.ImGui_BeginTabItem(ctx, 'ChordSelector') then
+    if r.ImGui_BeginTabItem(ctx, ' Main ') then
       uiChordSelector()
       r.ImGui_EndTabItem(ctx)
     end
-    if r.ImGui_BeginTabItem(ctx, 'ChordAnalyzer') then
-      r.ImGui_Text(ctx, 'This is the ChordAnalyzer tab!')
+    if r.ImGui_BeginTabItem(ctx, ' About ') then
+      uiColorBtn("About", ColorNormalNote, w, h-25-main_window_h_padding*2)
       r.ImGui_EndTabItem(ctx)
     end
     r.ImGui_EndTabBar(ctx)
