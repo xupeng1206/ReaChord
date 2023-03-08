@@ -363,7 +363,7 @@ function T_NotePitched(notes)
             curOct = curOct + 1
             curIdx = curIdx + 12
         end
-        table.insert(noteIdxes, curIdx)
+        table.insert(noteIdxes, curIdx-1)
         table.insert(notePitched, note..curOct)
         preIdx = curIdx
     end

@@ -2,6 +2,7 @@ r = reaper
 print = r.ShowConsoleMsg
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
+dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
 local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
@@ -21,6 +22,7 @@ local current_oct = "0"
 
 local current_chord_root = "C"
 local current_chord_name = ""
+local current_chord_full_name = ""
 local current_chord_bass = "C"
 local current_chord_default_voicing = ""
 local current_chord_voicing = ""
@@ -52,7 +54,7 @@ local w_chord_pad_space = 2
 local h_chord_pad_space = 2
 local w_chord_pad
 local w_chord_pad_half
-local h_chord_pad = 60
+local h_chord_pad = 40
 
 local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
@@ -63,18 +65,39 @@ local function refreshWindowSize()
   w_chord_pad_half = w/14-1
 end
 
+local function onFullChordNameChange()
+  if current_chord_root == current_chord_bass then
+    current_chord_full_name = current_chord_name
+  else
+    current_chord_full_name = current_chord_full_name.."/"..current_chord_bass
+  end
+  local voicing = StringSplit(current_chord_voicing, ",")
+  local notes = ListExtend({current_chord_bass}, voicing)
+  current_chord_pitched, _ = T_NotePitched(notes)
+end
+
+local function PlayPiano()
+  local voicing = StringSplit(current_chord_voicing, ",")
+  local notes = ListExtend({current_chord_bass}, voicing)
+  local note_midi_index
+  _, note_midi_index = T_NotePitched(notes)
+  R_StopPlay()
+  local midi_notes={}
+  for _, midi_index in ipairs(note_midi_index) do
+    table.insert(midi_notes, midi_index+36+current_oct*12)
+  end
+  R_Play(midi_notes)
+end
+
 local function onSelectChordChange(val)
   -- print(val.."\n")
   current_chord_name = val
   
   local default_voicing = {}
-  local voicing = {}
   default_voicing, _ = T_MakeChord(current_chord_name)
-  voicing = default_voicing
   current_chord_default_voicing = ListJoinToString(default_voicing, ",")
   current_chord_voicing = current_chord_default_voicing
-  local notes = ListExtend({current_chord_bass}, voicing)
-  current_chord_pitched, _ = T_NotePitched(notes)
+  onFullChordNameChange()
 end
 
 local function onVoicingChange(val)
@@ -104,8 +127,10 @@ local function refreshUIWhenChordRootChange()
   end
   if #nice_chords>0 then
     onSelectChordChange(nice_chords[1])
+    PlayPiano()
   else
     onSelectChordChange(normal_chords[1])
+    PlayPiano()
   end
   current_nice_chord_list = nice_chords
   current_chord_list = ListExtend(nice_chords, normal_chords)
@@ -157,8 +182,6 @@ local function refreshUIWhenScaleChange()
   current_chord_list = ListExtend(nice_chords, normal_chords)
 end
 
-refreshUIWhenScaleChange()
-
 local function onScaleRootChange(val)
   -- print(val.."\n")
   current_scale_root = val
@@ -190,14 +213,24 @@ end
 local function onChordBassChange(val)
   -- print(val.."\n")
   current_chord_bass = val
+  onFullChordNameChange()
+  PlayPiano()
 end
 
 local function onListenClick()
   -- print("listen".."\n")
+  PlayPiano()
+end
+
+local function onStopClick ()
+  R_StopPlay()
 end
 
 local function onInsertClick()
   -- print("insert".."\n")
+  local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
+  local notes = ListExtend({current_chord_bass}, StringSplit(current_chord_voicing, ","))
+  R_InsertChordItem(current_chord_full_name, meta, notes)
 end
 
 local function onChordPadClick(key)
@@ -231,7 +264,7 @@ end
 local function uiPiano()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
+  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key-w_piano_space, h_piano, r.ImGui_ButtonFlags_None())
   for _, note in ipairs({
     "Db0/C#0","Eb0/D#0","-","Gb0/F#0","Ab0/G#0","Bb0/A#0","-",
     "Db1/C#1","Eb1/D#1","-","Gb1/F#1","Ab1/G#1","Bb1/A#1","-",
@@ -250,8 +283,8 @@ local function uiPiano()
       end
     end
   end
-  r.ImGui_SameLine(ctx)
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
+  -- r.ImGui_SameLine(ctx)
+  -- r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
   
   -- white
   for idx, note in ipairs({
@@ -409,21 +442,25 @@ end
 local function uiVoicing()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
   
+  uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
+  r.ImGui_SameLine(ctx)
+  uiReadOnlyColorBtn(current_chord_bass, ColorGray, 40)
+  r.ImGui_SameLine(ctx)
+  r.ImGui_SetNextItemWidth(ctx, w-7*w_default_space-60-60-60-70-40-60-120)
+  local _, voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
+  onVoicingChange(voicing)
+  r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Listen", 60) then
     onListenClick()
+  end
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "Stop", 60) then
+    onStopClick()
   end
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Insert", 60) then
     onInsertClick()
   end
-  r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
-  r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(current_chord_bass, ColorGray, 40)
-  r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, w-6*w_default_space-60-60-70-40-60-120)
-  local _, voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
-  onVoicingChange(voicing)
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
@@ -490,25 +527,28 @@ local function uiChordMap()
   -- 7 x 7
   for i=0,6 do
     for j=1,7 do
-      if j>1 then
-        r.ImGui_SameLine(ctx)
-      end
       local idx = i*7+j
       if idx > #current_chord_list then
         break
+      end
+      if j>1 then
+        r.ImGui_SameLine(ctx)
       end
       local chord = current_chord_list[idx]
       if chord == current_chord_name then
         if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
+          PlayPiano()
         end
       elseif ListIndex(current_nice_chord_list, chord)>0 then
         if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
+          PlayPiano()
         end
       else 
         if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
+          PlayPiano()
         end
       end
     end
@@ -525,9 +565,7 @@ local function uiChordSelector()
   uiChordBass()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiReadOnlyColorBtn("Chord Map", ColorGray, w)
-  -- r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiChordMap()
-  r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiVoicing()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiPiano()
@@ -537,7 +575,7 @@ local function uiChordSelector()
 
 end
 
-local function uiMain() 
+local function uiMain()
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
     if r.ImGui_BeginTabItem(ctx, ' Main ') then
       uiChordSelector()
@@ -553,7 +591,7 @@ end
 
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetNextWindowSize(ctx, 800, 400, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
@@ -572,4 +610,66 @@ local function loop()
   r.ImGui_PopStyleColor(ctx, 1)
 end
 
+-- local current_scale_root = "C"
+-- local current_scale_name = "Natural Maj"
+-- local current_scale_all_notes = {}
+-- local current_scale_nice_notes = {}
+-- local current_oct = "0"
+
+-- local current_chord_root = "C"
+-- local current_chord_name = ""
+-- local current_chord_full_name = ""
+-- local current_chord_bass = "C"
+-- local current_chord_default_voicing = ""
+-- local current_chord_voicing = ""
+-- local current_chord_pitched = {}
+-- local current_chord_list = {}
+-- local current_nice_chord_list = {}
+
+local function init()
+  local chord, meta, notes = R_SelectChordItem()
+  if chord == "" then
+    refreshUIWhenScaleChange()
+  else
+    local chord_split = StringSplit(chord, "/")
+    local notes_split = StringSplit(notes, ",")
+    local meta_split = StringSplit(meta, "/")
+    if #chord_split == 1 then
+      current_chord_root = notes_split[0]
+      current_chord_bass = notes_split[0]
+      current_chord_full_name = chord
+      current_chord_name = chord
+      local current_chord_default_voicing_table, _ = T_MakeChord(chord)
+      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
+      local current_chord_voicing_table = {}
+      for idx, v in ipairs(notes_split) do
+        if idx>1 then
+          table.insert(current_chord_voicing_table, v)
+        end
+      end
+      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
+    else
+      current_chord_bass = notes_split[0]
+      current_chord_full_name = chord
+      current_chord_name = chord_split[1]
+      local b = string.sub(current_chord_name, 2, 2)
+      if b == "#" or b == "b" then
+        current_chord_root = string.sub(current_chord_name, 1, 2)
+      else
+        current_chord_root = string.sub(current_chord_name, 1, 1)
+      end
+      local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
+      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
+      local current_chord_voicing_table = {}
+      for idx, v in ipairs(notes_split) do
+        if idx>1 then
+          table.insert(current_chord_voicing_table, v)
+        end
+      end
+      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
+    end
+  end
+end
+
+init()
 r.defer(loop)
