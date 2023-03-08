@@ -40,6 +40,7 @@ function G_InsertChordItem(chord, meta, notes)
     reaper.SetMediaItemPosition(chord_item, start_position, false)
     reaper.SetMediaItemLength(chord_item, GetLengthForOneBar(), true)
     reaper.ULT_SetMediaItemNote(chord_item, chord)
+    reaper.SetMediaItemSelected(chord_item, true)
     -- meta item
     local meta_item = reaper.AddMediaItemToTrack(meta_track)
     reaper.SetMediaItemPosition(meta_item, start_position, false)
@@ -47,6 +48,7 @@ function G_InsertChordItem(chord, meta, notes)
     local note_str = ListJoinToString(notes, ",")
     local full_meta = ListJoinToString({meta, note_str}, "/")
     reaper.ULT_SetMediaItemNote(meta_item, full_meta)
+    reaper.SetMediaItemSelected(meta_item, true)
     -- midi item
     local midi_item = reaper.CreateNewMIDIItemInProj(midi_track, start_position, end_position, false)
     -- midi take
@@ -59,7 +61,13 @@ function G_InsertChordItem(chord, meta, notes)
             0, note, 90, false
         )
     end
+    reaper.SetMediaItemSelected(midi_item, true)
+    -- group item
+    reaper.Main_OnCommand(40032, 0)
+    -- unselect
+    reaper.SetMediaItemSelected(chord_item, false)
+    reaper.SetMediaItemSelected(meta_item, false)
+    reaper.SetMediaItemSelected(midi_item, false)
+    -- move cursor
     reaper.SetEditCurPos(end_position, true, true)
 end
-
-G_InsertChordItem("C", "sdag2fsa", {1,2,3})
