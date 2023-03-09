@@ -596,6 +596,27 @@ local function uiMain()
   end
 end
 
+local function loop()
+  r.ImGui_PushFont(ctx, G_FONT)
+  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true)
+  if visible then
+    refreshWindowSize()
+    uiMain()
+    r.ImGui_End(ctx)
+  end
+  r.ImGui_PopFont(ctx)
+  
+  if open then
+    r.defer(loop)
+  end
+  r.ImGui_PopStyleVar(ctx, 2)
+  r.ImGui_PopStyleColor(ctx, 1)
+end
+
 local function init()
   local chord, meta, notes = R_SelectChordItem()
   if chord == "" then
@@ -635,29 +656,9 @@ local function init()
   end
 end
 
-local function loop()
-
+local function startUi()
   init()
-
-  r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true)
-  if visible then
-    refreshWindowSize()
-    uiMain()
-    r.ImGui_End(ctx)
-  end
-  r.ImGui_PopFont(ctx)
-  
-  if open then
-    r.defer(loop)
-  end
-  r.ImGui_PopStyleVar(ctx, 2)
-  r.ImGui_PopStyleColor(ctx, 1)
+  loop()
 end
 
-
-r.defer(loop)
+r.defer(startUi)
