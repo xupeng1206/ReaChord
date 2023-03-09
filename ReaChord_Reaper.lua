@@ -37,16 +37,10 @@ function R_InsertChordItem(chord, meta, notes)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
 
     -- unselect all item
-    local chord_item_count =  r.CountTrackMediaItems(chord_track)
-    for idx = 0, chord_item_count - 1 do
-        local citem = r.GetTrackMediaItem(chord_track, idx)
-        r.SetMediaItemSelected(citem, false)
-    end
-
-    local midi_item_count =  r.CountTrackMediaItems(midi_track)
-    for idx = 0, midi_item_count - 1 do
-        local mitem = r.GetTrackMediaItem(midi_track, idx)
-        r.SetMediaItemSelected(mitem, false)
+    local selected_item_count = r.CountSelectedMediaItems(0)
+    for idx=0, selected_item_count-1 do
+        local it = r.GetSelectedMediaItem(0, idx)
+        r.SetMediaItemSelected(it, false)
     end
 
     local start_position = r.GetCursorPosition()
