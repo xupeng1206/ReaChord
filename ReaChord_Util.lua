@@ -37,12 +37,6 @@ function ListJoinToString(lst, sp)
     return result
 end
 
-function PrintList(lst)
-    for idx, val in ipairs(lst) do
-        print(idx, val)
-    end
-end
-
 function ListIndex (lst, val)
     for idx, v in ipairs(lst) do
         if v == val then

@@ -59,6 +59,10 @@ local h_chord_pad = 40
 local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
   w, h = w-main_window_w_padding*2, h-21
+  if package.config:sub(1,1) == "/" then
+    -- mac or linux?
+    h = h -15
+  end
   w_piano_key = w/28-2
   w_piano_half_key = w/56-1
   w_chord_pad = w/7-2
@@ -90,7 +94,6 @@ local function PlayPiano()
 end
 
 local function onSelectChordChange(val)
-  -- print(val.."\n")
   current_chord_name = val
   
   local default_voicing = {}
@@ -188,7 +191,6 @@ local function refreshUIWhenScaleChangeWithSelectChordChange()
 end
 
 local function onScaleRootChange(val)
-  -- print(val.."\n")
   current_scale_root = val
   current_chord_root = val
   current_chord_bass = val
@@ -196,7 +198,6 @@ local function onScaleRootChange(val)
 end
 
 local function onScaleNameChange(val)
-  -- print(val.."\n")
   current_scale_name = val
   current_chord_root = current_scale_root
   current_chord_bass = current_scale_root
@@ -204,26 +205,22 @@ local function onScaleNameChange(val)
 end
 
 local function onOctChange(val)
-  -- print(val.."\n")
   current_oct = val
 end
 
 local function onChordRootChange(val)
-  -- print(val.."\n")
   current_chord_root = val
   current_chord_bass = val
   refreshUIWhenChordRootChange()
 end
 
 local function onChordBassChange(val)
-  -- print(val.."\n")
   current_chord_bass = val
   onFullChordNameChange()
   PlayPiano()
 end
 
 local function onListenClick()
-  -- print("listen".."\n")
   PlayPiano()
 end
 
@@ -232,7 +229,6 @@ local function onStopClick ()
 end
 
 local function onInsertClick()
-  -- print("insert".."\n")
   local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
   local notes = ListExtend({current_chord_bass}, StringSplit(current_chord_voicing, ","))
   R_InsertChordItem(current_chord_full_name, meta, notes)
@@ -488,15 +484,15 @@ local function uiChordRoot()
   for _, note in ipairs(current_scale_all_notes) do
     r.ImGui_SameLine(ctx)
     if note == current_chord_root then
-      if uiColorBtn(note.."##chord_root", ColorBlue, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_root", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     elseif ListIndex(current_scale_nice_notes, note) > 0 then
-      if uiColorBtn(note.."##chord_root", ColorPink, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_root", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     else
-      if uiColorBtn(note.."##chord_root", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_root", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
     end
@@ -513,15 +509,15 @@ local function uiChordBass()
   for _, note in ipairs(current_scale_all_notes) do
     r.ImGui_SameLine(ctx)
     if note == current_chord_bass then
-      if uiColorBtn(note.."##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     elseif ListIndex(current_scale_nice_notes, note) > 0 then
-      if uiColorBtn(note.."##chord_bass", ColorPink, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_bass", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     else
-      if uiColorBtn(note.."##chord_bass", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
+      if uiColorBtn(" "..note.." ##chord_bass", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
     end
@@ -600,31 +596,8 @@ local function uiMain()
   end
 end
 
-local function loop()
-  r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true)
-  if visible then
-    refreshWindowSize()
-    uiMain()
-    r.ImGui_End(ctx)
-  end
-  r.ImGui_PopFont(ctx)
-  
-  if open then
-    r.defer(loop)
-  end
-  r.ImGui_PopStyleVar(ctx, 2)
-  r.ImGui_PopStyleColor(ctx, 1)
-end
-
 local function init()
   local chord, meta, notes = R_SelectChordItem()
-  print(chord.."\n")
-  print(meta.."\n")
   if chord == "" then
     refreshUIWhenScaleChangeWithSelectChordChange()
   else
@@ -662,5 +635,29 @@ local function init()
   end
 end
 
-init()
+local function loop()
+
+  init()
+
+  r.ImGui_PushFont(ctx, G_FONT)
+  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true)
+  if visible then
+    refreshWindowSize()
+    uiMain()
+    r.ImGui_End(ctx)
+  end
+  r.ImGui_PopFont(ctx)
+  
+  if open then
+    r.defer(loop)
+  end
+  r.ImGui_PopStyleVar(ctx, 2)
+  r.ImGui_PopStyleColor(ctx, 1)
+end
+
+
 r.defer(loop)

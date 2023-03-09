@@ -98,6 +98,73 @@ function R_SelectChordItem()
 end
 
 function R_ChordItemTrans(diff)
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_item_count =  r.CountTrackMediaItems(midi_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        if r.IsMediaItemSelected(chord_item) then
+            local chord = r.ULT_GetMediaItemNote(chord_item)
+            local midi_item = r.GetTrackMediaItem(midi_track, idx)
+            local midi_take = r.GetActiveTake(midi_item)
+            local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+            local full_meta_split = StringSplit(full_meta, "|")
+            local meta = full_meta_split[1]
+            local notes = StringSplit(full_meta_split[2], ",")
+            local pure_voicing = {}
+            for idx, v in ipairs(notes) do
+                if idx>1 then
+                    table.insert(pure_voicing, v)
+                end
+            end
+            local meta_split = StringSplit(meta, "/")
+            local scale_root = meta_split[1]
+            local scale_name = meta_split[2]
+            local oct = meta_split[3]
+            local chord_split = StringSplit(chord, "/")
+            local new_chord = ''
+            local new_pure_chord = ''
+            local new_chord_bass = ''
+            if #chord_split == 1 then
+                new_chord = T_ChordTrans(chord, scale_root.."/"..scale_name, diff)
+                new_pure_chord = new_chord
+                new_chord_bass = string.sub(new_chord, 1,1)
+                if string.sub(new_chord, 2,2) == "#" or string.sub(new_chord, 2,2) == "b" then
+                    new_chord_bass = string.sub(new_chord, 1,2)
+                end
+            else
+                new_pure_chord = T_ChordTrans(chord_split[1], scale_root.."/"..scale_name, diff)
+                new_chord_bass = T_NoteTrans(chord_split[2], scale_root.."/"..scale_name, diff)
+                new_chord = new_pure_chord.."/"..new_chord_bass
+            end
+            
+            -- delete all note
+            local _, notecnt, _, _ = r.MIDI_CountEvts(midi_take)
+            local st_pos_t = {}
+            local ed_pos_t = {}
+            local pitch_t = {}
+            for idx = 0, notecnt-1 do
+                local _, _, _, startppqpos, endppqpos, _, pitch, _ = r.MIDI_GetNote(midi_item, idx)
+                r.MIDI_DeleteNote(midi_take, idx)
+                table.insert(st_pos_t, startppqpos)
+                table.insert(ed_pos_t, endppqpos)
+                table.insert(pitch_t, pitch)
+            end
+            for idx = 0, notecnt-1 do
+                r.MIDI_InsertNote(
+                    midi_take, false, false,
+                    st_pos_t[idx+1],
+                    ed_pos_t[idx+1],
+                    0, pitch_t[idx]+diff, 90, false
+                )
+            end
+            local new_scale_root = T_ScaleTrans(scale_root, diff)
+            local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing)
+            local new_full_meta = new_scale_root.."/"..scale_name.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",")
+            r.ULT_SetMediaItemNote(chord_item, new_chord)
+            _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
+        end
+    end
 end
 
 function R_Play(notes)

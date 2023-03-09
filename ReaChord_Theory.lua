@@ -325,10 +325,41 @@ function  T_ScaleTrans(scale, diff)
     return newRoot..tag
 end
 
-function  T_ChordTrans(chord, scale, diff)
+function T_NoteTrans(note, scale, diff)
     local newScale = T_ScaleTrans(scale, diff)
     local scaleNotes, _ = T_MakeScale(newScale)
     
+    local noteIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
+    local newNoteM = G_NOTE_LIST_X4[noteIdx+diff+12]
+    
+    local newNoteTable = StringSplit(newNoteM)
+    
+    local newNote = newNoteTable[1]
+    if #newNoteTable > 1 and ListIndex(scaleNotes, newNoteTable[2])>0 then
+        newNote = newNoteTable[2]
+    end
+    return newNote
+end
+
+function T_VoicingTrans(new_chord, notes, diff)
+    local new_pure_notes, _ = T_MakeChord(new_chord)
+    local new_notes = {}
+    for _, note in ipairs(notes) do
+        local noteIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
+        local newNoteM = G_NOTE_LIST_X4[noteIdx+diff+12]
+        
+        local newNoteTable = StringSplit(newNoteM)
+        
+        local newNote = newNoteTable[1]
+        if #newNoteTable > 1 and ListIndex(new_pure_notes, newNoteTable[2])>0 then
+            newNote = newNoteTable[2]
+        end
+        table.insert(new_notes, newNote)
+    end
+    return new_notes
+end
+
+function  T_ChordTrans(chord, scale, diff)
     local root = "X"
     local tagStartIdx = 2
     local b = string.sub(chord, 2, 2)
@@ -341,15 +372,7 @@ function  T_ChordTrans(chord, scale, diff)
     end
     local tag = string.sub(chord, tagStartIdx, string.len(chord))
 
-    local rootIdx = T_NoteIndex(G_NOTE_LIST_X4, root)
-    local newRootM = G_NOTE_LIST_X4[rootIdx+diff+12]
-    
-    local newRootTable = StringSplit(newRootM)
-    
-    local newRoot = newRootTable[1]
-    if #newRootTable > 1 and ListIndex(scaleNotes, newRootTable[2])>0 then
-        newRoot = newRootTable[2]
-    end
+    local newRoot = T_NoteTrans(root, scale, diff)
     return newRoot..tag
 end
 
