@@ -322,7 +322,7 @@ function  T_ScaleTrans(scale, diff)
     local tag = splited[2]
     local rootIdx = T_NoteIndex(G_NOTE_LIST_X4, root)
     local newRoot = G_FLAT_NOTE_LIST_X4[rootIdx+diff+12]
-    return newRoot..tag
+    return newRoot.."/"..tag
 end
 
 function T_NoteTrans(note, scale, diff)
@@ -332,7 +332,7 @@ function T_NoteTrans(note, scale, diff)
     local noteIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
     local newNoteM = G_NOTE_LIST_X4[noteIdx+diff+12]
     
-    local newNoteTable = StringSplit(newNoteM)
+    local newNoteTable = StringSplit(newNoteM, "/")
     
     local newNote = newNoteTable[1]
     if #newNoteTable > 1 and ListIndex(scaleNotes, newNoteTable[2])>0 then
@@ -347,8 +347,7 @@ function T_VoicingTrans(new_chord, notes, diff)
     for _, note in ipairs(notes) do
         local noteIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
         local newNoteM = G_NOTE_LIST_X4[noteIdx+diff+12]
-        
-        local newNoteTable = StringSplit(newNoteM)
+        local newNoteTable = StringSplit(newNoteM, "/")
         
         local newNote = newNoteTable[1]
         if #newNoteTable > 1 and ListIndex(new_pure_notes, newNoteTable[2])>0 then

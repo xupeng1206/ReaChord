@@ -140,30 +140,15 @@ function R_ChordItemTrans(diff)
                 new_chord_bass = T_NoteTrans(chord_split[2], scale_root.."/"..scale_name, diff)
                 new_chord = new_pure_chord.."/"..new_chord_bass
             end
+            local new_scale = T_ScaleTrans(scale_root.."/"..scale_name, diff)
+            local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing, diff)
+            local new_full_meta = new_scale.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",")
             
-            -- delete all note
             local _, notecnt, _, _ = r.MIDI_CountEvts(midi_take)
-            local st_pos_t = {}
-            local ed_pos_t = {}
-            local pitch_t = {}
             for idx = 0, notecnt-1 do
-                local _, _, _, startppqpos, endppqpos, _, pitch, _ = r.MIDI_GetNote(midi_item, idx)
-                r.MIDI_DeleteNote(midi_take, idx)
-                table.insert(st_pos_t, startppqpos)
-                table.insert(ed_pos_t, endppqpos)
-                table.insert(pitch_t, pitch)
+                local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = r.MIDI_GetNote(midi_take, idx)
+                r.MIDI_SetNote(midi_take, idx, selected, muted, startppqpos, endppqpos, chan, pitch+diff, vel, false)
             end
-            for idx = 0, notecnt-1 do
-                r.MIDI_InsertNote(
-                    midi_take, false, false,
-                    st_pos_t[idx+1],
-                    ed_pos_t[idx+1],
-                    0, pitch_t[idx]+diff, 90, false
-                )
-            end
-            local new_scale_root = T_ScaleTrans(scale_root, diff)
-            local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing)
-            local new_full_meta = new_scale_root.."/"..scale_name.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",")
             r.ULT_SetMediaItemNote(chord_item, new_chord)
             _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
         end
