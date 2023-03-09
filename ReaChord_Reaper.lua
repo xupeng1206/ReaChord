@@ -35,6 +35,20 @@ end
 function R_InsertChordItem(chord, meta, notes)
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    -- unselect all item
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
+    for idx = 0, chord_item_count - 1 do
+        local citem = r.GetTrackMediaItem(chord_track, idx)
+        r.SetMediaItemSelected(citem, false)
+    end
+
+    local midi_item_count =  r.CountTrackMediaItems(midi_track)
+    for idx = 0, midi_item_count - 1 do
+        local mitem = r.GetTrackMediaItem(midi_track, idx)
+        r.SetMediaItemSelected(mitem, false)
+    end
+
     local start_position = r.GetCursorPosition()
     local end_position = start_position + GetLengthForOneBar()
     -- chord item
@@ -73,7 +87,7 @@ end
 function R_SelectChordItem()
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
-    local chord_item_count =  r.CountTrackMediaItems(midi_track)
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
     local chord = ""
     local meta = ""
     local notes = {}
@@ -100,7 +114,7 @@ end
 function R_ChordItemTrans(diff)
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
-    local chord_item_count =  r.CountTrackMediaItems(midi_track)
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
         if r.IsMediaItemSelected(chord_item) then
