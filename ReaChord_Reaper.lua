@@ -106,6 +106,7 @@ function R_Play(notes)
     for _, note in ipairs(notes) do
         r.StuffMIDIMessage(keyboard_mode, note_on, note, velocity)
     end
+    
 end
 
 function R_StopPlay()

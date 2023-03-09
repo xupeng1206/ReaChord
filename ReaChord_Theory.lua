@@ -34,7 +34,7 @@ G_CHORD_PATTERNS[7] = "1,3,5,6"
 G_CHORD_NAMES[8] = "Xm6"
 G_CHORD_PATTERNS[8] = "1,b3,5,6"
 G_CHORD_NAMES[9] = "XM7"
-G_CHORD_PATTERNS[9] = "1,b3,5,6"
+G_CHORD_PATTERNS[9] = "1,3,5,7"
 G_CHORD_NAMES[10] = "XmM7"
 G_CHORD_PATTERNS[10] = "1,b3,5,7"
 G_CHORD_NAMES[11] = "X7"
@@ -210,10 +210,12 @@ function T_Parse(root, pattern)
         
         local numNotenum = ""
         local numNote1C = string.sub(numNote, 1, 1)
-        if numNote1C ~= "b" and numNote1C ~= "#" then
-            numNotenum = string.sub(numNote, 1, 1)
+        if numNote1C == "b" then
+            numNotenum = StringSplit(numNote, "b")[2]
+        elseif numNote1C == "#" then
+            numNotenum = StringSplit(numNote, "#")[2]
         else
-            numNotenum = string.sub(numNote, 2, 2)
+            numNotenum = numNote
         end
         local noteLetterIdx = rootLetterIdx + numNotenum - 1
         local noteLetter = G_NOTE_LETTERS_X4[noteLetterIdx]

@@ -173,13 +173,18 @@ local function refreshUIWhenScaleChange()
       table.insert(normal_chords, chord)
     end
   end
-  if #nice_chords>0 then
-    onSelectChordChange(nice_chords[1])
-  else
-    onSelectChordChange(normal_chords[1])
-  end
   current_nice_chord_list = nice_chords
   current_chord_list = ListExtend(nice_chords, normal_chords)
+end
+
+
+local function refreshUIWhenScaleChangeWithSelectChordChange()
+  refreshUIWhenScaleChange()
+  if #current_nice_chord_list>0 then
+    onSelectChordChange(current_nice_chord_list[1])
+  else
+    onSelectChordChange(current_chord_list[1])
+  end
 end
 
 local function onScaleRootChange(val)
@@ -187,7 +192,7 @@ local function onScaleRootChange(val)
   current_scale_root = val
   current_chord_root = val
   current_chord_bass = val
-  refreshUIWhenScaleChange()
+  refreshUIWhenScaleChangeWithSelectChordChange()
 end
 
 local function onScaleNameChange(val)
@@ -195,7 +200,7 @@ local function onScaleNameChange(val)
   current_scale_name = val
   current_chord_root = current_scale_root
   current_chord_bass = current_scale_root
-  refreshUIWhenScaleChange()
+  refreshUIWhenScaleChangeWithSelectChordChange()
 end
 
 local function onOctChange(val)
@@ -237,8 +242,14 @@ local function onChordPadClick(key)
   local key_idx = ListIndex(CHORD_PAD_KEYS, key)
   if current_chord_root == current_chord_bass then
     CHORD_PAD_VALUES[key_idx] = current_chord_name
+    local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
+    local full_meta = meta.."|"..current_chord_bass..","..current_chord_voicing
+    CHORD_PAD_METAS[key_idx] = full_meta
   else
     CHORD_PAD_VALUES[key_idx] = current_chord_name.."/"..current_chord_bass
+    local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
+    local full_meta = meta.."|"..current_chord_bass..","..current_chord_voicing
+    CHORD_PAD_METAS[key_idx] = full_meta
   end
   -- todo meta
 end
@@ -610,47 +621,22 @@ local function loop()
   r.ImGui_PopStyleColor(ctx, 1)
 end
 
--- local current_scale_root = "C"
--- local current_scale_name = "Natural Maj"
--- local current_scale_all_notes = {}
--- local current_scale_nice_notes = {}
--- local current_oct = "0"
-
--- local current_chord_root = "C"
--- local current_chord_name = ""
--- local current_chord_full_name = ""
--- local current_chord_bass = "C"
--- local current_chord_default_voicing = ""
--- local current_chord_voicing = ""
--- local current_chord_pitched = {}
--- local current_chord_list = {}
--- local current_nice_chord_list = {}
-
 local function init()
   local chord, meta, notes = R_SelectChordItem()
+  print(chord.."\n")
+  print(meta.."\n")
   if chord == "" then
-    refreshUIWhenScaleChange()
+    refreshUIWhenScaleChangeWithSelectChordChange()
   else
     local chord_split = StringSplit(chord, "/")
-    local notes_split = StringSplit(notes, ",")
     local meta_split = StringSplit(meta, "/")
+    
+    current_chord_bass = notes[1]
+    current_chord_full_name = chord
     if #chord_split == 1 then
-      current_chord_root = notes_split[0]
-      current_chord_bass = notes_split[0]
-      current_chord_full_name = chord
+      current_chord_root = notes[1]
       current_chord_name = chord
-      local current_chord_default_voicing_table, _ = T_MakeChord(chord)
-      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
-      local current_chord_voicing_table = {}
-      for idx, v in ipairs(notes_split) do
-        if idx>1 then
-          table.insert(current_chord_voicing_table, v)
-        end
-      end
-      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
     else
-      current_chord_bass = notes_split[0]
-      current_chord_full_name = chord
       current_chord_name = chord_split[1]
       local b = string.sub(current_chord_name, 2, 2)
       if b == "#" or b == "b" then
@@ -658,16 +644,21 @@ local function init()
       else
         current_chord_root = string.sub(current_chord_name, 1, 1)
       end
-      local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
-      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
-      local current_chord_voicing_table = {}
-      for idx, v in ipairs(notes_split) do
-        if idx>1 then
-          table.insert(current_chord_voicing_table, v)
-        end
-      end
-      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
     end
+    local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
+    current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
+    local current_chord_voicing_table = {}
+    for idx, v in ipairs(notes) do
+      if idx>1 then
+        table.insert(current_chord_voicing_table, v)
+      end
+    end
+    current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
+    current_chord_pitched, _ = T_NotePitched(notes)
+    current_oct = meta_split[3]
+    current_scale_root = meta_split[1]
+    current_scale_name = meta_split[2]
+    refreshUIWhenScaleChange()
   end
 end
 
