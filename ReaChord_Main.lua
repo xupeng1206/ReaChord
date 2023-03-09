@@ -247,7 +247,8 @@ local function onChordPadClick(key)
     local full_meta = meta.."|"..current_chord_bass..","..current_chord_voicing
     CHORD_PAD_METAS[key_idx] = full_meta
   end
-  -- todo meta
+  r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
+  r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
 end
 
 local function uiReadOnlyColorBtn(text, color, w)
@@ -582,7 +583,141 @@ local function uiChordSelector()
 
 end
 
+local function playChordPad(key_idx)
+  local full_meta = CHORD_PAD_METAS[key_idx]
+  local full_meta_split = StringSplit(full_meta, "|")
+  if #full_meta_split==2 then
+    local notes = full_meta_split[2]
+    local oct = StringSplit(full_meta_split[1], "/")[3]
+    local note_split = StringSplit(notes, ",")
+    local note_midi_index
+    _, note_midi_index = T_NotePitched(note_split)
+    -- R_StopPlay()
+    local midi_notes={}
+    for _, midi_index in ipairs(note_midi_index) do
+      table.insert(midi_notes, midi_index+36+oct*12)
+    end
+    R_Play(midi_notes)
+  end
+end
+
+local function bindKeyBoard()
+  -- W
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_W(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "W")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_W()) then
+    R_StopPlay()
+  end
+
+  -- E
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_E(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "E")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_E()) then
+    R_StopPlay()
+  end
+
+  -- T
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_T(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "T")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_T()) then
+    R_StopPlay()
+  end
+
+  -- Y
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "Y")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_Y()) then
+    R_StopPlay()
+  end
+
+  -- U
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_U(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "U")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_U()) then
+    R_StopPlay()
+  end
+
+  -- A
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_A(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "A")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_A()) then
+    R_StopPlay()
+  end
+  
+  -- S
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_S(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "S")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_S()) then
+    R_StopPlay()
+  end
+
+  -- D
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_D(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "D")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_D()) then
+    R_StopPlay()
+  end
+
+  -- F
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_F(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "F")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_F()) then
+    R_StopPlay()
+  end
+
+  -- G
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_G(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "G")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_G()) then
+    R_StopPlay()
+  end
+
+  -- H
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_H(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "H")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_H()) then
+    R_StopPlay()
+  end
+
+  -- J
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_J(), false) then
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "J")
+    playChordPad(key_idx)
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_J()) then
+    R_StopPlay()
+  end
+
+  -- ESC
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape(), false) then
+    R_StopPlay()
+  end
+end
+
 local function uiMain()
+  bindKeyBoard()
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
     if r.ImGui_BeginTabItem(ctx, ' Main ') then
       uiChordSelector()
@@ -618,6 +753,17 @@ local function loop()
 end
 
 local function init()
+  local pad_values = r.GetExtState("ReaChord", "CHORD_PAD_VALUES")
+  local pad_values_split = StringSplit(pad_values, "~")
+  if #pad_values_split == 12 then
+    CHORD_PAD_VALUES = pad_values_split
+  end
+  local pad_metas = r.GetExtState("ReaChord", "CHORD_PAD_METAS")
+  local pad_metas_split = StringSplit(pad_metas, "~")
+  if #pad_metas_split == 12 then
+    CHORD_PAD_METAS = pad_metas_split
+  end
+
   local chord, meta, notes = R_SelectChordItem()
   if chord == "" then
     refreshUIWhenScaleChangeWithSelectChordChange()
