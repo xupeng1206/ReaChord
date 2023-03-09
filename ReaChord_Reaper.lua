@@ -97,9 +97,12 @@ function R_SelectChordItem()
     return chord, meta, notes
 end
 
+function R_ChordItemTrans(diff)
+end
+
 function R_Play(notes)
     -- virtualKeyboardMode
-    local keyboard_mode = 0  
+    local keyboard_mode = 0
     local channel = 0
     local note_on = 0x90 + channel
     local velocity = 90
@@ -111,7 +114,7 @@ end
 
 function R_StopPlay()
     -- virtualKeyboardMode
-    local keyboard_mode = 0  
+    local keyboard_mode = 0
     local channel = 0
     local note_off = 0x80 + channel
     local velocity = 0
