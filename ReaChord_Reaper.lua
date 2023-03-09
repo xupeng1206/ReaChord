@@ -38,14 +38,6 @@ function R_InsertChordItem(chord, meta, notes)
 
     r.SelectAllMediaItems(0, false)
 
-    -- -- unselect all item
-    -- local selected_item_count = r.CountSelectedMediaItems(0)
-    -- for idx=0, selected_item_count-1 do
-    --     local it = r.GetSelectedMediaItem(0, idx)
-    --     print(it)
-    --     r.SetMediaItemSelected(it, false)
-    -- end
-
     local start_position = r.GetCursorPosition()
     local end_position = start_position + GetLengthForOneBar()
     -- chord item
