@@ -13,6 +13,7 @@ local CHORD_PAD_VALUES = {"A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U",
 local CHORD_PAD_METAS = {"", "", "", "", "", "", "", "", "", "", "", ""}
 
 local OctRange = {"-1", "0", "+1"}
+local aboutImg
 
 local current_scale_root = "C"
 local current_scale_name = "Natural Maj"
@@ -529,11 +530,12 @@ end
 
 local function uiChordMap()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
-
+  
+  local lines = math.ceil(#G_CHORD_NAMES/7)
   local ww = w
-  local hh = h-main_window_h_padding*2-1*7-h_piano*2-7*25-h_chord_pad*2
+  local hh = h-main_window_h_padding*2-1*lines-h_piano*2-7*25-h_chord_pad*2
   -- 7 x 7
-  for i=0,6 do
+  for i=0,lines-1 do
     for j=1,7 do
       local idx = i*7+j
       if idx > #current_chord_list then
@@ -716,6 +718,35 @@ local function bindKeyBoard()
   end
 end
 
+local function uiAbout()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, h_default_space)
+
+  uiColorBtn("If this script is useful for you, you can buy me a coffee.", ColorNormalNote, w, 0)
+      
+  if not r.ImGui_ValidatePtr(aboutImg, 'ImGui_Image*') then
+    aboutImg = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
+  end
+  local my_tex_w, my_tex_h = r.ImGui_Image_GetSize(aboutImg)
+  local uv_min_x, uv_min_y = 0.0, 0.0 -- Top-left
+  local uv_max_x, uv_max_y = 1.0, 1.0 -- Lower-right
+  local tint_col   = 0xFFFFFFFF       -- No tint
+  local border_col = 0xFFFFFF7F       -- 50% opaque white
+
+  while true do
+    if my_tex_w < w and my_tex_h < h-25-main_window_h_padding*2 then
+      break
+    end
+    my_tex_w = my_tex_w/1.1
+    my_tex_h = my_tex_h/1.1
+  end
+
+  r.ImGui_InvisibleButton(ctx, "##about", (w-my_tex_w)/2, my_tex_h, r.ImGui_ButtonFlags_None())
+  r.ImGui_SameLine(ctx)
+  r.ImGui_Image(ctx, aboutImg, my_tex_w, my_tex_h,
+  uv_min_x, uv_min_y, uv_max_x, uv_max_y, tint_col, border_col)
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
 local function uiMain()
   bindKeyBoard()
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
@@ -724,7 +755,7 @@ local function uiMain()
       r.ImGui_EndTabItem(ctx)
     end
     if r.ImGui_BeginTabItem(ctx, ' About ') then
-      uiColorBtn("About", ColorNormalNote, w, h-25-main_window_h_padding*2)
+      uiAbout()
       r.ImGui_EndTabItem(ctx)
     end
     r.ImGui_EndTabBar(ctx)
