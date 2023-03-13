@@ -61,7 +61,7 @@ function R_InsertChordItem(chord, meta, notes)
         )
     end
     local note_str = ListJoinToString(notes, ",")
-    local full_meta = ListJoinToString({meta, note_str}, "|")
+    local full_meta = ListJoinToString({meta, note_str, chord}, "|")
     _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", full_meta, true)
     r.SetMediaItemSelected(midi_item, true)
     -- group item
@@ -142,7 +142,7 @@ function R_ChordItemTrans(diff)
             end
             local new_scale = T_ScaleTrans(scale_root.."/"..scale_name, diff)
             local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing, diff)
-            local new_full_meta = new_scale.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",")
+            local new_full_meta = new_scale.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",").."|"..new_chord
             
             local _, notecnt, _, _ = r.MIDI_CountEvts(midi_take)
             for idx = 0, notecnt-1 do
@@ -154,6 +154,40 @@ function R_ChordItemTrans(diff)
         end
     end
 end
+
+function R_ChordItemRefresh()
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_item_count =  r.CountTrackMediaItems(midi_track)
+    for _ = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, 0)
+        r.DeleteTrackMediaItem(chord_track, chord_item)
+    end
+    for idx = 0, chord_item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local pos = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        local len = r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        local midi_take = r.GetActiveTake(midi_item)
+        local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+        local full_meta_split = StringSplit(full_meta, "|")
+        local chord = full_meta_split[3]
+
+        local chord_item = r.AddMediaItemToTrack(chord_track)
+        r.SetMediaItemPosition(chord_item, pos, false)
+        r.SetMediaItemLength(chord_item, len, true)
+        r.ULT_SetMediaItemNote(chord_item, chord)
+        r.SetMediaItemSelected(chord_item, true)
+        
+        r.SetMediaItemSelected(midi_item, true)
+        -- group item
+        r.Main_OnCommand(40032, 0)
+        -- unselect
+        r.SetMediaItemSelected(chord_item, false)
+        r.SetMediaItemSelected(midi_item, false)
+
+    end
+end
+
 
 function R_Play(notes)
     -- virtualKeyboardMode
