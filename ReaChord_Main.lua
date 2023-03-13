@@ -74,7 +74,7 @@ local function onFullChordNameChange()
   if current_chord_root == current_chord_bass then
     current_chord_full_name = current_chord_name
   else
-    current_chord_full_name = current_chord_full_name.."/"..current_chord_bass
+    current_chord_full_name = current_chord_name.."/"..current_chord_bass
   end
   local voicing = StringSplit(current_chord_voicing, ",")
   local notes = ListExtend({current_chord_bass}, voicing)
@@ -96,7 +96,7 @@ end
 
 local function onSelectChordChange(val)
   current_chord_name = val
-  
+
   local default_voicing = {}
   default_voicing, _ = T_MakeChord(current_chord_name)
   current_chord_default_voicing = ListJoinToString(default_voicing, ",")
