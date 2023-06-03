@@ -253,7 +253,7 @@ local function onInsertClick()
   R_InsertChordItem(current_chord_full_name, meta, notes)
 end
 
-local function onChordPadClick(key)
+local function onChordPadAssign(key)
   local key_idx = ListIndex(CHORD_PAD_KEYS, key)
   if current_chord_root == current_chord_bass then
     CHORD_PAD_VALUES[key_idx] = current_chord_name
@@ -269,6 +269,52 @@ local function onChordPadClick(key)
   r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
   r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
 end
+
+local function chordMapRefresh(key_idx)
+  local chord = CHORD_PAD_VALUES[key_idx]
+  local full_meta = CHORD_PAD_METAS[key_idx]
+  local full_meta_split = StringSplit(full_meta, "|")
+
+  local meta = full_meta_split[1]
+  local notes = StringSplit(full_meta_split[2], ",")
+  
+  if chord == "" then
+    refreshUIWhenScaleChangeWithSelectChordChange()
+  else
+    local chord_split = StringSplit(chord, "/")
+    local meta_split = StringSplit(meta, "/")
+    
+    current_chord_bass = notes[1]
+    current_chord_full_name = chord
+    if #chord_split == 1 then
+      current_chord_root = notes[1]
+      current_chord_name = chord
+    else
+      current_chord_name = chord_split[1]
+      local b = string.sub(current_chord_name, 2, 2)
+      if b == "#" or b == "b" then
+        current_chord_root = string.sub(current_chord_name, 1, 2)
+      else
+        current_chord_root = string.sub(current_chord_name, 1, 1)
+      end
+    end
+    local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
+    current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
+    local current_chord_voicing_table = {}
+    for idx, v in ipairs(notes) do
+      if idx>1 then
+        table.insert(current_chord_voicing_table, v)
+      end
+    end
+    current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
+    current_chord_pitched, _ = T_NotePitched(notes)
+    current_oct = meta_split[3]
+    current_scale_root = meta_split[1]
+    current_scale_name = meta_split[2]
+    refreshUIWhenScaleChange()
+  end
+end
+
 
 local function uiReadOnlyColorBtn(text, color, w)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
@@ -351,11 +397,12 @@ local function uiChordPad()
           local key_idx = ListIndex(CHORD_PAD_KEYS, key)
           R_StopPlay()
           playChordPad(key_idx)
+          chordMapRefresh(key_idx)
         end
         if r.ImGui_BeginDragDropTarget(ctx) then
           rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
           if rev then
-            onChordPadClick(key)
+            onChordPadAssign(key)
           end
           r.ImGui_EndDragDropTarget(ctx)
         end
@@ -366,11 +413,12 @@ local function uiChordPad()
             local key_idx = ListIndex(CHORD_PAD_KEYS, key)
             R_StopPlay()
             playChordPad(key_idx)
+            chordMapRefresh(key_idx)
           end
           if r.ImGui_BeginDragDropTarget(ctx) then
             rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
             if rev then
-              onChordPadClick(key)
+              onChordPadAssign(key)
             end
             r.ImGui_EndDragDropTarget(ctx)
           end
@@ -379,11 +427,12 @@ local function uiChordPad()
             local key_idx = ListIndex(CHORD_PAD_KEYS, key)
             R_StopPlay()
             playChordPad(key_idx)
+            chordMapRefresh(key_idx)
           end
           if r.ImGui_BeginDragDropTarget(ctx) then
             rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
             if rev then
-              onChordPadClick(key)
+              onChordPadAssign(key)
             end
             r.ImGui_EndDragDropTarget(ctx)
           end
@@ -408,11 +457,12 @@ local function uiChordPad()
         local key_idx = ListIndex(CHORD_PAD_KEYS, key)
         R_StopPlay()
         playChordPad(key_idx)
+        chordMapRefresh(key_idx)
       end
       if r.ImGui_BeginDragDropTarget(ctx) then
         rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
         if rev then
-          onChordPadClick(key)
+          onChordPadAssign(key)
         end
         r.ImGui_EndDragDropTarget(ctx)
       end
@@ -423,11 +473,12 @@ local function uiChordPad()
           local key_idx = ListIndex(CHORD_PAD_KEYS, key)
           R_StopPlay()
           playChordPad(key_idx)
+          chordMapRefresh(key_idx)
         end
         if r.ImGui_BeginDragDropTarget(ctx) then
           rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
           if rev then
-            onChordPadClick(key)
+            onChordPadAssign(key)
           end
           r.ImGui_EndDragDropTarget(ctx)
         end
@@ -436,11 +487,12 @@ local function uiChordPad()
           local key_idx = ListIndex(CHORD_PAD_KEYS, key)
           R_StopPlay()
           playChordPad(key_idx)
+          chordMapRefresh(key_idx)
         end
         if r.ImGui_BeginDragDropTarget(ctx) then
           rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
           if rev then
-            onChordPadClick(key)
+            onChordPadAssign(key)
           end
           r.ImGui_EndDragDropTarget(ctx)
         end
@@ -673,6 +725,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "W")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- E
@@ -680,6 +733,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "E")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- T
@@ -687,6 +741,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "T")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- Y
@@ -694,6 +749,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "Y")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- U
@@ -701,6 +757,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "U")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- A
@@ -708,6 +765,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "A")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
   
   -- S
@@ -715,6 +773,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "S")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- D
@@ -722,6 +781,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "D")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- F
@@ -729,6 +789,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "F")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- G
@@ -736,6 +797,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "G")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- H
@@ -743,6 +805,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "H")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
 
   -- J
@@ -750,6 +813,7 @@ local function bindKeyBoard()
     local key_idx = ListIndex(CHORD_PAD_KEYS, "J")
     R_StopPlay()
     playChordPad(key_idx)
+    chordMapRefresh(key_idx)
   end
   -- ESC
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape(), false) then
