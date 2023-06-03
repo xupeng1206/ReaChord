@@ -13,6 +13,8 @@ local CHORD_PAD_VALUES = {"[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]"
 local CHORD_PAD_METAS = {"", "", "", "", "", "", "", "", "", "", "", ""}
 local CHORD_PAD_SELECTED = ""
 
+local CHORD_INSERT_MODE = "off"
+
 local OctRange = {"-1", "0", "+1"}
 local AboutImg
 
@@ -694,6 +696,9 @@ local function uiChordMap()
         if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
           PlayPiano()
+          if CHORD_INSERT_MODE == "on" then
+            onInsertClick()
+          end
         end
         if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
           -- Set payload to carry the index of our item (could be anything)
@@ -708,11 +713,17 @@ local function uiChordMap()
         if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
           PlayPiano()
+          if CHORD_INSERT_MODE == "on" then
+            onInsertClick()
+          end
         end
       else 
         if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
           PlayPiano()
+          if CHORD_INSERT_MODE == "on" then
+            onInsertClick()
+          end
         end
       end
     end
@@ -850,6 +861,13 @@ local function bindKeyBoard()
   -- ESC
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape(), false) then
     R_StopPlay()
+  end
+  -- LEFT CTRL
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_LeftCtrl(), false) then
+    CHORD_INSERT_MODE = "on"
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_LeftCtrl()) then
+    CHORD_INSERT_MODE = "off"
   end
 end
 
