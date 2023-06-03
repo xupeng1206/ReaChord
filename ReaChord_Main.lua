@@ -274,44 +274,45 @@ local function chordMapRefresh(key_idx)
   local chord = CHORD_PAD_VALUES[key_idx]
   local full_meta = CHORD_PAD_METAS[key_idx]
   local full_meta_split = StringSplit(full_meta, "|")
-
-  local meta = full_meta_split[1]
-  local notes = StringSplit(full_meta_split[2], ",")
-  
-  if chord == "" then
-    refreshUIWhenScaleChangeWithSelectChordChange()
-  else
-    local chord_split = StringSplit(chord, "/")
-    local meta_split = StringSplit(meta, "/")
+  if #full_meta_split==2 then
+    local meta = full_meta_split[1]
+    local notes = StringSplit(full_meta_split[2], ",")
     
-    current_chord_bass = notes[1]
-    current_chord_full_name = chord
-    if #chord_split == 1 then
-      current_chord_root = notes[1]
-      current_chord_name = chord
+    if chord == "" then
+      refreshUIWhenScaleChangeWithSelectChordChange()
     else
-      current_chord_name = chord_split[1]
-      local b = string.sub(current_chord_name, 2, 2)
-      if b == "#" or b == "b" then
-        current_chord_root = string.sub(current_chord_name, 1, 2)
+      local chord_split = StringSplit(chord, "/")
+      local meta_split = StringSplit(meta, "/")
+      
+      current_chord_bass = notes[1]
+      current_chord_full_name = chord
+      if #chord_split == 1 then
+        current_chord_root = notes[1]
+        current_chord_name = chord
       else
-        current_chord_root = string.sub(current_chord_name, 1, 1)
+        current_chord_name = chord_split[1]
+        local b = string.sub(current_chord_name, 2, 2)
+        if b == "#" or b == "b" then
+          current_chord_root = string.sub(current_chord_name, 1, 2)
+        else
+          current_chord_root = string.sub(current_chord_name, 1, 1)
+        end
       end
-    end
-    local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
-    current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
-    local current_chord_voicing_table = {}
-    for idx, v in ipairs(notes) do
-      if idx>1 then
-        table.insert(current_chord_voicing_table, v)
+      local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
+      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
+      local current_chord_voicing_table = {}
+      for idx, v in ipairs(notes) do
+        if idx>1 then
+          table.insert(current_chord_voicing_table, v)
+        end
       end
+      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
+      current_chord_pitched, _ = T_NotePitched(notes)
+      current_oct = meta_split[3]
+      current_scale_root = meta_split[1]
+      current_scale_name = meta_split[2]
+      refreshUIWhenScaleChange()
     end
-    current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
-    current_chord_pitched, _ = T_NotePitched(notes)
-    current_oct = meta_split[3]
-    current_scale_root = meta_split[1]
-    current_scale_name = meta_split[2]
-    refreshUIWhenScaleChange()
   end
 end
 
