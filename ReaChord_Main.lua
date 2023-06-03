@@ -51,8 +51,8 @@ local w_piano_half_key
 local h_piano = 30
 local w_default_space = 4
 local h_default_space = 4
-local w_chord_pad_space = 2
-local h_chord_pad_space = 2
+local w_chord_pad_space = 4
+local h_chord_pad_space = 4
 local w_chord_pad
 local w_chord_pad_half
 local h_chord_pad = 40
@@ -66,8 +66,8 @@ local function refreshWindowSize()
   end
   w_piano_key = w/28-2
   w_piano_half_key = w/56-1
-  w_chord_pad = w/7-2
-  w_chord_pad_half = w/14-1
+  w_chord_pad = w/7-4
+  w_chord_pad_half = w/14-2
 end
 
 local function onFullChordNameChange()
@@ -93,6 +93,24 @@ local function PlayPiano()
   end
   R_Play(midi_notes)
 end
+
+local function playChordPad(key_idx)
+  local full_meta = CHORD_PAD_METAS[key_idx]
+  local full_meta_split = StringSplit(full_meta, "|")
+  if #full_meta_split==2 then
+    local notes = full_meta_split[2]
+    local oct = StringSplit(full_meta_split[1], "/")[3]
+    local note_split = StringSplit(notes, ",")
+    local note_midi_index
+    _, note_midi_index = T_NotePitched(note_split)
+    local midi_notes={}
+    for _, midi_index in ipairs(note_midi_index) do
+      table.insert(midi_notes, midi_index+36+oct*12)
+    end
+    R_Play(midi_notes)
+  end
+end
+
 
 local function onSelectChordChange(val)
   current_chord_name = val
@@ -329,17 +347,45 @@ local function uiChordPad()
       local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
       if chord == key then
         if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
-          onChordPadClick(key)
+          -- click action
+          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+          R_StopPlay()
+          playChordPad(key_idx)
+        end
+        if r.ImGui_BeginDragDropTarget(ctx) then
+          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+          if rev then
+            onChordPadClick(key)
+          end
+          r.ImGui_EndDragDropTarget(ctx)
         end
       else
         local pure_chord = StringSplit(chord, "/")[1]
         if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
           if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-            onChordPadClick(key)
+            local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+            R_StopPlay()
+            playChordPad(key_idx)
+          end
+          if r.ImGui_BeginDragDropTarget(ctx) then
+            rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+            if rev then
+              onChordPadClick(key)
+            end
+            r.ImGui_EndDragDropTarget(ctx)
           end
         else
           if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
-            onChordPadClick(key)
+            local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+            R_StopPlay()
+            playChordPad(key_idx)
+          end
+          if r.ImGui_BeginDragDropTarget(ctx) then
+            rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+            if rev then
+              onChordPadClick(key)
+            end
+            r.ImGui_EndDragDropTarget(ctx)
           end
         end
       end
@@ -359,17 +405,44 @@ local function uiChordPad()
     local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
     if chord == key then
       if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
-        onChordPadClick(key)
+        local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+        R_StopPlay()
+        playChordPad(key_idx)
+      end
+      if r.ImGui_BeginDragDropTarget(ctx) then
+        rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+        if rev then
+          onChordPadClick(key)
+        end
+        r.ImGui_EndDragDropTarget(ctx)
       end
     else
       local pure_chord = StringSplit(chord, "/")[1]
       if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
         if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-          onChordPadClick(key)
+          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+          R_StopPlay()
+          playChordPad(key_idx)
+        end
+        if r.ImGui_BeginDragDropTarget(ctx) then
+          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+          if rev then
+            onChordPadClick(key)
+          end
+          r.ImGui_EndDragDropTarget(ctx)
         end
       else
         if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
-          onChordPadClick(key)
+          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+          R_StopPlay()
+          playChordPad(key_idx)
+        end
+        if r.ImGui_BeginDragDropTarget(ctx) then
+          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+          if rev then
+            onChordPadClick(key)
+          end
+          r.ImGui_EndDragDropTarget(ctx)
         end
       end
     end
@@ -550,6 +623,15 @@ local function uiChordMap()
           onSelectChordChange(chord)
           PlayPiano()
         end
+        if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
+          -- Set payload to carry the index of our item (could be anything)
+          r.ImGui_SetDragDropPayload(ctx, 'DND_DEMO_CELL', tostring(idx))
+
+          -- Display preview (could be anything, e.g. when dragging an image we could decide to display
+          -- the filename and a small preview of the image, etc.)
+          r.ImGui_Text(ctx, ('Chord: %s'):format(current_chord_full_name))
+          r.ImGui_EndDragDropSource(ctx)
+        end
       elseif ListIndex(current_nice_chord_list, chord)>0 then
         if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
@@ -585,133 +667,90 @@ local function uiChordSelector()
 
 end
 
-local function playChordPad(key_idx)
-  local full_meta = CHORD_PAD_METAS[key_idx]
-  local full_meta_split = StringSplit(full_meta, "|")
-  if #full_meta_split==2 then
-    local notes = full_meta_split[2]
-    local oct = StringSplit(full_meta_split[1], "/")[3]
-    local note_split = StringSplit(notes, ",")
-    local note_midi_index
-    _, note_midi_index = T_NotePitched(note_split)
-    -- R_StopPlay()
-    local midi_notes={}
-    for _, midi_index in ipairs(note_midi_index) do
-      table.insert(midi_notes, midi_index+36+oct*12)
-    end
-    R_Play(midi_notes)
-  end
-end
-
 local function bindKeyBoard()
   -- W
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_W(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "W")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_W()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- E
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_E(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "E")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_E()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- T
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_T(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "T")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_T()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- Y
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "Y")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_Y()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- U
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_U(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "U")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_U()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- A
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_A(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "A")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_A()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
   
   -- S
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_S(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "S")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_S()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- D
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_D(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "D")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_D()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- F
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_F(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "F")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_F()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- G
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_G(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "G")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_G()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- H
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_H(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "H")
-    playChordPad(key_idx)
-  end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_H()) then
     R_StopPlay()
+    playChordPad(key_idx)
   end
 
   -- J
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_J(), false) then
     local key_idx = ListIndex(CHORD_PAD_KEYS, "J")
+    R_StopPlay()
     playChordPad(key_idx)
   end
-  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_J()) then
-    R_StopPlay()
-  end
-
   -- ESC
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape(), false) then
     R_StopPlay()
@@ -768,7 +807,13 @@ local function loop()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true)
+
+  local window_flags = r.ImGui_WindowFlags_None()
+  window_flags = window_flags | r.ImGui_WindowFlags_NoScrollbar()
+  window_flags = window_flags | r.ImGui_WindowFlags_NoNav()
+  window_flags = window_flags | r.ImGui_WindowFlags_NoDocking()
+
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true, window_flags)
   if visible then
     refreshWindowSize()
     uiMain()
