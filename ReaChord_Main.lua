@@ -8,28 +8,29 @@ local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable(
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
 r.ImGui_Attach(ctx, G_FONT)
 
-local CHORD_PAD_KEYS = {"A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J"}
-local CHORD_PAD_VALUES = {"A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J"}
+local CHORD_PAD_KEYS = {"[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]"}
+local CHORD_PAD_VALUES = {"[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]"}
 local CHORD_PAD_METAS = {"", "", "", "", "", "", "", "", "", "", "", ""}
+local CHORD_PAD_SELECTED = ""
 
 local OctRange = {"-1", "0", "+1"}
-local aboutImg
+local AboutImg
 
-local current_scale_root = "C"
-local current_scale_name = "Natural Maj"
-local current_scale_all_notes = {}
-local current_scale_nice_notes = {}
-local current_oct = "0"
+local CURRENT_SCALE_ROOT = "C"
+local CURRENT_SCALE_NAME = "Natural Maj"
+local CURRENT_SCALE_ALL_NOTES = {}
+local CURRENT_SCALE_NICE_NOTES = {}
+local CURRENT_OCT = "0"
 
-local current_chord_root = "C"
-local current_chord_name = ""
-local current_chord_full_name = ""
-local current_chord_bass = "C"
-local current_chord_default_voicing = ""
-local current_chord_voicing = ""
-local current_chord_pitched = {}
-local current_chord_list = {}
-local current_nice_chord_list = {}
+local CURRENT_CHORD_ROOT = "C"
+local CURRENT_CHORD_NAME = ""
+local CURRENT_CHORD_FULL_NAME = ""
+local CURRENT_CHORD_BASS = "C"
+local CURRENT_CHORD_DEFAULT_VOICING = ""
+local CURRENT_CHORD_VOICING = ""
+local CURRENT_CHORD_PITCHED = {}
+local CURRENT_CHORD_LIST = {}
+local CURRENT_NICE_CHORD_LIST = {}
 
 local MainBgColor = 0xEEE9E9FF
 local ColorWhite = 0xFFFFFFFF
@@ -71,25 +72,25 @@ local function refreshWindowSize()
 end
 
 local function onFullChordNameChange()
-  if current_chord_root == current_chord_bass then
-    current_chord_full_name = current_chord_name
+  if CURRENT_CHORD_ROOT == CURRENT_CHORD_BASS then
+    CURRENT_CHORD_FULL_NAME = CURRENT_CHORD_NAME
   else
-    current_chord_full_name = current_chord_name.."/"..current_chord_bass
+    CURRENT_CHORD_FULL_NAME = CURRENT_CHORD_NAME.."/"..CURRENT_CHORD_BASS
   end
-  local voicing = StringSplit(current_chord_voicing, ",")
-  local notes = ListExtend({current_chord_bass}, voicing)
-  current_chord_pitched, _ = T_NotePitched(notes)
+  local voicing = StringSplit(CURRENT_CHORD_VOICING, ",")
+  local notes = ListExtend({CURRENT_CHORD_BASS}, voicing)
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
 end
 
 local function PlayPiano()
-  local voicing = StringSplit(current_chord_voicing, ",")
-  local notes = ListExtend({current_chord_bass}, voicing)
+  local voicing = StringSplit(CURRENT_CHORD_VOICING, ",")
+  local notes = ListExtend({CURRENT_CHORD_BASS}, voicing)
   local note_midi_index
   _, note_midi_index = T_NotePitched(notes)
   R_StopPlay()
   local midi_notes={}
   for _, midi_index in ipairs(note_midi_index) do
-    table.insert(midi_notes, midi_index+36+current_oct*12)
+    table.insert(midi_notes, midi_index+36+CURRENT_OCT*12)
   end
   R_Play(midi_notes)
 end
@@ -113,22 +114,22 @@ end
 
 
 local function onSelectChordChange(val)
-  current_chord_name = val
+  CURRENT_CHORD_NAME = val
 
   local default_voicing = {}
-  default_voicing, _ = T_MakeChord(current_chord_name)
-  current_chord_default_voicing = ListJoinToString(default_voicing, ",")
-  current_chord_voicing = current_chord_default_voicing
+  default_voicing, _ = T_MakeChord(CURRENT_CHORD_NAME)
+  CURRENT_CHORD_DEFAULT_VOICING = ListJoinToString(default_voicing, ",")
+  CURRENT_CHORD_VOICING = CURRENT_CHORD_DEFAULT_VOICING
   onFullChordNameChange()
 end
 
 local function onVoicingChange(val)
   local new_voicing = StringSplit(val, ",")
-  local default_voicing = StringSplit(current_chord_default_voicing, ",")
+  local default_voicing = StringSplit(CURRENT_CHORD_DEFAULT_VOICING, ",")
   if AListAllInBList(new_voicing, default_voicing) then
-    current_chord_voicing = val
-    local notes = ListExtend({current_chord_bass}, new_voicing)
-  current_chord_pitched, _ = T_NotePitched(notes)
+    CURRENT_CHORD_VOICING = val
+    local notes = ListExtend({CURRENT_CHORD_BASS}, new_voicing)
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
   end
 end
 
@@ -136,12 +137,12 @@ local function refreshUIWhenChordRootChange()
   local nice_chords = {}
   local normal_chords = {}
   for _, chord_tag in ipairs(G_CHORD_NAMES) do
-    local chord = current_chord_root
+    local chord = CURRENT_CHORD_ROOT
     local chord_tag_split = StringSplit(chord_tag, "X")
     if #chord_tag_split > 1 then
-      chord = current_chord_root..chord_tag_split[2]
+      chord = CURRENT_CHORD_ROOT..chord_tag_split[2]
     end
-    if T_ChordInScale(chord, current_scale_root.."/"..current_scale_name)  then
+    if T_ChordInScale(chord, CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME)  then
       table.insert(nice_chords, chord)
     else
       table.insert(normal_chords, chord)
@@ -154,14 +155,14 @@ local function refreshUIWhenChordRootChange()
     onSelectChordChange(normal_chords[1])
     PlayPiano()
   end
-  current_nice_chord_list = nice_chords
-  current_chord_list = ListExtend(nice_chords, normal_chords)
+  CURRENT_NICE_CHORD_LIST = nice_chords
+  CURRENT_CHORD_LIST = ListExtend(nice_chords, normal_chords)
 end
 
 local function refreshUIWhenScaleChange()
   local notes = {}
-  current_scale_nice_notes, _ = T_MakeScale(current_scale_root.."/"..current_scale_name)
-  local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, current_scale_root)
+  CURRENT_SCALE_NICE_NOTES, _ = T_MakeScale(CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME)
+  local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, CURRENT_SCALE_ROOT)
 
   for i = scale_root_index_start, scale_root_index_start+11 do
     local note = G_NOTE_LIST_X4[i]
@@ -171,7 +172,7 @@ local function refreshUIWhenScaleChange()
     else
       local b_note = note_split[1]
       local s_note = note_split[2]
-      if ListIndex(current_scale_nice_notes, s_note) > 0 then
+      if ListIndex(CURRENT_SCALE_NICE_NOTES, s_note) > 0 then
         table.insert(notes, s_note)
       else
         table.insert(notes, b_note)
@@ -179,62 +180,64 @@ local function refreshUIWhenScaleChange()
     end
   end
 
-  current_scale_all_notes = notes
+  CURRENT_SCALE_ALL_NOTES = notes
 
   local nice_chords = {}
   local normal_chords = {}
   for _, chord_tag in ipairs(G_CHORD_NAMES) do
-    local chord = current_chord_root
+    local chord = CURRENT_CHORD_ROOT
     local chord_tag_split = StringSplit(chord_tag, "X")
     if #chord_tag_split > 1 then
-      chord = current_chord_root..chord_tag_split[2]
+      chord = CURRENT_CHORD_ROOT..chord_tag_split[2]
     end
-    if T_ChordInScale(chord, current_scale_root.."/"..current_scale_name)  then
+    if T_ChordInScale(chord, CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME)  then
       table.insert(nice_chords, chord)
     else
       table.insert(normal_chords, chord)
     end
   end
-  current_nice_chord_list = nice_chords
-  current_chord_list = ListExtend(nice_chords, normal_chords)
+  CURRENT_NICE_CHORD_LIST = nice_chords
+  CURRENT_CHORD_LIST = ListExtend(nice_chords, normal_chords)
 end
 
 
 local function refreshUIWhenScaleChangeWithSelectChordChange()
   refreshUIWhenScaleChange()
-  if #current_nice_chord_list>0 then
-    onSelectChordChange(current_nice_chord_list[1])
+  if #CURRENT_NICE_CHORD_LIST>0 then
+    onSelectChordChange(CURRENT_NICE_CHORD_LIST[1])
   else
-    onSelectChordChange(current_chord_list[1])
+    onSelectChordChange(CURRENT_CHORD_LIST[1])
   end
 end
 
 local function onScaleRootChange(val)
-  current_scale_root = val
-  current_chord_root = val
-  current_chord_bass = val
+  CURRENT_SCALE_ROOT = val
+  CURRENT_CHORD_ROOT = val
+  CURRENT_CHORD_BASS = val
   refreshUIWhenScaleChangeWithSelectChordChange()
+  r.SetExtState("ReaChord", "ScaleRoot", val, false)
 end
 
 local function onScaleNameChange(val)
-  current_scale_name = val
-  current_chord_root = current_scale_root
-  current_chord_bass = current_scale_root
+  CURRENT_SCALE_NAME = val
+  CURRENT_CHORD_ROOT = CURRENT_SCALE_ROOT
+  CURRENT_CHORD_BASS = CURRENT_SCALE_ROOT
   refreshUIWhenScaleChangeWithSelectChordChange()
+  r.SetExtState("ReaChord", "ScaleName", val, false)
 end
 
 local function onOctChange(val)
-  current_oct = val
+  CURRENT_OCT = val
 end
 
 local function onChordRootChange(val)
-  current_chord_root = val
-  current_chord_bass = val
+  CURRENT_CHORD_ROOT = val
+  CURRENT_CHORD_BASS = val
   refreshUIWhenChordRootChange()
 end
 
 local function onChordBassChange(val)
-  current_chord_bass = val
+  CURRENT_CHORD_BASS = val
   onFullChordNameChange()
   PlayPiano()
 end
@@ -248,23 +251,72 @@ local function onStopClick ()
 end
 
 local function onInsertClick()
-  local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
-  local notes = ListExtend({current_chord_bass}, StringSplit(current_chord_voicing, ","))
-  R_InsertChordItem(current_chord_full_name, meta, notes)
+  local meta = CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME.."/"..CURRENT_OCT
+  local notes = ListExtend({CURRENT_CHORD_BASS}, StringSplit(CURRENT_CHORD_VOICING, ","))
+  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes)
 end
 
 local function onChordPadAssign(key)
   local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-  if current_chord_root == current_chord_bass then
-    CHORD_PAD_VALUES[key_idx] = current_chord_name
-    local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
-    local full_meta = meta.."|"..current_chord_bass..","..current_chord_voicing
+  if CURRENT_CHORD_ROOT == CURRENT_CHORD_BASS then
+    CHORD_PAD_VALUES[key_idx] = CURRENT_CHORD_NAME
+    local meta = CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME.."/"..CURRENT_OCT
+    local full_meta = meta.."|"..CURRENT_CHORD_BASS..","..CURRENT_CHORD_VOICING
     CHORD_PAD_METAS[key_idx] = full_meta
   else
-    CHORD_PAD_VALUES[key_idx] = current_chord_name.."/"..current_chord_bass
-    local meta = current_scale_root.."/"..current_scale_name.."/"..current_oct
-    local full_meta = meta.."|"..current_chord_bass..","..current_chord_voicing
+    CHORD_PAD_VALUES[key_idx] = CURRENT_CHORD_NAME.."/"..CURRENT_CHORD_BASS
+    local meta = CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME.."/"..CURRENT_OCT
+    local full_meta = meta.."|"..CURRENT_CHORD_BASS..","..CURRENT_CHORD_VOICING
     CHORD_PAD_METAS[key_idx] = full_meta
+  end
+  r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
+  r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
+end
+
+local function initChordPads()
+  local notes = {}
+  local local_scale_nice_notes, _ = T_MakeScale(CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME)
+  local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, CURRENT_SCALE_ROOT)
+
+  for i = scale_root_index_start, scale_root_index_start+11 do
+    local note = G_NOTE_LIST_X4[i]
+    local note_split = StringSplit(note, "/")
+    if #note_split == 1 then
+      table.insert(notes, note)
+    else
+      local b_note = note_split[1]
+      local s_note = note_split[2]
+      if ListIndex(local_scale_nice_notes, s_note) > 0 then
+        table.insert(notes, s_note)
+      else
+        table.insert(notes, b_note)
+      end
+    end
+  end
+
+  for idx, note in ipairs(notes) do
+    local nice_chords = {}
+    local normal_chords = {}
+    for _, chord_tag in ipairs(G_CHORD_NAMES) do
+      local chord = note
+      local chord_tag_split = StringSplit(chord_tag, "X")
+      if #chord_tag_split > 1 then
+        chord = note..chord_tag_split[2]
+      end
+      if T_ChordInScale(chord, CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME)  then
+        table.insert(nice_chords, chord)
+      else
+        table.insert(normal_chords, chord)
+      end
+    end
+    local local_chord_list = ListExtend(nice_chords, normal_chords)
+    local ceil_chord = local_chord_list[1]
+    local ceil_voicing, _ = T_MakeChord(ceil_chord)
+    local ceil_voicing_str = ListJoinToString(ceil_voicing, ",")
+    local ceil_meta = CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME.."/"..CURRENT_OCT
+    local ceil_full_meta = ceil_meta.."|"..note..","..ceil_voicing_str
+    CHORD_PAD_VALUES[idx] = ceil_chord
+    CHORD_PAD_METAS[idx] = ceil_full_meta
   end
   r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
   r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
@@ -284,33 +336,33 @@ local function chordMapRefresh(key_idx)
       local chord_split = StringSplit(chord, "/")
       local meta_split = StringSplit(meta, "/")
       
-      current_chord_bass = notes[1]
-      current_chord_full_name = chord
+      CURRENT_CHORD_BASS = notes[1]
+      CURRENT_CHORD_FULL_NAME = chord
       if #chord_split == 1 then
-        current_chord_root = notes[1]
-        current_chord_name = chord
+        CURRENT_CHORD_ROOT = notes[1]
+        CURRENT_CHORD_NAME = chord
       else
-        current_chord_name = chord_split[1]
-        local b = string.sub(current_chord_name, 2, 2)
+        CURRENT_CHORD_NAME = chord_split[1]
+        local b = string.sub(CURRENT_CHORD_NAME, 2, 2)
         if b == "#" or b == "b" then
-          current_chord_root = string.sub(current_chord_name, 1, 2)
+          CURRENT_CHORD_ROOT = string.sub(CURRENT_CHORD_NAME, 1, 2)
         else
-          current_chord_root = string.sub(current_chord_name, 1, 1)
+          CURRENT_CHORD_ROOT = string.sub(CURRENT_CHORD_NAME, 1, 1)
         end
       end
-      local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
-      current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
-      local current_chord_voicing_table = {}
+      local CURRENT_CHORD_DEFAULT_VOICING_table, _ = T_MakeChord(CURRENT_CHORD_NAME)
+      CURRENT_CHORD_DEFAULT_VOICING = ListJoinToString(CURRENT_CHORD_DEFAULT_VOICING_table, ",")
+      local CURRENT_CHORD_VOICING_table = {}
       for idx, v in ipairs(notes) do
         if idx>1 then
-          table.insert(current_chord_voicing_table, v)
+          table.insert(CURRENT_CHORD_VOICING_table, v)
         end
       end
-      current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
-      current_chord_pitched, _ = T_NotePitched(notes)
-      current_oct = meta_split[3]
-      current_scale_root = meta_split[1]
-      current_scale_name = meta_split[2]
+      CURRENT_CHORD_VOICING = ListJoinToString(CURRENT_CHORD_VOICING_table, ",")
+      CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+      CURRENT_OCT = meta_split[3]
+      CURRENT_SCALE_ROOT = meta_split[1]
+      CURRENT_SCALE_NAME = meta_split[2]
       refreshUIWhenScaleChange()
     end
   end
@@ -350,7 +402,7 @@ local function uiPiano()
       r.ImGui_InvisibleButton(ctx, "##", w_piano_key, h_piano, r.ImGui_ButtonFlags_None())
     else
       local note_split = StringSplit(note, "/")
-      if ListIndex(current_chord_pitched, note_split[1]) > 0 or ListIndex(current_chord_pitched, note_split[2]) > 0 then
+      if ListIndex(CURRENT_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_CHORD_PITCHED, note_split[2]) > 0 then
         r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
       else
         r.ImGui_ColorButton(ctx, "##", ColorBlack,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
@@ -370,7 +422,7 @@ local function uiPiano()
     if idx >1 then
       r.ImGui_SameLine(ctx)
     end
-    if ListIndex(current_chord_pitched, note) > 0 then
+    if ListIndex(CURRENT_CHORD_PITCHED, note) > 0 then
       r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
     else
       r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
@@ -385,76 +437,29 @@ local function uiChordPad()
   r.ImGui_InvisibleButton(ctx, "##", w_chord_pad_half, h_chord_pad, r.ImGui_ButtonFlags_None())
   -- black
   for idx, key in ipairs({
-    "W","E","-","T","Y","U"
+    "[W]","[E]","-","[T]","[Y]","[U]"
   }) do
     r.ImGui_SameLine(ctx)
     if key == "-" then
       r.ImGui_InvisibleButton(ctx, "##", w_chord_pad, h_chord_pad, r.ImGui_ButtonFlags_None())
     else
       local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
+      local color = ColorChordPadDefault
       if chord == key then
-        if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
-          -- click action
-          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-          R_StopPlay()
-          playChordPad(key_idx)
-          chordMapRefresh(key_idx)
-        end
-        if r.ImGui_BeginDragDropTarget(ctx) then
-          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
-          if rev then
-            onChordPadAssign(key)
-          end
-          r.ImGui_EndDragDropTarget(ctx)
-        end
+        color = ColorChordPadDefault
       else
         local pure_chord = StringSplit(chord, "/")[1]
-        if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
-          if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-            local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-            R_StopPlay()
-            playChordPad(key_idx)
-            chordMapRefresh(key_idx)
-          end
-          if r.ImGui_BeginDragDropTarget(ctx) then
-            rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
-            if rev then
-              onChordPadAssign(key)
-            end
-            r.ImGui_EndDragDropTarget(ctx)
-          end
+        if T_ChordInScale(pure_chord, CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME) then
+          color = ColorPink
         else
-          if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
-            local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-            R_StopPlay()
-            playChordPad(key_idx)
-            chordMapRefresh(key_idx)
-          end
-          if r.ImGui_BeginDragDropTarget(ctx) then
-            rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
-            if rev then
-              onChordPadAssign(key)
-            end
-            r.ImGui_EndDragDropTarget(ctx)
-          end
+          color = ColorNormalNote
         end
       end
-    end
-  end
-  -- -
-  r.ImGui_SameLine(ctx)
-  r.ImGui_InvisibleButton(ctx, "##", w_chord_pad_half, h_chord_pad, r.ImGui_ButtonFlags_None())
-  
-  -- white
-  for idx, key in ipairs({
-    "A","S","D","F","G","H","J"
-  }) do
-    if idx > 1 then
-      r.ImGui_SameLine(ctx)
-    end
-    local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
-    if chord == key then
-      if uiColorBtn(chord.."##"..key, ColorChordPadDefault, w_chord_pad, h_chord_pad) then
+      if key == CHORD_PAD_SELECTED then
+        color = ColorBlue
+      end
+      if uiColorBtn(chord.."##"..key, color, w_chord_pad, h_chord_pad) then
+        CHORD_PAD_SELECTED = key
         local key_idx = ListIndex(CHORD_PAD_KEYS, key)
         R_StopPlay()
         playChordPad(key_idx)
@@ -467,37 +472,47 @@ local function uiChordPad()
         end
         r.ImGui_EndDragDropTarget(ctx)
       end
+    end
+  end
+  -- -
+  r.ImGui_SameLine(ctx)
+  r.ImGui_InvisibleButton(ctx, "##", w_chord_pad_half, h_chord_pad, r.ImGui_ButtonFlags_None())
+  
+  -- white
+  for idx, key in ipairs({
+    "[A]","[S]","[D]","[F]","[G]","[H]","[J]"
+  }) do
+    if idx > 1 then
+      r.ImGui_SameLine(ctx)
+    end
+    local chord = CHORD_PAD_VALUES[ListIndex(CHORD_PAD_KEYS, key)]
+    local color = ColorChordPadDefault
+    if chord == key then
+      color = ColorChordPadDefault
     else
       local pure_chord = StringSplit(chord, "/")[1]
-      if T_ChordInScale(pure_chord, current_scale_root.."/"..current_scale_name) then
-        if uiColorBtn(chord.."##"..key, ColorPink, w_chord_pad, h_chord_pad) then
-          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-          R_StopPlay()
-          playChordPad(key_idx)
-          chordMapRefresh(key_idx)
-        end
-        if r.ImGui_BeginDragDropTarget(ctx) then
-          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
-          if rev then
-            onChordPadAssign(key)
-          end
-          r.ImGui_EndDragDropTarget(ctx)
-        end
+      if T_ChordInScale(pure_chord, CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME) then
+        color = ColorPink
       else
-        if uiColorBtn(chord.."##"..key, ColorNormalNote, w_chord_pad, h_chord_pad) then
-          local key_idx = ListIndex(CHORD_PAD_KEYS, key)
-          R_StopPlay()
-          playChordPad(key_idx)
-          chordMapRefresh(key_idx)
-        end
-        if r.ImGui_BeginDragDropTarget(ctx) then
-          rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
-          if rev then
-            onChordPadAssign(key)
-          end
-          r.ImGui_EndDragDropTarget(ctx)
-        end
+        color = ColorNormalNote
       end
+    end
+    if key == CHORD_PAD_SELECTED then
+      color = ColorBlue
+    end
+    if uiColorBtn(chord.."##"..key, color, w_chord_pad, h_chord_pad) then
+      CHORD_PAD_SELECTED = key
+      local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+      R_StopPlay()
+      playChordPad(key_idx)
+      chordMapRefresh(key_idx)
+    end
+    if r.ImGui_BeginDragDropTarget(ctx) then
+      rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+      if rev then
+        onChordPadAssign(key)
+      end
+      r.ImGui_EndDragDropTarget(ctx)
     end
   end
 
@@ -506,9 +521,9 @@ end
 
 
 local function uiScaleRootSelector()
-  if r.ImGui_BeginCombo(ctx, '##ScaleRoot', current_scale_root, r.ImGui_ComboFlags_HeightLarge()) then
+  if r.ImGui_BeginCombo(ctx, '##ScaleRoot', CURRENT_SCALE_ROOT, r.ImGui_ComboFlags_HeightLarge()) then
     for _, v in ipairs(G_FLAT_NOTE_LIST) do
-      local is_selected = current_scale_root == v
+      local is_selected = CURRENT_SCALE_ROOT == v
       if r.ImGui_Selectable(ctx, v, is_selected) then
         onScaleRootChange(v)
       end
@@ -522,9 +537,9 @@ local function uiScaleRootSelector()
 end
 
 local function uiScaleNameSelector()
-  if r.ImGui_BeginCombo(ctx, '##ScalePattern', current_scale_name, r.ImGui_ComboFlags_HeightLarge()) then
+  if r.ImGui_BeginCombo(ctx, '##ScalePattern', CURRENT_SCALE_NAME, r.ImGui_ComboFlags_HeightLarge()) then
     for _, v in ipairs(G_SCALE_NAMES) do
-      local is_selected = current_scale_name == v
+      local is_selected = CURRENT_SCALE_NAME == v
       if r.ImGui_Selectable(ctx, v, is_selected) then
         onScaleNameChange(v)
       end
@@ -538,9 +553,9 @@ local function uiScaleNameSelector()
 end
 
 local function uiOctSelector()
-  if r.ImGui_BeginCombo(ctx, '##Oct', current_oct, r.ImGui_ComboFlags_HeightLarge()) then
+  if r.ImGui_BeginCombo(ctx, '##Oct', CURRENT_OCT, r.ImGui_ComboFlags_HeightLarge()) then
     for _, v in ipairs(OctRange) do
-      local is_selected = current_oct == v
+      local is_selected = CURRENT_OCT == v
       if r.ImGui_Selectable(ctx, v, is_selected) then
         onOctChange(v)
       end
@@ -563,8 +578,12 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, w-5*w_default_space-100-50-100-40-50)
+  r.ImGui_SetNextItemWidth(ctx, w-5*w_default_space-100-50-100-160-40-50)
   uiScaleNameSelector()
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
+    initChordPads()
+  end
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("Oct:", ColorGray, 40)
   r.ImGui_SameLine(ctx)
@@ -579,10 +598,10 @@ local function uiVoicing()
   
   uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(current_chord_bass, ColorGray, 40)
+  uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 40)
   r.ImGui_SameLine(ctx)
   r.ImGui_SetNextItemWidth(ctx, (w-7*w_default_space-60-60-60-70-40-60)/2)
-  local _, voicing = r.ImGui_InputText(ctx, '##voicing', current_chord_voicing)
+  local _, voicing = r.ImGui_InputText(ctx, '##voicing', CURRENT_CHORD_VOICING)
   onVoicingChange(voicing)
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Listen", 60) then
@@ -599,7 +618,7 @@ local function uiVoicing()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(current_chord_bass..","..current_chord_default_voicing, ColorGray, (w-7*w_default_space-60-60-60-70-40-60)/2)
+  uiReadOnlyColorBtn(CURRENT_CHORD_BASS..","..CURRENT_CHORD_DEFAULT_VOICING, ColorGray, (w-7*w_default_space-60-60-60-70-40-60)/2)
 
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -609,13 +628,13 @@ local function uiChordRoot()
 
   uiReadOnlyColorBtn("ChordRoot:", ColorGray, 100)
 
-  for _, note in ipairs(current_scale_all_notes) do
+  for _, note in ipairs(CURRENT_SCALE_ALL_NOTES) do
     r.ImGui_SameLine(ctx)
-    if note == current_chord_root then
+    if note == CURRENT_CHORD_ROOT then
       if uiColorBtn(" "..note.." ##chord_root", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
-    elseif ListIndex(current_scale_nice_notes, note) > 0 then
+    elseif ListIndex(CURRENT_SCALE_NICE_NOTES, note) > 0 then
       if uiColorBtn(" "..note.." ##chord_root", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordRootChange(note)
       end
@@ -634,13 +653,13 @@ local function uiChordBass()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
 
   uiReadOnlyColorBtn("ChordBass:", ColorGray, 100)
-  for _, note in ipairs(current_scale_all_notes) do
+  for _, note in ipairs(CURRENT_SCALE_ALL_NOTES) do
     r.ImGui_SameLine(ctx)
-    if note == current_chord_bass then
+    if note == CURRENT_CHORD_BASS then
       if uiColorBtn(" "..note.." ##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
-    elseif ListIndex(current_scale_nice_notes, note) > 0 then
+    elseif ListIndex(CURRENT_SCALE_NICE_NOTES, note) > 0 then
       if uiColorBtn(" "..note.." ##chord_bass", ColorPink, (w-12*w_default_space-100)/12, 0) then
         onChordBassChange(note)
       end
@@ -664,14 +683,14 @@ local function uiChordMap()
   for i=0,lines-1 do
     for j=1,7 do
       local idx = i*7+j
-      if idx > #current_chord_list then
+      if idx > #CURRENT_CHORD_LIST then
         break
       end
       if j>1 then
         r.ImGui_SameLine(ctx)
       end
-      local chord = current_chord_list[idx]
-      if chord == current_chord_name then
+      local chord = CURRENT_CHORD_LIST[idx]
+      if chord == CURRENT_CHORD_NAME then
         if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
           PlayPiano()
@@ -682,10 +701,10 @@ local function uiChordMap()
 
           -- Display preview (could be anything, e.g. when dragging an image we could decide to display
           -- the filename and a small preview of the image, etc.)
-          r.ImGui_Text(ctx, ('Chord: %s'):format(current_chord_full_name))
+          r.ImGui_Text(ctx, ('Chord: %s'):format(CURRENT_CHORD_FULL_NAME))
           r.ImGui_EndDragDropSource(ctx)
         end
-      elseif ListIndex(current_nice_chord_list, chord)>0 then
+      elseif ListIndex(CURRENT_NICE_CHORD_LIST, chord)>0 then
         if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
           onSelectChordChange(chord)
           PlayPiano()
@@ -723,7 +742,8 @@ end
 local function bindKeyBoard()
   -- W
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_W(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "W")
+    CHORD_PAD_SELECTED = "[W]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[W]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -731,7 +751,8 @@ local function bindKeyBoard()
 
   -- E
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_E(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "E")
+    CHORD_PAD_SELECTED = "[E]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[E]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -739,7 +760,8 @@ local function bindKeyBoard()
 
   -- T
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_T(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "T")
+    CHORD_PAD_SELECTED = "[T]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[T]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -747,7 +769,8 @@ local function bindKeyBoard()
 
   -- Y
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "Y")
+    CHORD_PAD_SELECTED = "[Y]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[Y]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -755,7 +778,8 @@ local function bindKeyBoard()
 
   -- U
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_U(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "U")
+    CHORD_PAD_SELECTED = "[U]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[U]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -763,7 +787,8 @@ local function bindKeyBoard()
 
   -- A
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_A(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "A")
+    CHORD_PAD_SELECTED = "[A]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[A]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -771,7 +796,8 @@ local function bindKeyBoard()
   
   -- S
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_S(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "S")
+    CHORD_PAD_SELECTED = "[S]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[S]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -779,7 +805,8 @@ local function bindKeyBoard()
 
   -- D
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_D(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "D")
+    CHORD_PAD_SELECTED = "[D]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[D]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -787,7 +814,8 @@ local function bindKeyBoard()
 
   -- F
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_F(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "F")
+    CHORD_PAD_SELECTED = "[F]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[F]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -795,7 +823,8 @@ local function bindKeyBoard()
 
   -- G
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_G(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "G")
+    CHORD_PAD_SELECTED = "[G]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[G]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -803,7 +832,8 @@ local function bindKeyBoard()
 
   -- H
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_H(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "H")
+    CHORD_PAD_SELECTED = "[H]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[H]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -811,7 +841,8 @@ local function bindKeyBoard()
 
   -- J
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_J(), false) then
-    local key_idx = ListIndex(CHORD_PAD_KEYS, "J")
+    CHORD_PAD_SELECTED = "[J]"
+    local key_idx = ListIndex(CHORD_PAD_KEYS, "[J]")
     R_StopPlay()
     playChordPad(key_idx)
     chordMapRefresh(key_idx)
@@ -827,10 +858,10 @@ local function uiAbout()
 
   uiColorBtn("If this script is useful for you, you can buy me a coffee.", ColorNormalNote, w, 0)
       
-  if not r.ImGui_ValidatePtr(aboutImg, 'ImGui_Image*') then
-    aboutImg = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
+  if not r.ImGui_ValidatePtr(AboutImg, 'ImGui_Image*') then
+    AboutImg = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
   end
-  local my_tex_w, my_tex_h = r.ImGui_Image_GetSize(aboutImg)
+  local my_tex_w, my_tex_h = r.ImGui_Image_GetSize(AboutImg)
   local uv_min_x, uv_min_y = 0.0, 0.0 -- Top-left
   local uv_max_x, uv_max_y = 1.0, 1.0 -- Lower-right
   local tint_col   = 0xFFFFFFFF       -- No tint
@@ -846,7 +877,7 @@ local function uiAbout()
 
   r.ImGui_InvisibleButton(ctx, "##about", (w-my_tex_w)/2, my_tex_h, r.ImGui_ButtonFlags_None())
   r.ImGui_SameLine(ctx)
-  r.ImGui_Image(ctx, aboutImg, my_tex_w, my_tex_h,
+  r.ImGui_Image(ctx, AboutImg, my_tex_w, my_tex_h,
   uv_min_x, uv_min_y, uv_max_x, uv_max_y, tint_col, border_col)
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -907,38 +938,48 @@ local function init()
 
   local chord, meta, notes = R_SelectChordItem()
   if chord == "" then
+    -- no item selected, fetch scale meta from project
+    local scale_root = r.GetExtState("ReaChord", "ScaleRoot")
+    if #scale_root >0 then
+      CURRENT_SCALE_ROOT = scale_root
+    end
+
+    local scale_name = r.GetExtState("ReaChord", "ScaleName")
+    if #scale_name >0 then
+      CURRENT_SCALE_NAME = scale_name
+    end
     refreshUIWhenScaleChangeWithSelectChordChange()
   else
     local chord_split = StringSplit(chord, "/")
     local meta_split = StringSplit(meta, "/")
     
-    current_chord_bass = notes[1]
-    current_chord_full_name = chord
+    CURRENT_CHORD_BASS = notes[1]
+    CURRENT_CHORD_FULL_NAME = chord
     if #chord_split == 1 then
-      current_chord_root = notes[1]
-      current_chord_name = chord
+      CURRENT_CHORD_ROOT = notes[1]
+      CURRENT_CHORD_NAME = chord
     else
-      current_chord_name = chord_split[1]
-      local b = string.sub(current_chord_name, 2, 2)
+      CURRENT_CHORD_NAME = chord_split[1]
+      local b = string.sub(CURRENT_CHORD_NAME, 2, 2)
       if b == "#" or b == "b" then
-        current_chord_root = string.sub(current_chord_name, 1, 2)
+        CURRENT_CHORD_ROOT = string.sub(CURRENT_CHORD_NAME, 1, 2)
       else
-        current_chord_root = string.sub(current_chord_name, 1, 1)
+        CURRENT_CHORD_ROOT = string.sub(CURRENT_CHORD_NAME, 1, 1)
       end
     end
-    local current_chord_default_voicing_table, _ = T_MakeChord(current_chord_name)
-    current_chord_default_voicing = ListJoinToString(current_chord_default_voicing_table, ",")
-    local current_chord_voicing_table = {}
+    local CURRENT_CHORD_DEFAULT_VOICING_table, _ = T_MakeChord(CURRENT_CHORD_NAME)
+    CURRENT_CHORD_DEFAULT_VOICING = ListJoinToString(CURRENT_CHORD_DEFAULT_VOICING_table, ",")
+    local CURRENT_CHORD_VOICING_table = {}
     for idx, v in ipairs(notes) do
       if idx>1 then
-        table.insert(current_chord_voicing_table, v)
+        table.insert(CURRENT_CHORD_VOICING_table, v)
       end
     end
-    current_chord_voicing = ListJoinToString(current_chord_voicing_table, ",")
-    current_chord_pitched, _ = T_NotePitched(notes)
-    current_oct = meta_split[3]
-    current_scale_root = meta_split[1]
-    current_scale_name = meta_split[2]
+    CURRENT_CHORD_VOICING = ListJoinToString(CURRENT_CHORD_VOICING_table, ",")
+    CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+    CURRENT_OCT = meta_split[3]
+    CURRENT_SCALE_ROOT = meta_split[1]
+    CURRENT_SCALE_NAME = meta_split[2]
     refreshUIWhenScaleChange()
   end
 end
