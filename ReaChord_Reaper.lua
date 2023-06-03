@@ -188,6 +188,29 @@ function R_ChordItemRefresh()
     end
 end
 
+function R_ChordItem2Marker()
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord = r.ULT_GetMediaItemNote(chord_item)
+        local pos = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local len = r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        r.AddProjectMarker(0, false, pos, pos+len, chord, -1)
+    end
+end
+
+function R_ChordItem2Region()
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord = r.ULT_GetMediaItemNote(chord_item)
+        local pos = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local len = r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        r.AddProjectMarker(0, true, pos, pos+len, chord, -1)
+    end
+end
 
 function R_Play(notes)
     -- virtualKeyboardMode
