@@ -7,6 +7,8 @@ dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 R_ChordTrackName = "__REACHORD_TRACK__"
 R_ChordTrackMidi = "__REACHORD_MIDI__"
 
+R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks.txt'
+
 function GetOrCreateTrackByName(name)
     local targeTrack
     for trackIndex = 0, r.CountTracks(0) - 1 do
@@ -98,6 +100,31 @@ function R_SelectChordItem()
         notes = StringSplit(full_meta_split[2], ",")
     end
     return chord, meta, notes
+end
+
+function R_SelectChordItems()
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local chords = {}
+    local found = "false"
+    for idx = 0, chord_item_count - 1 do
+        local item = r.GetTrackMediaItem(chord_track, idx)
+        if r.IsMediaItemSelected(item) then
+            found = "true"
+            local chord = r.ULT_GetMediaItemNote(item)
+            local midi_item = r.GetTrackMediaItem(midi_track, idx)
+            local midi_take = r.GetActiveTake(midi_item)
+            local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+            table.insert(chords, chord.."|"..full_meta)
+        else
+            if found == "true" then
+                break
+            end
+        end
+    end
+    local ret = ListJoinToString(chords, "~")
+    return ret
 end
 
 function R_ChordItemTrans(diff)
@@ -232,5 +259,21 @@ function R_StopPlay()
     local velocity = 0
     for note=0, 127 do
         r.StuffMIDIMessage(keyboard_mode, note_off, note, velocity)
+    end
+end
+
+function R_ReadBankFile()
+    local banks = {}
+    for bk in io.lines(R_BankPath) do
+        table.insert(banks, bk)
+    end
+end
+
+function R_SaveBank(bk)
+    local file = io.open(R_BankPath, 'a+')
+    if file then
+        io.output(file)
+        io.write(bk)
+        io.close()
     end
 end
