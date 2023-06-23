@@ -303,5 +303,6 @@ function R_RefreshBank(bks)
         for idx, bk in ipairs(bks) do
             io.write(bk, '\n')
         end
+        io.close()
     end
 end
