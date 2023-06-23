@@ -29,23 +29,33 @@ function GetOrCreateTrackByName(name)
 end
 
 function GetLengthForOneBar()
-    local _, bpi = r.GetProjectTimeSignature2(0)
-    local duration = r.TimeMap2_QNToTime(0, bpi)
+    local bpm, bpi = r.GetProjectTimeSignature2(0)
+    local tempo = r.Blink_GetTempo()
+    local duration = r.TimeMap2_QNToTime(0, bpi) * tempo / bpm
     return duration
 end
 
-function R_InsertChordItem(chord, meta, notes)
+function GetLengthForOneBeat()
+    local bpm, bpi = r.GetProjectTimeSignature2(0)
+    local tempo = r.Blink_GetTempo()
+    local duration = r.TimeMap2_QNToTime(0, 1) * tempo / bpm
+    return duration
+end
+
+function R_InsertChordItem(chord, meta, notes, beats)
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
 
     r.SelectAllMediaItems(0, false)
 
+    local item_length = GetLengthForOneBeat() * beats
+
     local start_position = r.GetCursorPosition()
-    local end_position = start_position + GetLengthForOneBar()
+    local end_position = start_position + item_length
     -- chord item
     local chord_item = r.AddMediaItemToTrack(chord_track)
     r.SetMediaItemPosition(chord_item, start_position, false)
-    r.SetMediaItemLength(chord_item, GetLengthForOneBar(), true)
+    r.SetMediaItemLength(chord_item, item_length, true)
     r.ULT_SetMediaItemNote(chord_item, chord)
     r.SetMediaItemSelected(chord_item, true)
     -- midi item
@@ -63,7 +73,7 @@ function R_InsertChordItem(chord, meta, notes)
         )
     end
     local note_str = ListJoinToString(notes, ",")
-    local full_meta = ListJoinToString({meta, note_str, chord}, "|")
+    local full_meta = ListJoinToString({meta, note_str, chord, beats}, "|")
     _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", full_meta, true)
     r.SetMediaItemSelected(midi_item, true)
     -- group item
@@ -81,6 +91,7 @@ function R_SelectChordItem()
     local chord_item_count =  r.CountTrackMediaItems(chord_track)
     local chord = ""
     local meta = ""
+    local beats = 0
     local notes = {}
     local selectIdx = -1
     for idx = 0, chord_item_count - 1 do
@@ -97,9 +108,10 @@ function R_SelectChordItem()
         local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
         local full_meta_split = StringSplit(full_meta, "|")
         meta = full_meta_split[1]
+        beats = tonumber(full_meta_split[4])
         notes = StringSplit(full_meta_split[2], ",")
     end
-    return chord, meta, notes
+    return chord, meta, notes, beats
 end
 
 function R_SelectChordItems()
@@ -141,6 +153,7 @@ function R_ChordItemTrans(diff)
             local full_meta_split = StringSplit(full_meta, "|")
             local meta = full_meta_split[1]
             local notes = StringSplit(full_meta_split[2], ",")
+            local beats = full_meta_split[4]
             local pure_voicing = {}
             for idx, v in ipairs(notes) do
                 if idx>1 then
@@ -169,7 +182,7 @@ function R_ChordItemTrans(diff)
             end
             local new_scale = T_ScaleTrans(scale_root.."/"..scale_name, diff)
             local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing, diff)
-            local new_full_meta = new_scale.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",").."|"..new_chord
+            local new_full_meta = new_scale.."/"..oct.."|"..new_chord_bass..","..ListJoinToString(new_pure_voicing, ",").."|"..new_chord .."|"..beats
             
             local _, notecnt, _, _ = r.MIDI_CountEvts(midi_take)
             for idx = 0, notecnt-1 do

@@ -23,6 +23,7 @@ local CURRENT_SCALE_NAME = "Natural Maj"
 local CURRENT_SCALE_ALL_NOTES = {}
 local CURRENT_SCALE_NICE_NOTES = {}
 local CURRENT_OCT = "0"
+local CURRENT_INSERT_BEATS = 4
 
 local CURRENT_CHORD_ROOT = "C"
 local CURRENT_CHORD_NAME = ""
@@ -255,7 +256,7 @@ end
 local function onInsertClick()
   local meta = CURRENT_SCALE_ROOT.."/"..CURRENT_SCALE_NAME.."/"..CURRENT_OCT
   local notes = ListExtend({CURRENT_CHORD_BASS}, StringSplit(CURRENT_CHORD_VOICING, ","))
-  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes)
+  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes, CURRENT_INSERT_BEATS)
 end
 
 local function onChordPadAssign(key)
@@ -675,12 +676,32 @@ local function uiChordBass()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
+local function uiChordLength()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
+
+  uiReadOnlyColorBtn("InsertBeats:", ColorGray, 100)
+  for _, beats in ipairs({1,2,3,4,5,6,7,8,9,10,11,12}) do
+    r.ImGui_SameLine(ctx)
+    if beats == CURRENT_INSERT_BEATS then
+      if uiColorBtn(" "..beats.." B ##chord_bass", ColorBlue, (w-12*w_default_space-100)/12, 0) then
+        CURRENT_INSERT_BEATS = beats
+      end
+    else
+      if uiColorBtn(" "..beats.." B ##chord_bass", ColorNormalNote, (w-12*w_default_space-100)/12, 0) then
+        CURRENT_INSERT_BEATS = beats
+      end
+    end
+  end
+  
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
 local function uiChordMap()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
   
   local lines = math.ceil(#G_CHORD_NAMES/7)
   local ww = w
-  local hh = h-main_window_h_padding*2-1*lines-h_piano*2-7*25-h_chord_pad*2
+  local hh = h-main_window_h_padding*2-2*lines-h_piano*2-8*25-h_chord_pad*2
   -- 7 x 7
   for i=0,lines-1 do
     for j=1,7 do
@@ -738,6 +759,8 @@ local function uiChordSelector()
   uiChordRoot()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiChordBass()
+  r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+  uiChordLength()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiReadOnlyColorBtn("Chord Map", ColorGray, w)
   uiChordMap()
@@ -954,7 +977,8 @@ local function init()
     CHORD_PAD_METAS = pad_metas_split
   end
 
-  local chord, meta, notes = R_SelectChordItem()
+  local chord, meta, notes, beats = R_SelectChordItem()
+  CURRENT_INSERT_BEATS = beats
   if chord == "" then
     -- no item selected, fetch scale meta from project
     local scale_root = r.GetExtState("ReaChord", "ScaleRoot")
