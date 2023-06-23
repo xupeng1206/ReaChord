@@ -124,11 +124,11 @@ function R_SelectChordItems()
         local item = r.GetTrackMediaItem(chord_track, idx)
         if r.IsMediaItemSelected(item) then
             found = "true"
-            local chord = r.ULT_GetMediaItemNote(item)
+            -- local chord = r.ULT_GetMediaItemNote(item)
             local midi_item = r.GetTrackMediaItem(midi_track, idx)
             local midi_take = r.GetActiveTake(midi_item)
             local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
-            table.insert(chords, chord.."|"..full_meta)
+            table.insert(chords, full_meta)
         else
             if found == "true" then
                 break
@@ -207,9 +207,13 @@ function R_ChordItemRefresh()
         local midi_item = r.GetTrackMediaItem(midi_track, idx)
         local pos = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
         local len = r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        local beats = len / GetLengthForOneBeat()
         local midi_take = r.GetActiveTake(midi_item)
         local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
         local full_meta_split = StringSplit(full_meta, "|")
+        full_meta_split[4] = tostring(beats)
+        local new_full_meta = ListJoinToString(full_meta_split, "|")
+        _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
         local chord = full_meta_split[3]
 
         local chord_item = r.AddMediaItemToTrack(chord_track)
@@ -280,13 +284,24 @@ function R_ReadBankFile()
     for bk in io.lines(R_BankPath) do
         table.insert(banks, bk)
     end
+    return banks
 end
 
 function R_SaveBank(bk)
     local file = io.open(R_BankPath, 'a+')
     if file then
         io.output(file)
-        io.write(bk)
+        io.write(bk, '\n')
         io.close()
+    end
+end
+
+function R_RefreshBank(bks)
+    local file = io.open(R_BankPath, 'w+')
+    if file then
+        io.output(file)
+        for idx, bk in ipairs(bks) do
+            io.write(bk, '\n')
+        end
     end
 end

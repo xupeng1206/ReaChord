@@ -8,6 +8,8 @@ local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable(
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
 r.ImGui_Attach(ctx, G_FONT)
 
+local FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
+
 local CHORD_PAD_KEYS = {"[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]"}
 local CHORD_PAD_VALUES = {"[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]"}
 local CHORD_PAD_METAS = {"", "", "", "", "", "", "", "", "", "", "", ""}
@@ -15,8 +17,17 @@ local CHORD_PAD_SELECTED = ""
 
 local CHORD_INSERT_MODE = "off"
 
-local OctRange = {"-1", "0", "+1"}
-local AboutImg
+local OCT_RANGE = {"-1", "0", "+1"}
+local ABOUT_IMG
+
+local CHORD_PROGRESSION_LIST = {}
+local CHORD_PROGRESSION_SIMPLE_LIST = {}
+local CHORD_PROGRESSION_SELECTED_INDEX = 0
+
+-- Add bank popup global values
+local B_BANK_TAG = "Pattern 1"
+local B_FULL_CHORD_PATTERNS = ""
+local B_CHORD_PATTERNS = ""
 
 local CURRENT_SCALE_ROOT = "C"
 local CURRENT_SCALE_NAME = "Natural Maj"
@@ -40,6 +51,9 @@ local ColorWhite = 0xFFFFFFFF
 local ColorBlack = 0x000000FF
 local ColorGray = 0x696969FF
 local ColorPink = 0xFF6EB4FF
+local ColorYellow = 0xCD950CFF
+local ColorDarkPink = 0xBC8F8FFF
+local ColorRed = 0xCD2626FF
 local ColorBlue = 0x0000FFFF
 local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
@@ -63,7 +77,7 @@ local h_chord_pad = 40
 
 local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
-  w, h = w-main_window_w_padding*2, h-21
+  w, h = w-main_window_w_padding*2, h-25
   if package.config:sub(1,1) == "/" then
     -- mac or linux?
     h = h -15
@@ -557,7 +571,7 @@ end
 
 local function uiOctSelector()
   if r.ImGui_BeginCombo(ctx, '##Oct', CURRENT_OCT, r.ImGui_ComboFlags_HeightLarge()) then
-    for _, v in ipairs(OctRange) do
+    for _, v in ipairs(OCT_RANGE) do
       local is_selected = CURRENT_OCT == v
       if r.ImGui_Selectable(ctx, v, is_selected) then
         onOctChange(v)
@@ -899,10 +913,10 @@ local function uiAbout()
 
   uiColorBtn("If this script is useful for you, you can buy me a coffee.", ColorNormalNote, w, 0)
       
-  if not r.ImGui_ValidatePtr(AboutImg, 'ImGui_Image*') then
-    AboutImg = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
+  if not r.ImGui_ValidatePtr(ABOUT_IMG, 'ImGui_Image*') then
+    ABOUT_IMG = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
   end
-  local my_tex_w, my_tex_h = r.ImGui_Image_GetSize(AboutImg)
+  local my_tex_w, my_tex_h = r.ImGui_Image_GetSize(ABOUT_IMG)
   local uv_min_x, uv_min_y = 0.0, 0.0 -- Top-left
   local uv_max_x, uv_max_y = 1.0, 1.0 -- Lower-right
   local tint_col   = 0xFFFFFFFF       -- No tint
@@ -918,8 +932,144 @@ local function uiAbout()
 
   r.ImGui_InvisibleButton(ctx, "##about", (w-my_tex_w)/2, my_tex_h, r.ImGui_ButtonFlags_None())
   r.ImGui_SameLine(ctx)
-  r.ImGui_Image(ctx, AboutImg, my_tex_w, my_tex_h,
+  r.ImGui_Image(ctx, ABOUT_IMG, my_tex_w, my_tex_h,
   uv_min_x, uv_min_y, uv_max_x, uv_max_y, tint_col, border_col)
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
+local function refreshChordProgressionBanks()
+  CHORD_PROGRESSION_LIST = R_ReadBankFile()
+  local simple_list = {}
+  for idx, progression in ipairs(CHORD_PROGRESSION_LIST) do
+    local pg_split = StringSplit(progression, "@")
+    local simple = "[ " .. pg_split[1] .. " ]    " .. pg_split[2]
+    table.insert(simple_list, simple)
+  end
+  CHORD_PROGRESSION_SIMPLE_LIST = simple_list
+end
+
+local function initChordProgression()
+  B_FULL_CHORD_PATTERNS = R_SelectChordItems()
+  local simple_chords = {}
+  local chords = StringSplit(B_FULL_CHORD_PATTERNS, "~")
+  if #chords>1 then
+      for idx, chord in ipairs(chords) do
+          local chord_name = StringSplit(chord, "|")[3]
+          local chord_len = StringSplit(chord, "|")[4]
+          local full_chord = chord_name .. 'x' .. chord_len
+          table.insert(simple_chords, full_chord)
+      end
+      B_CHORD_PATTERNS = ListJoinToString(simple_chords, " => ")
+  else
+      B_CHORD_PATTERNS = 'Please select a chord progression.'
+  end
+end
+
+local function uiExtension()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
+  
+  local ww = w
+  local hh = h
+  uiReadOnlyColorBtn("Actions", ColorGray, ww)
+
+  if uiColorBtn("Up 1 Semitone".."##trans", ColorPink, (ww-4*w_default_space)/5, 50) then
+    R_ChordItemTrans(1)
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Down 1 Semitone".."##trans", ColorPink, (ww-4*w_default_space)/5, 50) then
+    R_ChordItemTrans(-1)
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Refresh Items".."##tempo", ColorYellow, (ww-4*w_default_space)/5, 50) then
+    R_ChordItemRefresh()
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Items To Markers".."##tag", ColorDarkPink, (ww-4*w_default_space)/5, 50) then
+    R_ChordItem2Marker()
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Items To Region".."##tag", ColorDarkPink, (ww-4*w_default_space)/5, 50) then
+    R_ChordItem2Region()
+  end
+
+  uiReadOnlyColorBtn("Chord Progression Bank", ColorGray, ww)
+
+  if uiColorBtn("Add".."##bank_add", ColorPink, (ww-2*w_default_space)/3, 50) then
+    r.ImGui_OpenPopup(ctx, 'Save Selected Chord Progression')
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Insert".."##bank_insert", ColorYellow, (ww-2*w_default_space)/3, 50) then
+    if CHORD_PROGRESSION_SELECTED_INDEX ~= 0 then
+      local progression = CHORD_PROGRESSION_LIST[CHORD_PROGRESSION_SELECTED_INDEX]
+      local full_meta_list_str = StringSplit(progression, "@")[3]
+      local full_meta_list_split = StringSplit(full_meta_list_str, "~")
+      for idx, full_meta in ipairs(full_meta_list_split) do
+        local meta_split = StringSplit(full_meta, "|")
+        local meta = meta_split[1]
+        local notes = StringSplit(meta_split[2], ",")
+        local chord_name = meta_split[3]
+        local beats = tonumber(meta_split[4])
+        R_InsertChordItem(chord_name, meta, notes, beats)
+      end
+    end
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Delete".."##bank_delete", ColorRed, (ww-2*w_default_space)/3, 50) then
+    CHORD_PROGRESSION_LIST = ListDeleteIndex(CHORD_PROGRESSION_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
+    CHORD_PROGRESSION_SIMPLE_LIST = ListDeleteIndex(CHORD_PROGRESSION_SIMPLE_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
+    R_RefreshBank(CHORD_PROGRESSION_LIST)
+  end
+
+  local add_bank_win_flags = r.ImGui_WindowFlags_None()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoScrollbar()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoNav()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoDocking()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_AlwaysAutoResize()
+  if r.ImGui_BeginPopupModal(ctx, 'Save Selected Chord Progression', nil, add_bank_win_flags) then
+    -- input text & button
+    initChordProgression()
+    r.ImGui_Text(ctx, B_CHORD_PATTERNS)
+    _, B_BANK_TAG = r.ImGui_InputText(ctx, 'Bank Tag##tag', B_BANK_TAG)
+    r.ImGui_SameLine(ctx)
+    if r.ImGui_Button(ctx, "SaveBank", 100) then
+        if B_CHORD_PATTERNS == 'Please select a chord progression.' then
+            r.ImGui_CloseCurrentPopup(ctx)
+        else
+            local full_bk = B_BANK_TAG .. '@'.. B_CHORD_PATTERNS .. '@' .. B_FULL_CHORD_PATTERNS
+            R_SaveBank(full_bk)
+            refreshChordProgressionBanks()
+            r.ImGui_CloseCurrentPopup(ctx)
+        end
+    end
+    r.ImGui_SameLine(ctx)
+    if r.ImGui_Button(ctx, "Close", 100) then
+        r.ImGui_CloseCurrentPopup(ctx)
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+
+  local selected_progression = "Selected Chord Progression"
+  if CHORD_PROGRESSION_SELECTED_INDEX ~= 0 then
+    selected_progression = 'Selected: '.. CHORD_PROGRESSION_SIMPLE_LIST[CHORD_PROGRESSION_SELECTED_INDEX]
+  end
+
+  uiReadOnlyColorBtn(selected_progression, ColorGray, ww)
+
+  if r.ImGui_BeginListBox(ctx, '##bank', -FLT_MIN, hh - 30 - 2 * 7 - 50 * 2 - 25 * 3) then
+    for idx, v in ipairs(CHORD_PROGRESSION_SIMPLE_LIST) do
+      local is_selected = CHORD_PROGRESSION_SELECTED_INDEX == idx
+      if r.ImGui_Selectable(ctx, v, is_selected) then
+        CHORD_PROGRESSION_SELECTED_INDEX = idx
+      end
+
+      -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+      if is_selected then
+        r.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    r.ImGui_EndListBox(ctx)
+  end
+
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
@@ -928,6 +1078,10 @@ local function uiMain()
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
     if r.ImGui_BeginTabItem(ctx, ' Main ') then
       uiChordSelector()
+      r.ImGui_EndTabItem(ctx)
+    end
+    if r.ImGui_BeginTabItem(ctx, ' Extension ') then
+      uiExtension()
       r.ImGui_EndTabItem(ctx)
     end
     if r.ImGui_BeginTabItem(ctx, ' About ') then
@@ -978,7 +1132,7 @@ local function init()
   end
 
   local chord, meta, notes, beats = R_SelectChordItem()
-  CURRENT_INSERT_BEATS = beats
+  CURRENT_INSERT_BEATS = 4
   if chord == "" then
     -- no item selected, fetch scale meta from project
     local scale_root = r.GetExtState("ReaChord", "ScaleRoot")
@@ -992,6 +1146,7 @@ local function init()
     end
     refreshUIWhenScaleChangeWithSelectChordChange()
   else
+    CURRENT_INSERT_BEATS = beats
     local chord_split = StringSplit(chord, "/")
     local meta_split = StringSplit(meta, "/")
     
@@ -1024,6 +1179,7 @@ local function init()
     CURRENT_SCALE_NAME = meta_split[2]
     refreshUIWhenScaleChange()
   end
+  refreshChordProgressionBanks()
 end
 
 local function startUi()

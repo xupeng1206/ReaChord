@@ -3,7 +3,7 @@ print = r.ShowConsoleMsg
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
 local function item2sound()
-    local chord, meta, notes = R_SelectChordItem()
+    local chord, meta, notes, beats = R_SelectChordItem()
     if chord == "" then
       return
     else

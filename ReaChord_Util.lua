@@ -77,3 +77,13 @@ function ListExtend(aLst, bLst)
     end
     return newLst
 end
+
+function ListDeleteIndex(lst, index)
+    local new_lst = {}
+    for idx, item in ipairs(lst) do
+        if idx ~= index then
+            table.insert(new_lst, item)
+        end
+    end
+    return new_lst
+end

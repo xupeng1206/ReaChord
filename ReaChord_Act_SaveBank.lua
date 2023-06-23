@@ -9,7 +9,7 @@ r.ImGui_Attach(ctx, G_FONT)
 
 B_UI_OPEN = false
 B_UI_VISIBLE = false
-B_BACK_TAG = "pattern 1"
+B_BANK_TAG = "Pattern 1"
 B_FULL_CHORD_PATTERNS = ""
 B_CHORD_PATTERNS = ""
 
@@ -34,13 +34,13 @@ local function loop()
         if B_CHORD_PATTERNS == 'Please select a chord progression.' then
             B_UI_OPEN = false
         else
-            local full_bk = B_BACK_TAG .. '$' .. B_FULL_CHORD_PATTERNS
+            local full_bk = B_BANK_TAG .. '@'.. B_CHORD_PATTERNS .. '@' .. B_FULL_CHORD_PATTERNS
             R_SaveBank(full_bk)
             B_UI_OPEN = false
         end
     end
     r.ImGui_SameLine(ctx)
-    r.ImGui_InputText(ctx, 'Bank Tag', B_BACK_TAG)
+    _, B_BANK_TAG = r.ImGui_InputText(ctx, 'Bank Tag##tag', B_BANK_TAG)
 
     r.ImGui_End(ctx)
   end
@@ -56,10 +56,12 @@ local function init()
     B_FULL_CHORD_PATTERNS = R_SelectChordItems()
     local simple_chords = {}
     local chords = StringSplit(B_FULL_CHORD_PATTERNS, "~")
-    if #chords>2 then
+    if #chords>1 then
         for idx, chord in ipairs(chords) do
             local chord_name = StringSplit(chord, "|")[1]
-            table.insert(simple_chords, chord_name)
+            local chord_len = StringSplit(chord, "|")[5]
+            local full_chord = chord_name .. '*' .. chord_len
+            table.insert(simple_chords, full_chord)
         end
         B_CHORD_PATTERNS = ListJoinToString(simple_chords, "->")
     else
