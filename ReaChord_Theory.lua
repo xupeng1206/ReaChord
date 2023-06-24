@@ -219,12 +219,17 @@ function T_Parse(root, pattern)
         end
         local noteLetterIdx = rootLetterIdx + numNotenum - 1
         local noteLetter = G_NOTE_LETTERS_X4[noteLetterIdx]
+        local found = "no"
         for _, noteName in ipairs(StringSplit(mNote, "/")) do
             local tmpNoteLetter = string.sub(noteName, 1, 1)
             if tmpNoteLetter == noteLetter then
                 table.insert(pureNotes, noteName)
+                found = "yes"
                 break
             end
+        end
+        if found == "no" then
+            table.insert(pureNotes, StringSplit(mNote, "/")[1])
         end
     end
     return pureNotes, mNotes
