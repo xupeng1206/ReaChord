@@ -24,6 +24,9 @@ local ABOUT_IMG
 local CHORD_PROGRESSION_LIST = {}
 local CHORD_PROGRESSION_SIMPLE_LIST = {}
 local CHORD_PROGRESSION_SELECTED_INDEX = 0
+local CHORD_PROGRESSION_FILTER = ""
+local CHORD_PROGRESSION_SIMPLE_LIST_FILTERED = {}
+local CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP = {}
 
 -- Add bank popup global values
 local B_BANK_TAG = "Pattern 1"
@@ -644,7 +647,7 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, w-5*w_default_space-100-50-100-160-40-50)
+  r.ImGui_SetNextItemWidth(ctx, w-6*w_default_space-100-50-100-160-40-50)
   uiScaleNameSelector()
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
@@ -1062,10 +1065,11 @@ local function refreshChordProgressionBanks()
   local simple_list = {}
   for idx, progression in ipairs(CHORD_PROGRESSION_LIST) do
     local pg_split = StringSplit(progression, "@")
-    local simple = "[ " .. pg_split[1] .. " ]    " .. pg_split[2]
+    local simple = "[ " .. pg_split[1] .. " ] = " .. pg_split[2]
     table.insert(simple_list, simple)
   end
   CHORD_PROGRESSION_SIMPLE_LIST = simple_list
+  CHORD_PROGRESSION_FILTER = ""
 end
 
 local function initChordProgression()
@@ -1076,10 +1080,10 @@ local function initChordProgression()
       for idx, chord in ipairs(chords) do
           local chord_name = StringSplit(chord, "|")[3]
           local chord_len = StringSplit(chord, "|")[4]
-          local full_chord = chord_name .. 'x' .. chord_len
+          local full_chord = '{ ' .. chord_name .. ' | '  .. chord_len .. ' }'
           table.insert(simple_chords, full_chord)
       end
-      B_CHORD_PATTERNS = ListJoinToString(simple_chords, " => ")
+      B_CHORD_PATTERNS = ListJoinToString(simple_chords, " >> ")
   else
       B_CHORD_PATTERNS = 'Please select a chord progression.'
   end
@@ -1140,6 +1144,7 @@ local function uiExtension()
       CHORD_PROGRESSION_SIMPLE_LIST = ListDeleteIndex(CHORD_PROGRESSION_SIMPLE_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
       CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SELECTED_INDEX - 1
       R_RefreshBank(CHORD_PROGRESSION_LIST)
+      CHORD_PROGRESSION_FILTER = ""
     end
   end
 
@@ -1152,7 +1157,9 @@ local function uiExtension()
     -- input text & button
     initChordProgression()
     r.ImGui_Text(ctx, B_CHORD_PATTERNS)
-    _, B_BANK_TAG = r.ImGui_InputText(ctx, 'Bank Tag##tag', B_BANK_TAG)
+    uiReadOnlyColorBtn("BankTag", ColorGray, 80)
+    r.ImGui_SameLine(ctx)
+    _, B_BANK_TAG = r.ImGui_InputText(ctx, '##bank_tag', B_BANK_TAG)
     r.ImGui_SameLine(ctx)
     if r.ImGui_Button(ctx, "SaveBank", 100) then
         if B_CHORD_PATTERNS == 'Please select a chord progression.' then
@@ -1173,16 +1180,31 @@ local function uiExtension()
 
   local selected_progression = "Selected Chord Progression"
   if CHORD_PROGRESSION_SELECTED_INDEX ~= 0 then
-    selected_progression = 'Selected: '.. CHORD_PROGRESSION_SIMPLE_LIST[CHORD_PROGRESSION_SELECTED_INDEX]
+    selected_progression = CHORD_PROGRESSION_SIMPLE_LIST[CHORD_PROGRESSION_SELECTED_INDEX]
   end
 
   uiReadOnlyColorBtn(selected_progression, ColorGray, ww)
+  uiReadOnlyColorBtn("Filter Tag", ColorGray, 100)
+  r.ImGui_SameLine(ctx)
+  r.ImGui_SetNextItemWidth(ctx, ww-100-w_default_space)
+  _, CHORD_PROGRESSION_FILTER = r.ImGui_InputText(ctx, '##filter_tag', CHORD_PROGRESSION_FILTER)
+  
+  -- filter
+  CHORD_PROGRESSION_SIMPLE_LIST_FILTERED = {}
+  CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP = {}
+  for idx, v in ipairs(CHORD_PROGRESSION_SIMPLE_LIST) do
+    local tag = StringSplit(v, " = ")[1]
+    if string.match(tag, CHORD_PROGRESSION_FILTER) ~= nil then
+      table.insert(CHORD_PROGRESSION_SIMPLE_LIST_FILTERED, v)
+      table.insert(CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP, idx)
+    end
+  end
 
-  if r.ImGui_BeginListBox(ctx, '##bank', -FLT_MIN, hh - 30 - 2 * 7 - 50 * 2 - 25 * 3) then
-    for idx, v in ipairs(CHORD_PROGRESSION_SIMPLE_LIST) do
-      local is_selected = CHORD_PROGRESSION_SELECTED_INDEX == idx
+  if r.ImGui_BeginListBox(ctx, '##bank', -FLT_MIN, hh - 30 - 2 * 7 - 50 * 2 - 25 * 4) then
+    for idx, v in ipairs(CHORD_PROGRESSION_SIMPLE_LIST_FILTERED) do
+      local is_selected = CHORD_PROGRESSION_SELECTED_INDEX == CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP[idx]
       if r.ImGui_Selectable(ctx, v, is_selected) then
-        CHORD_PROGRESSION_SELECTED_INDEX = idx
+        CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP[idx]
       end
 
       -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)

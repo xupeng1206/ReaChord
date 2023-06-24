@@ -1,1 +1,3 @@
-Pattern 1@Fx2 => Gx2 => Emx2 => Amx2 => Dmx2 => Gx2 => Cx3 => C7x1@C/Natural Maj/0|F,F,A,C|F|2~C/Natural Maj/0|G,G,B,D|G|2~C/Natural Maj/0|E,E,G,B|Em|2~C/Natural Maj/0|A,A,C,E|Am|2~C/Natural Maj/0|D,D,F,A|Dm|2~C/Natural Maj/0|G,G,B,D|G|2~C/Natural Maj/0|C,C,E,G|C|3~C/Natural Maj/0|C,C,E,G,Bb|C7|1
+4536251@{ F | 2 } >> { G | 2 } >> { Em | 2 } >> { Am | 2 } >> { Dm | 2 } >> { G | 2 } >> { C | 3 } >> { C7 | 1 }@C/Natural Maj/0|F,F,A,C|F|2~C/Natural Maj/0|G,G,B,D|G|2~C/Natural Maj/0|E,E,G,B|Em|2~C/Natural Maj/0|A,A,C,E|Am|2~C/Natural Maj/0|D,D,F,A|Dm|2~C/Natural Maj/0|G,G,B,D|G|2~C/Natural Maj/0|C,C,E,G|C|3~C/Natural Maj/0|C,C,E,G,Bb|C7|1
+456@{ F | 2 } >> { G | 2 } >> { Am | 4 }@C/Natural Maj/0|F,F,A,C|F|2~C/Natural Maj/0|G,G,B,D|G|2~C/Natural Maj/0|A,A,C,E|Am|4
+1645@{ C | 4 } >> { Am | 4 } >> { F | 4 } >> { G7 | 4 }@C/Natural Maj/0|C,C,E,G|C|4~C/Natural Maj/0|A,A,C,E|Am|4~C/Natural Maj/0|F,F,A,C|F|4~C/Natural Maj/0|G,G,B,D,F|G7|4
