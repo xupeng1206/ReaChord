@@ -294,10 +294,12 @@ end
 
 function T_FindSimilarChords(chord)
     local chords = {}
-    local x3chords = {}
     local x2chords = {}
+    local x3chords = {}
+    local x4chords = {}
+    local x5chords = {}
     local _, chordNotes = T_MakeChord(chord)
-    if #chordNotes > 4 then
+    if #chordNotes > 6 then
         return chords
     end
     
@@ -305,7 +307,7 @@ function T_FindSimilarChords(chord)
         for idx, chordTag in ipairs(G_CHORD_NAMES) do
             local chordPattern = G_CHORD_PATTERNS[idx]
             local chordPatternNotes = StringSplit(chordPattern, ",")
-            if #chordPatternNotes <= 4 then
+            if #chordPatternNotes <= 6 then
                 local tmpChord = note .. string.sub(chordTag, 2, string.len(chordTag))
                 local _, tmpChordNotes = T_Parse(note, chordPattern)
                 local simLen = AListInBListLen(tmpChordNotes, chordNotes)
@@ -313,11 +315,17 @@ function T_FindSimilarChords(chord)
                     table.insert(x2chords, tmpChord)
                 elseif simLen == 3 then
                     table.insert(x3chords, tmpChord)
+                elseif simLen == 4 then
+                    table.insert(x4chords, tmpChord)
+                elseif simLen == 5 then
+                    table.insert(x5chords, tmpChord)
                 end
             end
         end
     end
-    chords = ListExtend(x3chords, x2chords)
+    chords = ListExtend(x5chords, x4chords)
+    chords = ListExtend(chords, x3chords)
+    chords = ListExtend(chords, x2chords)
     return chords
 end
 

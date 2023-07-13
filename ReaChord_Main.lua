@@ -45,6 +45,7 @@ local CURRENT_CHORD_NAME = ""
 local CURRENT_CHORD_FULL_NAME = ""
 local CURRENT_CHORD_BASS = "C"
 local CURRENT_CHORD_DEFAULT_VOICING = ""
+local CURRENT_CHORD_DEFAULT_NOTE_SELECT = ""
 local CURRENT_CHORD_VOICING = ""
 local CURRENT_CHORD_PITCHED = {}
 local CURRENT_CHORD_LIST = {}
@@ -90,7 +91,7 @@ local function refreshWindowSize()
   w, h = w-main_window_w_padding*2, h-25
   if package.config:sub(1,1) == "/" then
     -- mac or linux?
-    h = h -15
+    -- h = h -15
   end
   w_piano_key = w/28-2
   w_piano_half_key = w/56-1
@@ -156,8 +157,43 @@ local function onVoicingChange(val)
   if AListAllInBList(new_voicing, default_voicing) then
     CURRENT_CHORD_VOICING = val
     local notes = ListExtend({CURRENT_CHORD_BASS}, new_voicing)
-  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+    CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
   end
+end
+
+local function onVoicingShift(direction)
+  local voicing = CURRENT_CHORD_VOICING
+  local voicing_split = StringSplit(voicing, ",")
+  local notes = DeepCopyList(voicing_split)
+  local function notesort(a, b)
+    return a > b
+  end
+  table.sort(notes, notesort)
+  local all_voicing_split = PermuteList(notes)
+  local cur_idx = 0
+  for i, v in ipairs(all_voicing_split) do
+    local tmp_voicing = ListJoinToString(v, ",")
+    if tmp_voicing == CURRENT_CHORD_VOICING then
+      cur_idx = i
+    end
+  end
+  
+  if direction == "<" then
+    cur_idx = cur_idx - 1
+    if cur_idx == 0 then
+      cur_idx = #all_voicing_split
+    end
+  end
+  if direction == ">" then
+    cur_idx = cur_idx + 1
+    if cur_idx > #all_voicing_split then
+      cur_idx = 1
+    end
+  end
+  voicing_split = all_voicing_split[cur_idx]
+  CURRENT_CHORD_VOICING = ListJoinToString(voicing_split, ",")
+  local notes = ListExtend({CURRENT_CHORD_BASS}, voicing_split)
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
 end
 
 local function refreshUIWhenChordRootChange()
@@ -665,29 +701,57 @@ end
 local function uiVoicing()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
   
-  uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
+  uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 40)
+  uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 35)
   r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, (w-7*w_default_space-60-60-60-70-40-60)/2)
-  local _, voicing = r.ImGui_InputText(ctx, '##voicing', CURRENT_CHORD_VOICING)
-  onVoicingChange(voicing)
+  local default_notes = StringSplit(CURRENT_CHORD_DEFAULT_VOICING, ",")
+  local nice_notes = StringSplit(CURRENT_CHORD_VOICING, ",")
+  for idx, note in ipairs(default_notes) do
+    local index = ListIndex(nice_notes, note)
+    if index < 0 then
+        -- not in 
+      if uiColorBtn(" "..note.." ##voicing_note", ColorGray ,35, 0) then
+        table.insert(nice_notes, note)
+      end
+    else
+      if uiColorBtn(" "..note.. " ##voicing_note", ColorBlue ,35, 0) then
+        nice_notes = ListDeleteIndex(nice_notes, index)
+      end
+    end
+    r.ImGui_SameLine(ctx)
+  end
+  CURRENT_CHORD_VOICING = ListJoinToString(nice_notes, ",")
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(ListExtend({CURRENT_CHORD_BASS}, nice_notes))
+  -- r.ImGui_SetNextItemWidth(ctx, (w-7*w_default_space-60-60-60-70-40-60)/2)
+  -- local _, voicing = r.ImGui_InputText(ctx, '##voicing', CURRENT_CHORD_VOICING)
+  -- onVoicingChange(voicing)
+  -- r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "<", 30) then
+    onVoicingShift("<")
+    onListenClick()
+  end
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, ">", 30) then
+    onVoicingShift(">")
+    onListenClick()
+  end
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Listen", 60) then
     onListenClick()
   end
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Stop", 60) then
-    onStopClick()
-  end
-  r.ImGui_SameLine(ctx)
+  -- if r.ImGui_Button(ctx, "Stop", 60) then
+  --   onStopClick()
+  -- end
+  -- r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Insert", 60) then
     onInsertClick()
   end
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn("Notes:", ColorGray, 60)
+  uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(CURRENT_CHORD_BASS..","..CURRENT_CHORD_DEFAULT_VOICING, ColorGray, (w-7*w_default_space-60-60-60-70-40-60)/2)
+  uiReadOnlyColorBtn(CURRENT_CHORD_VOICING, ColorGray, w-(7+#default_notes)*w_default_space-70-35-30-30-60-60-60-35*#default_notes)
 
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -781,7 +845,7 @@ local function uiSimilarChords()
         local is_selected = CURRENT_SELECTED_SIMILAR_CHORD == v
         if r.ImGui_Selectable(ctx, v, is_selected) then
           CURRENT_SELECTED_SIMILAR_CHORD = v
-          local notes_pitched = {}
+          local note_midi_index = {}
           if CURRENT_SELECTED_SIMILAR_CHORD ~= "" then
             local pure_notes, _ = T_MakeChord(CURRENT_SELECTED_SIMILAR_CHORD)
             CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_midi_index = T_NotePitched(pure_notes)
@@ -1155,6 +1219,10 @@ local function uiExtension()
   add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_AlwaysAutoResize()
   if r.ImGui_BeginPopupModal(ctx, 'Save Selected Chord Progression', nil, add_bank_win_flags) then
     -- input text & button
+    if r.ImGui_Button(ctx, "Refresh", 80) then
+      R_ChordItemRefresh()
+    end
+    r.ImGui_SameLine(ctx)
     initChordProgression()
     r.ImGui_Text(ctx, B_CHORD_PATTERNS)
     uiReadOnlyColorBtn("BankTag", ColorGray, 80)

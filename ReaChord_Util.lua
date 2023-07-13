@@ -87,3 +87,59 @@ function ListDeleteIndex(lst, index)
     end
     return new_lst
 end
+
+function SplitListAtIndex(lst, index)
+    local l, r = {}, {}
+    for idx, item in ipairs(lst) do
+        if idx <=index then
+            table.insert(l, item)
+        else
+            table.insert(r, item)
+        end
+    end
+    return l, r
+end
+
+
+function PermuteList(lst)
+    local ret = {}
+    local len = #lst
+    local function backtrack(cur, target) 
+        if #cur == len then
+            table.insert(ret, cur)
+        end
+
+        for i, v in ipairs(target) do
+            local l, r = SplitListAtIndex(i)
+            backtrack(table.insert(cur, v), r)
+        end
+    end
+    backtrack({}, lst)
+    return ret
+end
+
+function DeepCopyList(lst)
+    local ret = {}
+    for i, v in ipairs(lst) do
+        table.insert(ret, v)
+    end
+    return ret
+end
+
+function PermuteList(lst)
+    local ret = {}
+    local length = #lst
+    local function backtrack(first) 
+        if first == length then
+            table.insert(ret, DeepCopyList(lst))
+        end
+
+        for i=first,length do
+            lst[first], lst[i] = lst[i], lst[first]
+            backtrack(first+1)
+            lst[first], lst[i] = lst[i], lst[first]
+        end
+    end
+    backtrack(1)
+    return ret
+end
