@@ -25,6 +25,17 @@ function StringSplit(str, sp)
     return result
 end
 
+
+function ListAddUniqValue(lst, val)
+    for idx, item in ipairs(lst) do
+        if item == val then
+            return lst
+        end
+    end
+    table.insert(lst, val)
+    return lst
+end
+
 function ListJoinToString(lst, sp)
     local result = ""
     for idx, item in ipairs(lst) do
@@ -142,4 +153,10 @@ function PermuteList(lst)
     end
     backtrack(1)
     return ret
+end
+
+function PrintList(lst) 
+    for _, v in ipairs(lst) do
+        print(v.." ")
+    end
 end

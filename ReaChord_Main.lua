@@ -17,6 +17,7 @@ local CHORD_PAD_SELECTED = ""
 
 local CHORD_INSERT_MODE = "off"
 local CHORD_SIMILAR_MODE = "off"
+local SCALE_BY_CHORD_MODE = "off"
 
 local OCT_RANGE = {"-1", "0", "+1"}
 local ABOUT_IMG
@@ -55,6 +56,9 @@ local CURRENT_ANALYSIS_CHORD = ""
 local CURRENT_SIMILAR_CHORDS = {}
 local CURRENT_SELECTED_SIMILAR_CHORD = ""
 local CURRENT_SELECTED_SIMILAR_CHORD_PITCHED = {}
+local CURRENT_SCALES_FOR_ANALYSIS_CHORD = {}
+local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD = ""
+local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED = {}
 
 local MainBgColor = 0xEEE9E9FF
 local ColorWhite = 0xFFFFFFFF
@@ -450,7 +454,7 @@ local function uiColorBtn(text, color, ww, hh)
 end
 
 
-local function uiMiniPiano()
+local function uiMiniPianoForSimilarChords()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
   r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key-w_piano_space, h_piano, r.ImGui_ButtonFlags_None())
@@ -491,6 +495,49 @@ local function uiMiniPiano()
   end
   r.ImGui_PopStyleVar(ctx, 1)
 end
+
+local function uiMiniPianoForScalesByChord()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
+  -- black
+  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key-w_piano_space, h_piano, r.ImGui_ButtonFlags_None())
+  for _, note in ipairs({
+    "Db0/C#0","Eb0/D#0","-","Gb0/F#0","Ab0/G#0","Bb0/A#0","-",
+    "Db1/C#1","Eb1/D#1","-","Gb1/F#1","Ab1/G#1","Bb1/A#1",'-',
+    "Db2/C#2","Eb2/D#2","-","Gb2/F#2","Ab2/G#2","Bb2/A#2"
+  }) do
+    r.ImGui_SameLine(ctx)
+    if note == "-" then
+      r.ImGui_InvisibleButton(ctx, "##", w_piano_key, h_piano, r.ImGui_ButtonFlags_None())
+    else
+      local note_split = StringSplit(note, "/")
+      if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[2]) > 0 then
+        r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      else
+        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      end
+    end
+  end
+  -- r.ImGui_SameLine(ctx)
+  -- r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key, h_piano, r.ImGui_ButtonFlags_None())
+  
+  -- white
+  for idx, note in ipairs({
+    "C0","D0","E0","F0","G0","A0","B0",
+    "C1","D1","E1","F1","G1","A1","B1",
+    "C2","D2","E2","F2","G2","A2","B2",
+  }) do
+    if idx >1 then
+      r.ImGui_SameLine(ctx)
+    end
+    if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note) > 0 then
+      r.ImGui_ColorButton(ctx, "##", ColorBlue,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+    else
+      r.ImGui_ColorButton(ctx, "##", ColorWhite,r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+    end
+  end
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
 
 local function uiPiano()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
@@ -756,6 +803,19 @@ local function uiVoicing()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
+local function uiChordDegree()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
+
+  uiReadOnlyColorBtn("Degree:", ColorGray, 100)
+  local items = StringSplit(G_WHOLE_HALF_SCALE_PATTERN, ",")
+  for _, note in ipairs(items) do
+    r.ImGui_SameLine(ctx)
+    uiColorBtn(" "..note.." ##chord_degree", ColorGray, (w-12*w_default_space-100)/12, 0)
+  end
+  
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
 local function uiChordRoot()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
 
@@ -867,7 +927,47 @@ local function uiSimilarChords()
       r.ImGui_EndListBox(ctx)
     end
 
-    uiMiniPiano()
+    uiMiniPianoForSimilarChords()
+    r.ImGui_EndPopup(ctx)
+  end
+  
+end
+
+local function uiScalesByChord()
+  local add_bank_win_flags = r.ImGui_WindowFlags_None()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoScrollbar()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoNav()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_NoDocking()
+  add_bank_win_flags = add_bank_win_flags | r.ImGui_WindowFlags_AlwaysAutoResize()
+  
+  if r.ImGui_BeginPopup(ctx, 'Scales By Chord', add_bank_win_flags) then
+    
+    if r.ImGui_Button(ctx, "Close", 100) then
+        r.ImGui_CloseCurrentPopup(ctx)
+    end
+    r.ImGui_SameLine(ctx)
+    r.ImGui_Text(ctx, "These scales contains " .. CURRENT_ANALYSIS_CHORD)
+    if r.ImGui_BeginListBox(ctx, '##scales_by_chord', -FLT_MIN, 8 * r.ImGui_GetTextLineHeightWithSpacing(ctx)) then
+      for idx, v in ipairs(CURRENT_SCALES_FOR_ANALYSIS_CHORD) do
+        local display_v = ListJoinToString(StringSplit(v, "/"), " | ")
+        local is_selected = CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD == display_v
+        if r.ImGui_Selectable(ctx, display_v, is_selected) then
+          CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD = display_v
+          if CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD ~= "" then
+            local pure_notes, _ = T_MakeScale(v)
+            CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, _ = T_NotePitched(pure_notes)
+          end            
+        end
+  
+        -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+        if is_selected then
+          r.ImGui_SetItemDefaultFocus(ctx)
+        end
+      end
+      r.ImGui_EndListBox(ctx)
+    end
+
+    uiMiniPianoForScalesByChord()
     r.ImGui_EndPopup(ctx)
   end
   
@@ -878,7 +978,7 @@ local function uiChordMap()
   
   local lines = math.ceil(#G_CHORD_NAMES/7)
   local ww = w
-  local hh = h-main_window_h_padding*2-2*lines-h_piano*2-8*25-h_chord_pad*2
+  local hh = h-main_window_h_padding*2-2*lines-h_piano*2-9*25-7*1-h_chord_pad*2
   -- 7 x 7
   for i=0,lines-1 do
     for j=1,7 do
@@ -891,7 +991,7 @@ local function uiChordMap()
       end
       local chord = CURRENT_CHORD_LIST[idx]
       if chord == CURRENT_CHORD_NAME then
-        if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+        if uiColorBtn(chord.."##chord", ColorBlue, (ww-6*w_default_space)/7, (hh-6*w_default_space)/lines) then
           onSelectChordChange(chord)
           PlayPiano()
           if CHORD_INSERT_MODE == "on" then
@@ -899,8 +999,13 @@ local function uiChordMap()
           end
           if CHORD_SIMILAR_MODE == "on" then
             CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord)
+            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
             r.ImGui_OpenPopup(ctx, 'Similar Chords')
+          end
+          if SCALE_BY_CHORD_MODE == "on" then
+            CURRENT_ANALYSIS_CHORD = chord
+            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
           end
         end
         if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
@@ -913,7 +1018,7 @@ local function uiChordMap()
           r.ImGui_EndDragDropSource(ctx)
         end
       elseif ListIndex(CURRENT_NICE_CHORD_LIST, chord)>0 then
-        if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+        if uiColorBtn(chord.."##chord", ColorPink, (ww-6*w_default_space)/7, (hh-6*w_default_space)/lines) then
           onSelectChordChange(chord)
           PlayPiano()
           if CHORD_INSERT_MODE == "on" then
@@ -921,12 +1026,17 @@ local function uiChordMap()
           end
           if CHORD_SIMILAR_MODE == "on" then
             CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord)
+            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
             r.ImGui_OpenPopup(ctx, 'Similar Chords')
+          end
+          if SCALE_BY_CHORD_MODE == "on" then
+            CURRENT_ANALYSIS_CHORD = chord
+            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
           end
         end
       else 
-        if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/7) then
+        if uiColorBtn(chord.."##chord", ColorNormalNote, (ww-6*w_default_space)/7, (hh-6*w_default_space)/lines) then
           onSelectChordChange(chord)
           PlayPiano()
           if CHORD_INSERT_MODE == "on" then
@@ -934,8 +1044,13 @@ local function uiChordMap()
           end
           if CHORD_SIMILAR_MODE == "on" then
             CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord)
+            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
             r.ImGui_OpenPopup(ctx, 'Similar Chords')
+          end
+          if SCALE_BY_CHORD_MODE == "on" then
+            CURRENT_ANALYSIS_CHORD = chord
+            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
           end
         end
       end
@@ -943,12 +1058,15 @@ local function uiChordMap()
   end
 
   uiSimilarChords()
+  uiScalesByChord()
   
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
 local function uiChordSelector()
   uiTopLine()
+  r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+  uiChordDegree()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
   uiChordRoot()
   r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
@@ -1081,10 +1199,10 @@ local function bindKeyBoard()
   end
   -- LEFT CTRL
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_LeftCtrl(), false) then
-    CHORD_INSERT_MODE = "on"
+    SCALE_BY_CHORD_MODE = "on"
   end
   if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_LeftCtrl()) then
-    CHORD_INSERT_MODE = "off"
+    SCALE_BY_CHORD_MODE = "off"
   end
   -- LEFT ALT
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_LeftAlt(), false) then
@@ -1092,6 +1210,13 @@ local function bindKeyBoard()
   end
   if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_LeftAlt()) then
     CHORD_SIMILAR_MODE = "off"
+  end
+  -- LEFT SHIFT
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_LeftShift(), false) then
+    CHORD_INSERT_MODE = "on"
+  end
+  if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_LeftShift()) then
+    CHORD_INSERT_MODE = "off"
   end
 end
 

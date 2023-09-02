@@ -9,6 +9,16 @@ R_ChordTrackMidi = "REACHORD_MIDI"
 
 R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks.txt'
 
+function NewLineTag()
+    if package.config:sub(1,1) == "/" then
+        -- mac or linux?
+        return "\n"
+    else
+        return "\r\n"
+    end
+end
+
+
 function GetOrCreateTrackByName(name)
     local targeTrack
     for trackIndex = 0, r.CountTracks(0) - 1 do
@@ -28,21 +38,27 @@ function GetOrCreateTrackByName(name)
     return targeTrack
 end
 
-function GetLengthForOneBar()
-    local bpm, bpi = r.GetProjectTimeSignature2(0)
-    local tempo = r.Blink_GetTempo()
-    local duration = r.TimeMap2_QNToTime(0, bpi) * tempo / bpm
-    return duration
-end
-
 function GetLengthForOneBeat()
-    local bpm, bpi = r.GetProjectTimeSignature2(0)
-    local tempo = r.Blink_GetTempo()
-    local duration = r.TimeMap2_QNToTime(0, 1) * tempo / bpm
+    local bpm_base, _ = r.GetProjectTimeSignature(0)
+    local bpm_now = bpm_base
+    tempoIdx = r.FindTempoTimeSigMarker(0, r.GetCursorPosition())
+    if tempoIdx>-1 then
+        _,_,_,_,bpm_now,_,_,_ = r.GetTempoTimeSigMarker(0, tempoIdx)
+    end
+    local duration = r.TimeMap2_QNToTime(0, 1) * bpm_base / bpm_now
     return duration
 end
 
 function R_InsertChordItem(chord, meta, notes, beats)
+    local full_split = StringSplit(chord, "/")
+    local scale_root = StringSplit(meta,"/")[1]
+    local chord_pattern = StringSplit(full_split[1], notes[2])[2]
+    local s_chord = T_NoteName2Num(notes[2], scale_root).."'"..chord_pattern
+    if #full_split == 2 then
+        local s_bass = T_NoteName2Num(notes[1], scale_root)
+        s_chord = s_chord.."/"..s_bass.."'"
+    end
+
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
 
@@ -56,7 +72,7 @@ function R_InsertChordItem(chord, meta, notes, beats)
     local chord_item = r.AddMediaItemToTrack(chord_track)
     r.SetMediaItemPosition(chord_item, start_position, false)
     r.SetMediaItemLength(chord_item, item_length, true)
-    r.ULT_SetMediaItemNote(chord_item, chord)
+    r.ULT_SetMediaItemNote(chord_item, chord..NewLineTag()..s_chord)
     r.SetMediaItemSelected(chord_item, true)
     -- midi item
     local midi_item = r.CreateNewMIDIItemInProj(midi_track, start_position, end_position, false)
@@ -98,6 +114,7 @@ function R_SelectChordItem()
         local item = r.GetTrackMediaItem(chord_track, idx)
         if r.IsMediaItemSelected(item) then
             chord = r.ULT_GetMediaItemNote(item)
+            chord = StringSplit(chord, NewLineTag())[1]
             selectIdx = idx
             break
         end
@@ -124,7 +141,6 @@ function R_SelectChordItems()
         local item = r.GetTrackMediaItem(chord_track, idx)
         if r.IsMediaItemSelected(item) then
             found = "true"
-            -- local chord = r.ULT_GetMediaItemNote(item)
             local midi_item = r.GetTrackMediaItem(midi_track, idx)
             local midi_take = r.GetActiveTake(midi_item)
             local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
@@ -147,6 +163,9 @@ function R_ChordItemTrans(diff)
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
         if r.IsMediaItemSelected(chord_item) then
             local chord = r.ULT_GetMediaItemNote(chord_item)
+            local chord_s = StringSplit(chord, NewLineTag())
+            chord = chord_s[1]
+            s_chord = chord_s[2]
             local midi_item = r.GetTrackMediaItem(midi_track, idx)
             local midi_take = r.GetActiveTake(midi_item)
             local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
@@ -189,7 +208,7 @@ function R_ChordItemTrans(diff)
                 local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = r.MIDI_GetNote(midi_take, idx)
                 r.MIDI_SetNote(midi_take, idx, selected, muted, startppqpos, endppqpos, chan, pitch+diff, vel, false)
             end
-            r.ULT_SetMediaItemNote(chord_item, new_chord)
+            r.ULT_SetMediaItemNote(chord_item, new_chord..NewLineTag()..s_chord)
             _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
         end
     end
@@ -199,8 +218,11 @@ function R_ChordItemRefresh()
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
     local chord_item_count =  r.CountTrackMediaItems(midi_track)
+    local chord_lst = {}
     for _ = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, 0)
+        local chord = r.ULT_GetMediaItemNote(chord_item)
+        table.insert(chord_lst, chord)
         r.DeleteTrackMediaItem(chord_track, chord_item)
     end
     for idx = 0, chord_item_count - 1 do
@@ -214,12 +236,11 @@ function R_ChordItemRefresh()
         full_meta_split[4] = tostring(beats)
         local new_full_meta = ListJoinToString(full_meta_split, "|")
         _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
-        local chord = full_meta_split[3]
 
         local chord_item = r.AddMediaItemToTrack(chord_track)
         r.SetMediaItemPosition(chord_item, pos, false)
         r.SetMediaItemLength(chord_item, len, true)
-        r.ULT_SetMediaItemNote(chord_item, chord)
+        r.ULT_SetMediaItemNote(chord_item, chord_lst[idx+1])
         r.SetMediaItemSelected(chord_item, true)
         
         r.SetMediaItemSelected(midi_item, true)
@@ -238,6 +259,7 @@ function R_ChordItem2Marker()
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
         local chord = r.ULT_GetMediaItemNote(chord_item)
+        chord = StringSplit(chord, NewLineTag())[1]
         local pos = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
         local len = r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
         r.AddProjectMarker(0, false, pos, pos+len, chord, -1)
@@ -250,6 +272,7 @@ function R_ChordItem2Region()
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
         local chord = r.ULT_GetMediaItemNote(chord_item)
+        chord = StringSplit(chord, NewLineTag())[1]
         local pos = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
         local len = r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
         r.AddProjectMarker(0, true, pos, pos+len, chord, -1)

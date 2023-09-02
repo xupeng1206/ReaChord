@@ -182,6 +182,9 @@ G_SCALE_NAMES[34] = "Spanish"
 G_SCALE_PATTERNS[34] = "1,b2,b3,3,4,b5,b6,b7"
 
 
+G_WHOLE_HALF_SCALE_PATTERN = "1,b2,2,b3,3,4,b5,5,b6,6,b7,7"
+
+
 function T_NoteIndex(lst, target)
     for idx, notes in ipairs(lst) do
         for _, note in ipairs(StringSplit(notes, "/")) do
@@ -191,6 +194,17 @@ function T_NoteIndex(lst, target)
         end
     end
     return -1
+end
+
+function T_MNote(target)
+    for idx, notes in ipairs(G_NOTE_LIST) do
+        for _, note in ipairs(StringSplit(notes, "/")) do
+            if note == target then
+                return notes
+            end
+        end
+    end
+    return target
 end
 
 function T_Parse(root, pattern)
@@ -276,10 +290,11 @@ function T_ChordInScale(chord, scale)
     return all_in
 end
 
-function T_FindScalesByChord(chord)
+function T_FindScalesByChord(chord, bass)
     local _, chordNotes = T_MakeChord(chord)
+    ListAddUniqValue(chordNotes, T_MNote(bass))
     local scales = {}
-    for _, note in ipairs(G_NOTE_LIST) do
+    for _, note in ipairs(G_FLAT_NOTE_LIST) do
         for idx, scaleTag in ipairs(G_SCALE_NAMES) do
             local scalePattern = G_SCALE_PATTERNS[idx]
             local _, tmpScaleNotes = T_Parse(note, scalePattern)
@@ -292,13 +307,14 @@ function T_FindScalesByChord(chord)
 end
 
 
-function T_FindSimilarChords(chord)
+function T_FindSimilarChords(chord, bass)
     local chords = {}
     local x2chords = {}
     local x3chords = {}
     local x4chords = {}
     local x5chords = {}
     local _, chordNotes = T_MakeChord(chord)
+    ListAddUniqValue(chordNotes, T_MNote(bass))
     if #chordNotes > 6 then
         return chords
     end
@@ -405,4 +421,13 @@ function T_NotePitched(notes)
         preIdx = curIdx
     end
     return notePitched, noteIdxes
+end
+
+function T_NoteName2Num(note, scale_root)
+    local _, m_notes = T_Parse(scale_root, G_WHOLE_HALF_SCALE_PATTERN)
+    local index = T_NoteIndex(m_notes, note)
+    if index>0 then
+        return StringSplit(G_WHOLE_HALF_SCALE_PATTERN, ",")[index]
+    end
+    return "X"
 end
