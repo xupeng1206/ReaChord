@@ -1,6 +1,8 @@
 # ReaChord
 Reaper Chord Track (Lua Version)
 
+https://github.com/xupeng1206/ReaChord/raw/main/index.xml
+
 ## Quick Start
 load files down below in reaper's action list
 ### ReaChord_Main.lua
