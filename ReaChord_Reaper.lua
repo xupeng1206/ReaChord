@@ -37,6 +37,19 @@ function GetOrCreateTrackByName(name)
     return targeTrack
 end
 
+function GetTrackByName(name)
+    local targeTrack
+    for trackIndex = 0, r.CountTracks(0) - 1 do
+        local track = r.GetTrack(0, trackIndex)
+        local ok, trackName = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+        if ok and trackName == name then
+            targeTrack = track
+            break
+        end
+    end
+    return targeTrack
+end
+
 function GetLengthForOneBeat()
     local bpm_base, _ = r.GetProjectTimeSignature(0)
     local bpm_now = bpm_base
@@ -324,7 +337,10 @@ function R_DeleteAllChordRegion()
 end
 
 function R_GetChordItemInfoByPosition(position)
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_track = GetTrackByName(R_ChordTrackName)
+    if chord_track == nil then
+        return false, 0, 0, ""
+    end
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
