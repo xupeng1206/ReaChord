@@ -1285,24 +1285,32 @@ local function uiExtension()
   local hh = h
   uiReadOnlyColorBtn("Actions", ColorGray, ww)
 
-  if uiColorBtn("Up 1 Semitone".."##trans", ColorPink, (ww-4*w_default_space)/5, 50) then
+  if uiColorBtn("Up 1 Semitone".."##trans", ColorPink, (ww-6*w_default_space)/7, 50) then
     R_ChordItemTrans(1)
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Down 1 Semitone".."##trans", ColorPink, (ww-4*w_default_space)/5, 50) then
+  if uiColorBtn("Down 1 Semitone".."##trans", ColorPink, (ww-6*w_default_space)/7, 50) then
     R_ChordItemTrans(-1)
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Refresh Items".."##tempo", ColorYellow, (ww-4*w_default_space)/5, 50) then
+  if uiColorBtn("Refresh Items".."##tempo", ColorYellow, (ww-6*w_default_space)/7, 50) then
     R_ChordItemRefresh()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Items To Markers".."##tag", ColorDarkPink, (ww-4*w_default_space)/5, 50) then
+  if uiColorBtn("Items To Markers".."##tag", ColorDarkPink, (ww-6*w_default_space)/7, 50) then
     R_ChordItem2Marker()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Items To Region".."##tag", ColorDarkPink, (ww-4*w_default_space)/5, 50) then
+  if uiColorBtn("Delete Markers".."##tag", ColorRed, (ww-6*w_default_space)/7, 50) then
+    R_DeleteAllChordMarker()
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Items To Region".."##tag", ColorDarkPink, (ww-6*w_default_space)/7, 50) then
     R_ChordItem2Region()
+  end
+  r.ImGui_SameLine(ctx)
+  if uiColorBtn("Delete Regions".."##tag", ColorRed, (ww-6*w_default_space)/7, 50) then
+    R_DeleteAllChordRegion()
   end
 
   uiReadOnlyColorBtn("Chord Progression Bank", ColorGray, ww)
