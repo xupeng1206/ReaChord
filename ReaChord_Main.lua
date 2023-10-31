@@ -1466,6 +1466,7 @@ local function loop()
 end
 
 local function init()
+  R_ArmOnlyChordTrack()
   local pad_values = r.GetExtState("ReaChord", "CHORD_PAD_VALUES")
   local pad_values_split = StringSplit(pad_values, "~")
   if #pad_values_split == 12 then

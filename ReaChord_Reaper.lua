@@ -354,6 +354,19 @@ function R_GetChordItemInfoByPosition(position)
     return false, 0, 0, ""
 end
 
+function R_ArmOnlyChordTrack()
+    r.ClearAllRecArmed()
+    local chord_track = GetTrackByName(R_ChordTrackName)
+    if chord_track == nil then
+        return
+    end
+
+    local arm = r.GetMediaTrackInfo_Value(chord_track,'I_RECARM');
+    if arm ~= 1 then;
+        r.SetMediaTrackInfo_Value(chord_track,'I_RECARM',1);
+    end
+end
+
 function R_Play(notes)
     -- virtualKeyboardMode
     local keyboard_mode = 0
