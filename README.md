@@ -11,6 +11,8 @@ Chord selector GUI
 Bind this script on your mouse action
 ### ReaChord_Reader.lua
 Display the chord at the cursor
+### ReaChord_Reader_Start.lua
+ReaChord_Reader Starter, you may change command id if not work
 
 ## Extend
 You can add new scale or chord in ReaChord_Theory.lua, and aslo looking forward to your PR. 

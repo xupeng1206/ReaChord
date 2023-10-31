@@ -5,11 +5,10 @@
 
 
 --// USER CONFIG AREA -->
-text_color = "White"         -- support names (see color function) and hex values with #
-background_color =
-"#333333"                    -- support names and hex values with #. REAPER defaults are dark grey #333333 and brigth grey #A4A4A4
-no_regions_text = true       -- set to false to desactivate "NO REGIONS UNDER PLAY CURSOR" instructions
-console = false              -- Display debug messages in the console
+text_color = "White"   -- support names (see color function) and hex values with #
+background_color = "#333333"              -- support names and hex values with #. REAPER defaults are dark grey #333333 and brigth grey #A4A4A4
+no_regions_text = true -- set to false to desactivate "NO REGIONS UNDER PLAY CURSOR" instructions
+console = true         -- Display debug messages in the console
 
 --// -------------------- END OF USER CONFIG AREA
 
@@ -28,16 +27,34 @@ vars.ypos = 100
 
 ext_name = "ReaChord Reader"
 
-pre_chord_txt = ""
-post_chord_txt = ""
-chord_txt = ""
-pre_simple_chord_txt = ""
-post_simple_chord_txt = ""
-simple_chord_txt = ""
+pre_3_chord_txt = ""
+pre_3_simple_chord_txt = ""
+pre_3_full_chord_txt = ""
 
-pre_full_chord_txt = ""
-post_full_chord_txt = ""
+pre_2_chord_txt = ""
+pre_2_simple_chord_txt = ""
+pre_2_full_chord_txt = ""
+
+pre_1_chord_txt = ""
+pre_1_simple_chord_txt = ""
+pre_1_full_chord_txt = ""
+
+
+chord_txt = ""
+simple_chord_txt = ""
 full_chord_txt = ""
+
+post_1_chord_txt = ""
+post_1_simple_chord_txt = ""
+post_1_full_chord_txt = ""
+
+post_2_chord_txt = ""
+post_2_simple_chord_txt = ""
+post_2_full_chord_txt = ""
+
+post_3_chord_txt = ""
+post_3_simple_chord_txt = ""
+post_3_full_chord_txt = ""
 
 -- Performance
 local reaper = reaper
@@ -45,11 +62,43 @@ local reaper = reaper
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
+
 -- DEBUG
 function Msg(value)
     if console then
         reaper.ShowConsoleMsg(tostring(value) .. "\n")
     end
+end
+
+function initChordDisplay()
+    pre_3_chord_txt = ""
+    pre_3_simple_chord_txt = ""
+    pre_3_full_chord_txt = ""
+
+    pre_2_chord_txt = ""
+    pre_2_simple_chord_txt = ""
+    pre_2_full_chord_txt = ""
+
+    pre_1_chord_txt = ""
+    pre_1_simple_chord_txt = ""
+    pre_1_full_chord_txt = ""
+
+
+    chord_txt = ""
+    simple_chord_txt = ""
+    full_chord_txt = ""
+
+    post_1_chord_txt = ""
+    post_1_simple_chord_txt = ""
+    post_1_full_chord_txt = ""
+
+    post_2_chord_txt = ""
+    post_2_simple_chord_txt = ""
+    post_2_full_chord_txt = ""
+
+    post_3_chord_txt = ""
+    post_3_simple_chord_txt = ""
+    post_3_full_chord_txt = ""
 end
 
 -- Set ToolBar Button State
@@ -131,7 +180,7 @@ function StringArea(string, ratio)
     gfx.setfont(1, font_name, 100)
 
     str_w, str_h = gfx.measurestr(string)
-    fontsizefit = (gfx.w / (str_w + 50)) * 100 -- new font size needed to fit.
+    fontsizefit = (gfx.w / (str_w + 50)) * 100           -- new font size needed to fit.
     fontsizefith = ((gfx.h - gfx.y) / (str_h + 0)) * 100 -- new font size needed to fit in vertical.
 
     font_size = math.min(fontsizefit, fontsizefith)
@@ -144,7 +193,7 @@ function CenterAndResizeText(string)
     gfx.setfont(1, font_name, 100)
 
     str_w, str_h = gfx.measurestr(string)
-    fontsizefit = (gfx.w / (str_w + 50)) * 100 -- new font size needed to fit.
+    fontsizefit = (gfx.w / (str_w + 50)) * 100           -- new font size needed to fit.
     fontsizefith = ((gfx.h - gfx.y) / (str_h + 0)) * 100 -- new font size needed to fit in vertical.
 
     font_size = math.min(fontsizefit, fontsizefith)
@@ -155,30 +204,35 @@ function CenterAndResizeText(string)
     gfx.y = gfx.y
 end
 
-function PrintLabelAndBreak(string)
+function GFXPrintLine(string)
     CenterAndResizeText(string)
     color("Gray")
     gfx.printf(string)
     gfx.y = gfx.y + font_size
 end
 
-function PrintChordAndBreak(pre, cur, post)
-    local pre_w, pre_h, pre_size = StringArea(pre, 0.5)
-    local cur_w, cur_h, cur_size = StringArea(cur, 1)
-    local post_w, post_h, post_size = StringArea(post, 0.5)
+function GFXPrintChord(pre3, pre2, pre1, cur, post1, post2, post3)
+    -- CenterAndResizeText(pre3 .."  ".. pre2 .."  ".. pre1 .."  ".. cur .."  ".. post1 .."  ".. post2 .."  ".. post3)
+    local pre1w, pre1h, pre1size = StringArea(pre1 .. "  ", 1)
+    local pre2w, pre2h, pre2size = StringArea(pre2 .. "  ", 1)
+    local pre3w, pre3h, pre3size = StringArea(pre3 .. "  ", 1)
+    local curw, curh, cursize = StringArea(cur, 1)
+    gfx.x = gfx.w / 2 - curw / 2 - pre1w - pre2w - pre3w
+    gfx.y = gfx.y
 
-    gfx.x = gfx.w / 2 - cur_w / 2 - pre_w
-    gfx.setfont(1, font_name, pre_size)
     color("Gray")
-    gfx.printf(pre)
+    gfx.printf(pre3 .. "  ")
+    gfx.printf(pre2 .. "  ")
+    gfx.printf(pre1 .. "  ")
 
-    gfx.setfont(1, font_name, cur_size)
     color("White")
     gfx.printf(cur)
 
-    gfx.setfont(1, font_name, post_size)
     color("Gray")
-    gfx.printf(post)
+    gfx.printf("  " .. post1)
+    gfx.printf("  " .. post2)
+    gfx.printf("  " .. post3)
+
     gfx.y = gfx.y + font_size
 end
 
@@ -263,6 +317,9 @@ function run()
     -- region_end -> region_end
     -- region_name -> chord
     --
+
+    initChordDisplay()
+
     is_region, region_start, region_end, region_name = R_GetChordItemInfoByPosition(play_pos)
     region_color = 0
     if is_region then
@@ -273,20 +330,65 @@ function run()
         simple_chord_txt = chord_split[2]
 
         -- get pre post item
-        ret_pre, _, _, pre_chord = R_GetChordItemInfoByPosition(region_start - 1)
-        if ret_pre then
-            local pre_chord_split = StringSplit(pre_chord, NewLineTag())
-            pre_full_chord_txt = pre_chord
-            pre_chord_txt = pre_chord_split[1]
-            pre_simple_chord_txt = pre_chord_split[2]
+        -- pre 1
+        local ret, item_start, item_end, item_chord
+        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_start - 1)
+        if ret then
+            local item_chord_split = StringSplit(item_chord, NewLineTag())
+            pre_1_full_chord_txt = item_chord
+            pre_1_chord_txt = item_chord_split[1]
+            pre_1_simple_chord_txt = item_chord_split[2]
+        end
+        -- pre 2
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                pre_2_full_chord_txt = item_chord
+                pre_2_chord_txt = item_chord_split[1]
+                pre_2_simple_chord_txt = item_chord_split[2]
+            end
         end
 
-        ret_post, _, _, post_chord = R_GetChordItemInfoByPosition(region_end + 1)
-        if ret_post then
-            local post_chord_split = StringSplit(post_chord, NewLineTag())
-            post_full_chord_txt = post_chord
-            post_chord_txt = post_chord_split[1]
-            post_simple_chord_txt = post_chord_split[2]
+        -- pre 3
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                pre_3_full_chord_txt = item_chord
+                pre_3_chord_txt = item_chord_split[1]
+                pre_3_simple_chord_txt = item_chord_split[2]
+            end
+        end
+
+
+        -- post 1
+
+        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_end + 1)
+        if ret then
+            local item_chord_split = StringSplit(item_chord, NewLineTag())
+            post_1_full_chord_txt = item_chord
+            post_1_chord_txt = item_chord_split[1]
+            post_1_simple_chord_txt = item_chord_split[2]
+        end
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                post_2_full_chord_txt = item_chord
+                post_2_chord_txt = item_chord_split[1]
+                post_2_simple_chord_txt = item_chord_split[2]
+            end
+        end
+
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                post_3_full_chord_txt = item_chord
+                post_3_chord_txt = item_chord_split[1]
+                post_3_simple_chord_txt = item_chord_split[2]
+            end
         end
     else
         gfx.y = 0
@@ -328,13 +430,15 @@ function run()
     -- DRAW
     if is_region == true then
         DrawProgressBar()
-        if format>0 then
-            PrintChordAndBreak(pre_chord_txt, chord_txt, post_chord_txt)
+        if format > 0 then
+            GFXPrintChord(pre_3_chord_txt, pre_2_chord_txt, pre_1_chord_txt, chord_txt, post_1_chord_txt,
+                post_2_chord_txt, post_3_chord_txt)
         else
-            PrintChordAndBreak(pre_simple_chord_txt, simple_chord_txt, post_simple_chord_txt)
+            GFXPrintChord(pre_3_simple_chord_txt, pre_2_simple_chord_txt, pre_1_simple_chord_txt, simple_chord_txt,
+                post_1_simple_chord_txt, post_2_simple_chord_txt, post_3_simple_chord_txt)
         end
     else
-        PrintLabelAndBreak("No Chord")
+        GFXPrintLine("No Chord")
     end
 
     gfx.update()
@@ -344,7 +448,6 @@ function run()
 end -- END DEFER
 
 --// RUN //--
-
 SetButtonState(1)
 init()
 run()
