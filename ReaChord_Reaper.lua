@@ -1,4 +1,4 @@
-r = reaper
+local r = reaper
 print = r.ShowConsoleMsg
 
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
@@ -277,6 +277,21 @@ function R_ChordItem2Region()
         local len = r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
         r.AddProjectMarker(0, true, pos, pos+len, chord, -1)
     end
+end
+
+function R_GetChordItemInfoByPosition(position)
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_item_count =  r.CountTrackMediaItems(chord_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord_item_start = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local chord_item_end = chord_item_start + r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        if position >= chord_item_start and position <= chord_item_end then
+            local chord = r.ULT_GetMediaItemNote(chord_item)
+            return true, chord_item_start, chord_item_end, chord
+        end
+    end
+    return false, 0, 0, ""
 end
 
 function R_Play(notes)
