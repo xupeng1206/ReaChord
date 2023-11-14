@@ -172,6 +172,12 @@ Just display
 #### 7.3 Items To Markers/Regions
 `It can make items to markers/regions`
 #### 7.4 Chord Progression Bank
+```
+1. Don't Use Windows's Bank File in MacOS, there's a bug.
+2. Don't Use MacOS's Bank File in Windows, also bug
+
+PS. Factory banks genrated in windows.
+```
 ##### 7.1 Add
 ```
 1. Select 1 chord progression (multi chord items) in chord track.
