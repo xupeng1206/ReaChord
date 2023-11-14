@@ -27,6 +27,10 @@ vars.ypos = 100
 
 ext_name = "ReaChord Reader"
 
+pre_4_chord_txt = ""
+pre_4_simple_chord_txt = ""
+pre_4_full_chord_txt = ""
+
 pre_3_chord_txt = ""
 pre_3_simple_chord_txt = ""
 pre_3_full_chord_txt = ""
@@ -56,6 +60,10 @@ post_3_chord_txt = ""
 post_3_simple_chord_txt = ""
 post_3_full_chord_txt = ""
 
+post_4_chord_txt = ""
+post_4_simple_chord_txt = ""
+post_4_full_chord_txt = ""
+
 -- Performance
 local reaper = reaper
 
@@ -71,6 +79,10 @@ function Msg(value)
 end
 
 function initChordDisplay()
+    pre_4_chord_txt = ""
+    pre_4_simple_chord_txt = ""
+    pre_4_full_chord_txt = ""
+
     pre_3_chord_txt = ""
     pre_3_simple_chord_txt = ""
     pre_3_full_chord_txt = ""
@@ -99,6 +111,10 @@ function initChordDisplay()
     post_3_chord_txt = ""
     post_3_simple_chord_txt = ""
     post_3_full_chord_txt = ""
+
+    post_4_chord_txt = ""
+    post_4_simple_chord_txt = ""
+    post_4_full_chord_txt = ""
 end
 
 -- Set ToolBar Button State
@@ -211,16 +227,18 @@ function GFXPrintLine(string)
     gfx.y = gfx.y + font_size
 end
 
-function GFXPrintChord(pre3, pre2, pre1, cur, post1, post2, post3)
+function GFXPrintChord(pre4, pre3, pre2, pre1, cur, post1, post2, post3, post4)
     -- CenterAndResizeText(pre3 .."  ".. pre2 .."  ".. pre1 .."  ".. cur .."  ".. post1 .."  ".. post2 .."  ".. post3)
     local pre1w, pre1h, pre1size = StringArea(pre1 .. "  ", 1)
     local pre2w, pre2h, pre2size = StringArea(pre2 .. "  ", 1)
     local pre3w, pre3h, pre3size = StringArea(pre3 .. "  ", 1)
+    local pre4w, pre4h, pre4size = StringArea(pre4 .. "  ", 1)
     local curw, curh, cursize = StringArea(cur, 1)
-    gfx.x = gfx.w / 2 - curw / 2 - pre1w - pre2w - pre3w
+    gfx.x = gfx.w / 2 - curw / 2 - pre1w - pre2w - pre3w -pre4w
     gfx.y = gfx.y
 
     color("Gray")
+    gfx.printf(pre4 .. "  ")
     gfx.printf(pre3 .. "  ")
     gfx.printf(pre2 .. "  ")
     gfx.printf(pre1 .. "  ")
@@ -232,6 +250,7 @@ function GFXPrintChord(pre3, pre2, pre1, cur, post1, post2, post3)
     gfx.printf("  " .. post1)
     gfx.printf("  " .. post2)
     gfx.printf("  " .. post3)
+    gfx.printf("  " .. post4)
 
     gfx.y = gfx.y + font_size
 end
@@ -361,6 +380,16 @@ function run()
             end
         end
 
+        -- pre 4
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                pre_4_full_chord_txt = item_chord
+                pre_4_chord_txt = item_chord_split[1]
+                pre_4_simple_chord_txt = item_chord_split[2]
+            end
+        end
 
         -- post 1
 
@@ -388,6 +417,16 @@ function run()
                 post_3_full_chord_txt = item_chord
                 post_3_chord_txt = item_chord_split[1]
                 post_3_simple_chord_txt = item_chord_split[2]
+            end
+        end
+
+        if ret then
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            if ret then
+                local item_chord_split = StringSplit(item_chord, NewLineTag())
+                post_4_full_chord_txt = item_chord
+                post_4_chord_txt = item_chord_split[1]
+                post_4_simple_chord_txt = item_chord_split[2]
             end
         end
     else
@@ -431,11 +470,11 @@ function run()
     if is_region == true then
         DrawProgressBar()
         if format > 0 then
-            GFXPrintChord(pre_3_chord_txt, pre_2_chord_txt, pre_1_chord_txt, chord_txt, post_1_chord_txt,
-                post_2_chord_txt, post_3_chord_txt)
+            GFXPrintChord(pre_4_chord_txt, pre_3_chord_txt, pre_2_chord_txt, pre_1_chord_txt, chord_txt, post_1_chord_txt,
+                post_2_chord_txt, post_3_chord_txt, post_4_chord_txt)
         else
-            GFXPrintChord(pre_3_simple_chord_txt, pre_2_simple_chord_txt, pre_1_simple_chord_txt, simple_chord_txt,
-                post_1_simple_chord_txt, post_2_simple_chord_txt, post_3_simple_chord_txt)
+            GFXPrintChord(pre_4_simple_chord_txt, pre_3_simple_chord_txt, pre_2_simple_chord_txt, pre_1_simple_chord_txt, simple_chord_txt,
+                post_1_simple_chord_txt, post_2_simple_chord_txt, post_3_simple_chord_txt, post_4_simple_chord_txt)
         end
     else
         GFXPrintLine("No Chord")
