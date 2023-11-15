@@ -10,12 +10,13 @@ R_ChordTrackMidi = "REACHORD_MIDI"
 R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks.txt'
 
 function NewLineTag()
-    if package.config:sub(1, 1) == "/" then
-        -- mac or linux?
-        return "\n"
-    else
-        return "\r\n"
-    end
+    return "\r\n"
+    -- if package.config:sub(1, 1) == "/" then
+    --     -- mac or linux?
+    --     return "\n"
+    -- else
+    --     return "\r\n"
+    -- end
 end
 
 function GetOrCreateTrackByName(name)
@@ -177,7 +178,7 @@ function R_ChordItemTrans(diff)
             local chord = r.ULT_GetMediaItemNote(chord_item)
             local chord_s = StringSplit(chord, NewLineTag())
             chord = chord_s[1]
-            s_chord = chord_s[2]
+            local s_chord = chord_s[2]
             local midi_item = r.GetTrackMediaItem(midi_track, idx)
             local midi_take = r.GetActiveTake(midi_item)
             local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)

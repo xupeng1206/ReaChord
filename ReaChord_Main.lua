@@ -618,7 +618,7 @@ local function uiChordPad()
         chordMapRefresh(key_idx)
       end
       if r.ImGui_BeginDragDropTarget(ctx) then
-        rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+        local rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
         if rev then
           onChordPadAssign(key)
         end
@@ -660,7 +660,7 @@ local function uiChordPad()
       chordMapRefresh(key_idx)
     end
     if r.ImGui_BeginDragDropTarget(ctx) then
-      rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
+      local rev, _ = r.ImGui_AcceptDragDropPayload(ctx, 'DND_DEMO_CELL')
       if rev then
         onChordPadAssign(key)
       end
@@ -1337,11 +1337,7 @@ local function uiExtension()
   r.ImGui_SameLine(ctx)
   if uiColorBtn("Delete".."##bank_delete", ColorRed, (ww-2*w_default_space)/3, 50) then
     if CHORD_PROGRESSION_SELECTED_INDEX <= #CHORD_PROGRESSION_LIST then
-      CHORD_PROGRESSION_LIST = ListDeleteIndex(CHORD_PROGRESSION_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
-      CHORD_PROGRESSION_SIMPLE_LIST = ListDeleteIndex(CHORD_PROGRESSION_SIMPLE_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
-      CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SELECTED_INDEX - 1
-      R_RefreshBank(CHORD_PROGRESSION_LIST)
-      CHORD_PROGRESSION_FILTER = ""
+      r.ImGui_OpenPopup(ctx, 'Delete Chord Progression?')
     end
   end
 
@@ -1375,6 +1371,26 @@ local function uiExtension()
     r.ImGui_SameLine(ctx)
     if r.ImGui_Button(ctx, "Close", 100) then
         r.ImGui_CloseCurrentPopup(ctx)
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+
+  local delete_bank_win_flags = add_bank_win_flags
+  if r.ImGui_BeginPopupModal(ctx, "Delete Chord Progression?", nil, delete_bank_win_flags) then
+
+    if r.ImGui_Button(ctx, "Confirmed", 100) then
+      if CHORD_PROGRESSION_SELECTED_INDEX <= #CHORD_PROGRESSION_LIST then
+        CHORD_PROGRESSION_LIST = ListDeleteIndex(CHORD_PROGRESSION_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
+        CHORD_PROGRESSION_SIMPLE_LIST = ListDeleteIndex(CHORD_PROGRESSION_SIMPLE_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
+        CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SELECTED_INDEX - 1
+        R_RefreshBank(CHORD_PROGRESSION_LIST)
+        CHORD_PROGRESSION_FILTER = ""
+        r.ImGui_CloseCurrentPopup(ctx)
+      end
+    end
+    r.ImGui_SameLine(ctx)
+    if r.ImGui_Button(ctx, "Close", 100) then
+      r.ImGui_CloseCurrentPopup(ctx)
     end
     r.ImGui_EndPopup(ctx)
   end

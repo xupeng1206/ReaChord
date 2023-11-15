@@ -16,7 +16,7 @@ Chord selector GUI
 
 2. ReaChord_Act_Item2Sound.lua
 Bind this script on your mouse action.
-Q
+
 3. ReaChord_Reader.lua
 Display the chord at the cursor.
 
@@ -171,13 +171,12 @@ Just display
 
 #### 7.3 Items To Markers/Regions
 `It can make items to markers/regions`
-#### 7.4 Chord Progression Bank
-```
-1. Don't Use Windows's Bank File in MacOS, there's a bug.
-2. Don't Use MacOS's Bank File in Windows, also bug
 
-PS. Factory banks genrated in windows.
-```
+![Alt text](doc%2Fmarker.png)
+
+![Alt text](doc%2Fregion.png)
+
+#### 7.4 Chord Progression Bank
 ##### 7.1 Add
 ```
 1. Select 1 chord progression (multi chord items) in chord track.
@@ -195,8 +194,10 @@ PS the refresh btn here same the big Refresh Btn
 ##### 7.3 Delete
 ```
 1. Select 1 chord progression in bank, also you can filter by name
-2. click Delete, the chord progression will be deleted
+2. click Delete, you can delete it when confirmed
 ```
+![Alt text](doc%2Fdelete_bank.png)
+
 
 ## Extend
 You can add new scale or chord in ReaChord_Theory.lua, and aslo looking forward to your PR. 
