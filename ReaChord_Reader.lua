@@ -1,19 +1,11 @@
---[[
- * ReaScript Name: ReaChord Reader
- * Instructions:  Thanks to X-Raym Region's Clock
- * Author: xupeng
- * Author URI: https://github.com/xupeng1206
- * REAPER: 7.0
- * Version: v1.0.10
- * Description: Chord Track Kit
- * Donation: https://www.paypal.com/paypalme/xupeng1206
---]]
+-- @description ReaChord Reader
+-- @author xupeng
+-- @version 1.0.11
+-- @changelog
+--  Update
+-- @provides
+--   *
 
---[[
- * Changelog:
- * v1.0.10 (2023-11-16)
-  + Update
---]]
 
 --// USER CONFIG AREA -->
 text_color = "White"   -- support names (see color function) and hex values with #
