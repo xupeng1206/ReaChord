@@ -6,7 +6,7 @@ Reapack Repo Url
 https://github.com/xupeng1206/ReaChord/raw/main/index.xml
 
 Demo:
-![img.png](doc%2Fdemo.png)
+![demo.png](doc%2Fdemo.png)
 
 ## Quick Start
 `Load files down below in reaper's action list`
@@ -36,7 +36,7 @@ My Configure
 
 Media Item / Left Click / Cmd(Win) + Ctrl
 ```
-![img.png](doc%2Fmouse_action.png)
+![mouse_action.png](doc%2Fmouse_action.png)
 ```
 After binded, hold down the cmd(win)+ctrl, click the chord item, you can hear the chord sound.
 ```
@@ -50,20 +50,20 @@ After binded, hold down the cmd(win)+ctrl, click the chord item, you can hear th
 
 PS.  most code all copy from X-Raym Region's Clock, thanks a lot.
 ```
-![Alt text](doc%2Freader1.png)
+![reader1.png](doc%2Freader1.png)
 
-![Alt text](doc%2Freader2.png)
+![reader2.png](doc%2Freader2.png)
 
 ```
 For me, I need the ReaChord_Reader Opened when reaper start. So, I put he ReaChord_Reader_Start.lua in my gloabal startup cammand.
 ```
-![Alt text](doc%2Fstartup.png)
+![startup.png](doc%2Fstartup.png)
 
 ### 4. Select the main scale
 
-![Alt text](doc%2Fscale1.png)
+![scale1.png](doc%2Fscale1.png)
 
-![Alt text](doc%2Fscale2.png)
+![scale2.png](doc%2Fscale2.png)
 
 ### 5. Select chords
 #### 5.0 Degree line
@@ -74,14 +74,14 @@ Just show the note degree
 ```
 You can change the chord root in this line, the blue note is the one you selected, and the pink note all in key, the grey note all not in key. you can pick the anyone, whatever pink or grey.
 ```
-![Alt text](doc%2Fchord_root.png)
+![chord_root.png](doc%2Fchord_root.png)
 
 #### 5.2 Select the chord bass
 ```
 You can point the bass note for this chord. such as G/F
 ```
 
-![Alt text](doc%2Fchord_bass.png)
+![chord_bass.png](doc%2Fchord_bass.png)
 
 #### 5.3 Insert Length
 ```
@@ -91,7 +91,7 @@ You can point insert chord items length
 
 you can try different choice than insert chord to see what is it.
 ```
-![Alt text](doc%2Fbeat.png)
+![beat.png](doc%2Fbeat.png)
 
 #### 5.4 Chord Map Section
 ##### 5.4.1 Click and Listen
@@ -102,35 +102,35 @@ you can try different choice than insert chord to see what is it.
 4. If chord sound too low or too high, your can change the Oct at top right Oct Drop down list.
 ```
 
-![Alt text](doc%2Fmap.png)
+![map.png](doc%2Fmap.png)
 
 ##### 5.4.2 Find Similar Chord
 ```
 1. Hold down Left ALT, than click the chord btn, can show the chords which two or more same note with current chord.
 2. You can click the chord name, show the chord notes
 ```
-![Alt text](doc%2Fsimilar_chords.png)
+![similar_chords.png](doc%2Fsimilar_chords.png)
 
 ##### 5.4.3 Find the scale contain current chord
 ```
 1. Hold down Left CTRL, than click the chord btn, can show the scales which contain current chord.
 2. You can click the scale name, show the scale notes
 ```
-![Alt text](doc%2Fchord_in_scales.png)
+![chord_in_scales.png](doc%2Fchord_in_scales.png)
 #### 5.5 Omit chord note
 ```
 1. The blue note means include this note, you can click it make it be grey(omit).
 
 PS. The first note always be grey, it's chord bass, you can't change it here.
 ```
-![Alt text](doc%2Fvoicing.png)
+![voicing.png](doc%2Fvoicing.png)
 
 #### 5.6 Shift the chord voicing
 ```
 You can click the '<', '>' to shift the voicing
 ```
 
-![Alt text](doc%2Fvoicing.png)
+![voicing.png](doc%2Fvoicing.png)
 
 #### 5.7 Listen, Insert
 ```
@@ -144,17 +144,17 @@ Just display
 
 ### 6. Chord Pads
 `Binding Key`
-![Alt text](doc%2Fpad.png)
+![pad.png](doc%2Fpad.png)
 
 ```
 1. Click the 'Init Chord Pad', it will give your 12 basic chord bas the selected scale. than you can press the binding key on keybord to trigger the chord.
 ```
-![Alt text](doc%2Fpad_basic.png)
+![pad_basic.png](doc%2Fpad_basic.png)
 
 ```
 1. You can drag and drop any chord you like from Chord Map to Chord Pad.
 ```
-![Alt text](doc%2Fpad_drag.png)
+![pad_drag.png](doc%2Fpad_drag.png)
 
 ### 7. Extension Function
 #### 7.1 Up/Down 1 semitone
@@ -172,9 +172,9 @@ Just display
 #### 7.3 Items To Markers/Regions
 `It can make items to markers/regions`
 
-![Alt text](doc%2Fmarker.png)
+![marker.png](doc%2Fmarker.png)
 
-![Alt text](doc%2Fregion.png)
+![region.png](doc%2Fregion.png)
 
 #### 7.4 Chord Progression Bank
 ##### 7.1 Add
@@ -185,7 +185,7 @@ Just display
 
 PS the refresh btn here same the big Refresh Btn
 ```
-![Alt text](doc%2Fadd_bank.png)
+![add_bank.png](doc%2Fadd_bank.png)
 ##### 7.2 Insert
 ```
 1. Select 1 chord progression in bank, also you can filter by name
@@ -196,7 +196,7 @@ PS the refresh btn here same the big Refresh Btn
 1. Select 1 chord progression in bank, also you can filter by name
 2. click Delete, you can delete it when confirmed
 ```
-![Alt text](doc%2Fdelete_bank.png)
+![delete_bank.png](doc%2Fdelete_bank.png)
 
 
 ## Extend

@@ -65,7 +65,7 @@ end
 function R_InsertChordItem(chord, meta, notes, beats)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
-    local chord_pattern = StringSplit(full_split[1], notes[2])[2]
+    local _, chord_pattern = T_SplitChordRootAndPattern(full_split[1])
     local s_chord = T_NoteName2Num(notes[2], scale_root) .. "'" .. chord_pattern
     if #full_split == 2 then
         local s_bass = T_NoteName2Num(notes[1], scale_root)

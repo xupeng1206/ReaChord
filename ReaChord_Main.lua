@@ -1,3 +1,20 @@
+--[[
+ * ReaScript Name: ReaChord Main
+ * Instructions:  Chord Track Kit
+ * Author: xupeng
+ * Author URI: https://github.com/xupeng1206
+ * REAPER: 7.0
+ * Version: v1.0.10
+ * Description: Chord Track Kit
+ * Donation: https://www.paypal.com/paypalme/xupeng1206
+--]]
+
+--[[
+ * Changelog:
+ * v1.0.10 (2023-11-16)
+  + Update
+--]]
+
 local r = reaper
 print = r.ShowConsoleMsg
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
@@ -19,7 +36,7 @@ local CHORD_INSERT_MODE = "off"
 local CHORD_SIMILAR_MODE = "off"
 local SCALE_BY_CHORD_MODE = "off"
 
-local OCT_RANGE = {"-1", "0", "+1"}
+local OCT_RANGE = {"-2", "-1", "0", "+1", "+2"}
 local ABOUT_IMG
 
 local CHORD_PROGRESSION_LIST = {}
@@ -1224,7 +1241,10 @@ local function uiAbout()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, h_default_space)
 
   uiColorBtn("If this script is useful for you, you can buy me a coffee.", ColorNormalNote, w, 0)
-      
+  if uiColorBtn("https://www.paypal.com/paypalme/xupeng1206", ColorPink, w, 0) then
+    r.CF_ShellExecute("https://www.paypal.com/paypalme/xupeng1206")
+  end
+
   if not r.ImGui_ValidatePtr(ABOUT_IMG, 'ImGui_Image*') then
     ABOUT_IMG = r.ImGui_CreateImage(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_About.jpg', 0)
   end

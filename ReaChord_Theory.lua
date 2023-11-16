@@ -250,6 +250,20 @@ function T_Parse(root, pattern)
     return pureNotes, mNotes
 end
 
+function T_SplitChordRootAndPattern(chord)
+    local root = "X"
+    local tagStartIdx = 2
+    local b = string.sub(chord, 2, 2)
+    if b == "#" or b == "b" then
+        root = string.sub(chord, 1, 2)
+        tagStartIdx = 3
+    else
+        root = string.sub(chord, 1, 1)
+        tagStartIdx = 2
+    end
+    local tag = string.sub(chord, tagStartIdx, string.len(chord))
+    return root, tag
+end
 
 function T_MakeChord(chord)
     local pure_notes = {}
