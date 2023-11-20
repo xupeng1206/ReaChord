@@ -1,11 +1,18 @@
--- @description ReaChord Main
--- @author xupeng
--- @version 1.0.11
+-- @description ReaChord
+-- @author xupeng1206
+-- @version 1.0.12
 -- @changelog
 --  Update
 -- @provides
---   *
-
+--   [main] ReaChord_Reader.lua
+--   [main] ReaChord_Reader_Start.lua
+--   [main] ReaChord_Act_Item2Sound.lua
+--   ReaChord_Reaper.lua
+--   ReaChord_Theory.lua
+--   ReaChord_Util.lua
+--   ReaChord_Banks.txt
+--   ReaChord_About.jpg
+--   doc/*.png
 
 local r = reaper
 print = r.ShowConsoleMsg

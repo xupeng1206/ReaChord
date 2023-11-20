@@ -1,10 +1,5 @@
--- @description ReaChord Reader
--- @author xupeng
--- @version 1.0.11
--- @changelog
---  Update
--- @provides
---   *
+--@noindex
+--NoIndex: true
 
 
 --// USER CONFIG AREA -->

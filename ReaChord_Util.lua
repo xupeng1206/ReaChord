@@ -1,3 +1,6 @@
+--@noindex
+--NoIndex: true
+
 function ListX4(lst)
     local newLst = {}
     for i=1, 4 do

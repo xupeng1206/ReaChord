@@ -1,3 +1,6 @@
+--@noindex
+--NoIndex: true
+
 local r = reaper
 print = r.ShowConsoleMsg
 

@@ -1,11 +1,5 @@
--- @description ReaChord Item2Sound
--- @author xupeng
--- @version 1.0.11
--- @changelog
---  Update
--- @provides
---   *
-
+--@noindex
+--NoIndex: true
 
 local r = reaper
 print = r.ShowConsoleMsg
