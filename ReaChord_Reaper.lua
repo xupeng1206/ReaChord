@@ -4,9 +4,6 @@
 local r = reaper
 print = r.ShowConsoleMsg
 
-dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
-dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
-
 R_ChordTrackName = "REACHORD_TRACK"
 R_ChordTrackMidi = "REACHORD_MIDI"
 

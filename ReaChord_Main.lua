@@ -539,7 +539,6 @@ local function uiColorBtn(text, color, ww, hh)
   return ret
 end
 
-
 local function uiMiniPianoForSimilarChords()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
@@ -757,7 +756,6 @@ local function uiChordPad()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
-
 local function uiScaleRootSelector()
   if r.ImGui_BeginCombo(ctx, '##ScaleRoot', CURRENT_SCALE_ROOT, r.ImGui_ComboFlags_HeightLarge()) then
     for _, v in ipairs(G_FLAT_NOTE_LIST) do
@@ -816,12 +814,13 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, w - 5 * w_default_space - 100 - 50 - 100 - 160 - 160 - 20 - 3 * w_default_space)
+  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 20 - 3 * w_default_space)
+  r.ImGui_SetNextItemWidth(ctx, next_width)
   uiScaleNameSelector()
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
-    initChordPads()
-  end
+  -- if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
+  --   initChordPads()
+  -- end
   r.ImGui_SameLine(ctx)
   -- length 3 * w_default_space + 160
   uiOctSelector()
@@ -1266,13 +1265,17 @@ local function uiChordSelector()
     r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
     uiChordLength()
     r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiReadOnlyColorBtn("Chord Map", ColorGray, w)
+    uiReadOnlyColorBtn("Chord Map", ColorGray, w)    
     uiChordMap()
     uiVoicing()
     r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
     uiPiano()
     r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiReadOnlyColorBtn("Chord Pad", ColorGray, w)
+    uiReadOnlyColorBtn("Chord Pad", ColorGray, w-160)
+    r.ImGui_SameLine(ctx,-FLT_MIN, w-160)
+    if r.ImGui_Button(ctx, "SET Chord Pad", 160) then
+      initChordPads()
+    end
     uiChordPad()
     r.ImGui_EndChild(ctx)
   end
@@ -1319,7 +1322,7 @@ local function bindKeyBoard()
   end
 
   -- Y
-  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) then
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) or r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Z(), false)then
     CHORD_PAD_SELECTED = "[Y]"
     local key_idx = ListIndex(CHORD_PAD_KEYS, "[Y]")
     R_StopPlay()
