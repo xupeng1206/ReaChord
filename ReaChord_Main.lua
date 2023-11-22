@@ -1487,6 +1487,7 @@ end
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
   r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_SetNextWindowSizeConstraints( ctx, 780, 600, FLT_MAX, FLT_MAX)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),main_window_w_padding,main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(),0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
