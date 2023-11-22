@@ -113,10 +113,10 @@ local function refreshWindowSize()
     -- mac or linux?
     -- h = h -15
   end
-  w_piano_key = w/28-2
-  w_piano_half_key = w/56-1
-  w_chord_pad = w/7-4
-  w_chord_pad_half = w/14-2
+  w_piano_key = math.max(5, w/28-2)
+  w_piano_half_key = math.max(5,w/56-1)
+  w_chord_pad = math.max(5,w/7-4)
+  w_chord_pad_half = math.max(5,w/14-2)
 end
 
 local function onFullChordNameChange()
