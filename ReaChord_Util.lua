@@ -114,24 +114,6 @@ function SplitListAtIndex(lst, index)
     return l, r
 end
 
-
-function PermuteList(lst)
-    local ret = {}
-    local len = #lst
-    local function backtrack(cur, target) 
-        if #cur == len then
-            table.insert(ret, cur)
-        end
-
-        for i, v in ipairs(target) do
-            local l, r = SplitListAtIndex(i)
-            backtrack(table.insert(cur, v), r)
-        end
-    end
-    backtrack({}, lst)
-    return ret
-end
-
 function DeepCopyList(lst)
     local ret = {}
     for i, v in ipairs(lst) do
