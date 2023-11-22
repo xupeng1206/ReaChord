@@ -65,6 +65,35 @@ function GetLengthForOneBeat()
     return duration
 end
 
+function R_DeleteFirstSelectChordItem()
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local item_count = r.CountTrackMediaItems(midi_track)
+    local deleted = false
+    local position = -1
+    local length = -1
+    local beat = -1
+    for idx = 0, item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        if r.IsMediaItemSelected(midi_item) then
+            deleted = true
+            position = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+            length = r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+
+            local midi_take = r.GetActiveTake(midi_item)
+            local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+            local full_meta_split = StringSplit(full_meta, "|")
+            beats = tonumber(full_meta_split[4])
+
+            r.DeleteTrackMediaItem(midi_track, midi_item)
+            r.DeleteTrackMediaItem(chord_track, chord_item)
+            break
+        end
+    end
+    return deleted, position, length, beats
+end
+
 function R_InsertChordItem(chord, meta, notes, beats)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
@@ -78,12 +107,28 @@ function R_InsertChordItem(chord, meta, notes, beats)
     local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
 
+    local deleted, d_position, d_length, d_beats = R_DeleteFirstSelectChordItem()
+
     r.SelectAllMediaItems(0, false)
 
-    local item_length = GetLengthForOneBeat() * beats
+    local item_length = -1
+    local start_position = -1
+    local end_position = -1
 
-    local start_position = r.GetCursorPosition()
-    local end_position = start_position + item_length
+    if deleted then
+        -- replace the select item
+        item_length = d_length
+        start_position = d_position
+        end_position = start_position + item_length
+        -- use the delete beats
+        beats = d_beats
+    else
+        -- insert item at cursor
+        item_length = GetLengthForOneBeat() * beats
+        start_position = r.GetCursorPosition()
+        end_position = start_position + item_length
+    end
+
     -- chord item
     local chord_item = r.AddMediaItemToTrack(chord_track)
     r.SetMediaItemPosition(chord_item, start_position, false)

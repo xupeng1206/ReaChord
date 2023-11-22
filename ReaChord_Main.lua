@@ -171,16 +171,6 @@ local function onSelectChordChange(val)
   onFullChordNameChange()
 end
 
-local function onVoicingChange(val)
-  local new_voicing = StringSplit(val, ",")
-  local default_voicing = StringSplit(CURRENT_CHORD_DEFAULT_VOICING, ",")
-  if AListAllInBList(new_voicing, default_voicing) then
-    CURRENT_CHORD_VOICING = val
-    local notes = ListExtend({CURRENT_CHORD_BASS}, new_voicing)
-    CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
-  end
-end
-
 local function onVoicingShift(direction)
   local voicing = CURRENT_CHORD_VOICING
   local voicing_split = StringSplit(voicing, ",")
@@ -214,6 +204,30 @@ local function onVoicingShift(direction)
   CURRENT_CHORD_VOICING = ListJoinToString(voicing_split, ",")
   local notes = ListExtend({CURRENT_CHORD_BASS}, voicing_split)
   CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+end
+
+local function onOctShift(direction)
+  local cur_idx = 0
+  for i, v in ipairs(OCT_RANGE) do
+    if v == CURRENT_OCT then
+      cur_idx = i
+    end
+  end
+
+  if direction == "<" then
+    cur_idx = cur_idx - 1
+    if cur_idx == 0 then
+      cur_idx = #OCT_RANGE
+    end
+  end
+  if direction == ">" then
+    cur_idx = cur_idx + 1
+    if cur_idx > #OCT_RANGE then
+      cur_idx = 1
+    end
+  end
+
+  CURRENT_OCT = OCT_RANGE[cur_idx]
 end
 
 local function refreshUIWhenChordRootChange()
@@ -721,18 +735,18 @@ local function uiScaleNameSelector()
 end
 
 local function uiOctSelector()
-  if r.ImGui_BeginCombo(ctx, '##Oct', CURRENT_OCT, r.ImGui_ComboFlags_HeightLarge()) then
-    for _, v in ipairs(OCT_RANGE) do
-      local is_selected = CURRENT_OCT == v
-      if r.ImGui_Selectable(ctx, v, is_selected) then
-        onOctChange(v)
-      end
-
-      if is_selected then
-        r.ImGui_SetItemDefaultFocus(ctx)
-      end
-    end
-    r.ImGui_EndCombo(ctx)
+  uiReadOnlyColorBtn("Oct:", ColorGray, 50)
+  r.ImGui_SameLine(ctx)
+  uiReadOnlyColorBtn(CURRENT_OCT, ColorGray, 50)
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "<##oct", 30) then
+    onOctShift("<")
+    onListenClick()
+  end
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, ">##oct", 30) then
+    onOctShift(">")
+    onListenClick()
   end
 end
 
@@ -746,16 +760,14 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, w-6*w_default_space-100-50-100-160-40-50)
+  r.ImGui_SetNextItemWidth(ctx, w-5*w_default_space-100-50-100-160-160-3*w_default_space)
   uiScaleNameSelector()
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
     initChordPads()
   end
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn("Oct:", ColorGray, 40)
-  r.ImGui_SameLine(ctx)
-  r.ImGui_SetNextItemWidth(ctx, 50)
+  -- length 3 * w_default_space + 160
   uiOctSelector()
   
   r.ImGui_PopStyleVar(ctx, 1)
@@ -776,26 +788,25 @@ local function uiVoicing()
         -- not in 
       if uiColorBtn(" "..note.." ##voicing_note", ColorGray ,35, 0) then
         table.insert(nice_notes, note)
+        onListenClick()
       end
     else
       if uiColorBtn(" "..note.. " ##voicing_note", ColorBlue ,35, 0) then
         nice_notes = ListDeleteIndex(nice_notes, index)
+        onListenClick()
       end
     end
     r.ImGui_SameLine(ctx)
   end
   CURRENT_CHORD_VOICING = ListJoinToString(nice_notes, ",")
   CURRENT_CHORD_PITCHED, _ = T_NotePitched(ListExtend({CURRENT_CHORD_BASS}, nice_notes))
-  -- r.ImGui_SetNextItemWidth(ctx, (w-7*w_default_space-60-60-60-70-40-60)/2)
-  -- local _, voicing = r.ImGui_InputText(ctx, '##voicing', CURRENT_CHORD_VOICING)
-  -- onVoicingChange(voicing)
-  -- r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "<", 30) then
+
+  if r.ImGui_Button(ctx, "<##voicing", 30) then
     onVoicingShift("<")
     onListenClick()
   end
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, ">", 30) then
+  if r.ImGui_Button(ctx, ">##voicing", 30) then
     onVoicingShift(">")
     onListenClick()
   end
