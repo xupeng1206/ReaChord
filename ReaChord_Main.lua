@@ -67,6 +67,7 @@ local CURRENT_CHORD_VOICING = ""
 local CURRENT_CHORD_PITCHED = {}
 local CURRENT_CHORD_LIST = {}
 local CURRENT_NICE_CHORD_LIST = {}
+local CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = 0
 
 local CURRENT_ANALYSIS_CHORD = ""
 local CURRENT_SIMILAR_CHORDS = {}
@@ -108,6 +109,7 @@ local h_chord_pad = 40
 
 --! CIRCLE OF FIFTS VARS
 local CIRCLE_OF5 = false
+local OLD_CIRCLE_OF5 = false
 local pi, cos, sin, atan = math.pi, math.cos, math.sin, math.atan
 local LAST_PIE_SCALE = "MAJ"
 local ANIM_STOP = true
@@ -116,6 +118,7 @@ local CUR_POS = 0
 local NEW_POS = 1
 local btn_w, btn_h = 45, 18
 local draw_list = r.ImGui_GetWindowDrawList(ctx)
+local w_circle_of_5 = 400
 
 --! THIS SHOULD BE READ FROM CURRENT DATA
 --! JUST FOR INITIAL IMPLEMENTATION USE HARDCODED
@@ -145,15 +148,17 @@ local function refreshWindowSize()
   w, h = r.ImGui_GetWindowSize(ctx)
   w, h = w - main_window_w_padding * 2, h - 25
   --! REDUCE SIZE OF WINDOW WHEN CICRLE IS SHOWN (FOR DYNAMIC BUTTON EXPAND/SHRINK)
-  w = CIRCLE_OF5 and w - 400 or w
+  if CIRCLE_OF5 then
+    w = w - w_circle_of_5
+  end
   if package.config:sub(1, 1) == "/" then
     -- mac or linux?
     -- h = h -15
   end
-  w_piano_key = math.max(5, w / 28 - 2)
-  w_piano_half_key = math.max(5, w / 56 - 1)
-  w_chord_pad = math.max(5, w / 7 - 4)
-  w_chord_pad_half = math.max(5, w / 14 - 2)
+  w_piano_key = math.max(4, w / 49 - 2)
+  w_piano_half_key = math.max(2, w / 98 - 1)
+  w_chord_pad = math.max(4, w / 7 - 4)
+  w_chord_pad_half = math.max(2, w / 14 - 2)
 end
 
 local function onFullChordNameChange()
@@ -379,10 +384,6 @@ local function onScaleNameChange(val)
   r.SetExtState("ReaChord", "ScaleName", val, false)
 end
 
-local function onOctChange(val)
-  CURRENT_OCT = val
-end
-
 local function onChordRootChange(val)
   CURRENT_CHORD_ROOT = val
   CURRENT_CHORD_BASS = val
@@ -397,10 +398,6 @@ end
 
 local function onListenClick()
   PlayPiano()
-end
-
-local function onStopClick()
-  R_StopPlay()
 end
 
 local function onInsertClick()
@@ -632,7 +629,10 @@ local function uiPiano()
     "Db0/C#0", "Eb0/D#0", "-", "Gb0/F#0", "Ab0/G#0", "Bb0/A#0", "-",
     "Db1/C#1", "Eb1/D#1", "-", "Gb1/F#1", "Ab1/G#1", "Bb1/A#1", "-",
     "Db2/C#2", "Eb2/D#2", "-", "Gb2/F#2", "Ab2/G#2", "Bb2/A#2", "-",
-    "Db3/C#3", "Eb3/D#3", "-", "Gb3/F#3", "Ab3/G#3", "Bb3/A#3"
+    "Db3/C#3", "Eb3/D#3", "-", "Gb3/F#3", "Ab3/G#3", "Bb3/A#3", "-",
+    "Db4/C#4", "Eb4/D#4", "-", "Gb4/F#4", "Ab4/G#4", "Bb4/A#4", "-",
+    "Db5/C#5", "Eb5/D#5", "-", "Gb5/F#5", "Ab5/G#5", "Bb5/A#5", "-",
+    "Db6/C#6", "Eb6/D#6", "-", "Gb6/F#6", "Ab6/G#6", "Bb6/A#6"
   }) do
     r.ImGui_SameLine(ctx)
     if note == "-" then
@@ -654,7 +654,10 @@ local function uiPiano()
     "C0", "D0", "E0", "F0", "G0", "A0", "B0",
     "C1", "D1", "E1", "F1", "G1", "A1", "B1",
     "C2", "D2", "E2", "F2", "G2", "A2", "B2",
-    "C3", "D3", "E3", "F3", "G3", "A3", "B3"
+    "C3", "D3", "E3", "F3", "G3", "A3", "B3",
+    "C4", "D4", "E4", "F4", "G4", "A4", "B4",
+    "C5", "D5", "E5", "F5", "G5", "A5", "B5",
+    "C6", "D6", "E6", "F6", "G6", "A6", "B6"
   }) do
     if idx > 1 then
       r.ImGui_SameLine(ctx)
@@ -804,6 +807,18 @@ local function uiOctSelector()
   end
 end
 
+local function uiCircleOfFifts()
+  if CIRCLE_OF5 then
+    if uiColorBtn("Circle Of Fifts", ColorBlue, 120, 0) then
+      CIRCLE_OF5 = not CIRCLE_OF5
+    end
+  else
+    if uiColorBtn("Circle Of Fifts", ColorNormalNote, 120, 0) then
+      CIRCLE_OF5 = not CIRCLE_OF5
+    end
+  end
+end
+
 local function uiTopLine()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
 
@@ -814,22 +829,17 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 20 - 3 * w_default_space)
+  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 3 * w_default_space - 120)
   r.ImGui_SetNextItemWidth(ctx, next_width)
   uiScaleNameSelector()
-  r.ImGui_SameLine(ctx)
-  -- if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
-  --   initChordPads()
-  -- end
   r.ImGui_SameLine(ctx)
   -- length 3 * w_default_space + 160
   uiOctSelector()
   r.ImGui_SameLine(ctx)
 
   --! ADD CIRCLE OF FIFTS TOGGLE
-  if r.ImGui_Checkbox(ctx, "CIRCLE", CIRCLE_OF5 == true) then
-    CIRCLE_OF5 = not CIRCLE_OF5
-  end
+  -- length 120
+  uiCircleOfFifts()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
@@ -839,6 +849,14 @@ local function uiVoicing()
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 35)
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, CURRENT_FIRST_TWO_NOTE_OCT_SHIFT .. "##voicing", 30) then
+    CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = CURRENT_FIRST_TWO_NOTE_OCT_SHIFT + 1
+    if CURRENT_FIRST_TWO_NOTE_OCT_SHIFT == 2 then
+      CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = 0
+    end
+    onListenClick()
+  end
   r.ImGui_SameLine(ctx)
   local default_notes = StringSplit(CURRENT_CHORD_DEFAULT_VOICING, ",")
   local nice_notes = StringSplit(CURRENT_CHORD_VOICING, ",")
@@ -865,6 +883,7 @@ local function uiVoicing()
     onVoicingShift("<")
     onListenClick()
   end
+
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, ">##voicing", 30) then
     onVoicingShift(">")
@@ -875,10 +894,6 @@ local function uiVoicing()
     onListenClick()
   end
   r.ImGui_SameLine(ctx)
-  -- if r.ImGui_Button(ctx, "Stop", 60) then
-  --   onStopClick()
-  -- end
-  -- r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, "Insert", 60) then
     onInsertClick()
   end
@@ -886,7 +901,7 @@ local function uiVoicing()
   uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn(CURRENT_CHORD_VOICING, ColorGray,
-    w - (7 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
+    w - (7 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
 
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -898,7 +913,7 @@ local function uiChordDegree()
   local items = StringSplit(G_WHOLE_HALF_SCALE_PATTERN, ",")
   for _, note in ipairs(items) do
     r.ImGui_SameLine(ctx)
-    uiColorBtn(" " .. note .. " ##chord_degree", ColorGray, (w - 12 * w_default_space - 100) / 12, 0)
+    uiReadOnlyColorBtn(" " .. note .. " ##chord_degree", ColorGray, (w - 12 * w_default_space - 100) / 12)
   end
 
   r.ImGui_PopStyleVar(ctx, 1)
@@ -1160,8 +1175,8 @@ local function Anim(begin_val, end_val, duration_in_sec, call_time)
 end
 
 function DrawListButton(name, color, hovered)
-  local xs, ys = reaper.ImGui_GetItemRectMin(ctx)
-  local xe, ye = reaper.ImGui_GetItemRectMax(ctx)
+  local xs, ys = r.ImGui_GetItemRectMin(ctx)
+  local xe, ye = r.ImGui_GetItemRectMax(ctx)
   local w, h = xe - xs, ye - ys
   r.ImGui_DrawList_AddRectFilled(draw_list, xs, ys, xe, ye, hovered and 0x4772B3FF or color, 5)
 
@@ -1253,42 +1268,60 @@ function PiePopupSelectMenu(tbl, sc_type, RADIUS_MAX, aw, ah, vx, vy)
   -- end
 end
 
-local function uiChordSelector()
-  if r.ImGui_BeginChild(ctx, "UI_CHORD_MAIN", w, h) then
-    uiTopLine()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiChordDegree()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiChordRoot()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiChordBass()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiChordLength()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiReadOnlyColorBtn("Chord Map", ColorGray, w)    
-    uiChordMap()
-    uiVoicing()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiPiano()
-    r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
-    uiReadOnlyColorBtn("Chord Pad", ColorGray, w-160)
-    r.ImGui_SameLine(ctx,-FLT_MIN, w-160)
-    if r.ImGui_Button(ctx, "SET Chord Pad", 160) then
-      initChordPads()
-    end
-    uiChordPad()
-    r.ImGui_EndChild(ctx)
-  end
+local function uiChordPadTitle()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
+
+  uiReadOnlyColorBtn("Chord Pad", ColorGray, w - 160 - w_default_space)
   r.ImGui_SameLine(ctx)
-  if r.ImGui_BeginChild(ctx, "CIRCLE_OF5_PIE", 400, h - 100) then
-    r.ImGui_SameLine(ctx, 0, 140)
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xff)
-    r.ImGui_Text(ctx, "CIRCLE OF FIFTS")
-    r.ImGui_PopStyleColor(ctx)
-    local vx, xy = r.ImGui_GetCursorScreenPos(ctx)
-    local aw, ah = r.ImGui_GetContentRegionAvail(ctx)
-    local sel_maj = PiePopupSelectMenu(items_maj, "MAJ", RADIUS, aw, ah, vx, xy)
-    local sel_min = PiePopupSelectMenu(items_min, "MIN", RADIUS - 70, aw, ah, vx, xy)
+  if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
+    initChordPads()
+  end
+
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
+local function uiChordSelector()
+  if r.ImGui_BeginChild(ctx, "UI_CHORD_SELECTOR", 0, 0) then
+    if r.ImGui_BeginChild(ctx, "UI_CHORD_MAIN", w, 0) then
+      uiTopLine()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordDegree()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordRoot()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordBass()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordLength()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiReadOnlyColorBtn("Chord Map", ColorGray, w)
+      uiChordMap()
+      uiVoicing()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiPiano()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordPadTitle()
+      r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiChordPad()
+      r.ImGui_EndChild(ctx)
+    end
+
+    if CIRCLE_OF5 then
+      r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 0)
+      r.ImGui_SameLine(ctx)
+      if r.ImGui_BeginChild(ctx, "CIRCLE_OF5_PIE", w_circle_of_5, 0) then
+        r.ImGui_SameLine(ctx, 0, 140)
+        r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xff)
+        r.ImGui_Text(ctx, "CIRCLE OF FIFTS")
+        r.ImGui_PopStyleColor(ctx)
+        local vx, xy = r.ImGui_GetCursorScreenPos(ctx)
+        local aw, ah = r.ImGui_GetContentRegionAvail(ctx)
+        local sel_maj = PiePopupSelectMenu(items_maj, "MAJ", RADIUS, aw, ah, vx, xy)
+        local sel_min = PiePopupSelectMenu(items_min, "MIN", RADIUS - 70, aw, ah, vx, xy)
+        r.ImGui_EndChild(ctx)
+      end
+      r.ImGui_PopStyleVar(ctx, 1)
+    end
+
     r.ImGui_EndChild(ctx)
   end
 end
@@ -1649,14 +1682,29 @@ local function uiMain()
   bindKeyBoard()
   if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
     if r.ImGui_BeginTabItem(ctx, ' Main ') then
+      -- recover the CIRCLE_OF5 show status
+      if OLD_CIRCLE_OF5 then
+        CIRCLE_OF5 = true
+        OLD_CIRCLE_OF5 = false
+      end
       uiChordSelector()
       r.ImGui_EndTabItem(ctx)
     end
     if r.ImGui_BeginTabItem(ctx, ' Extension ') then
+      -- fix w when CIRCLE_OF5 show
+      if CIRCLE_OF5 then
+        OLD_CIRCLE_OF5 = true
+      end
+      CIRCLE_OF5 = false
       uiExtension()
       r.ImGui_EndTabItem(ctx)
     end
     if r.ImGui_BeginTabItem(ctx, ' About ') then
+      -- fix w when CIRCLE_OF5 show
+      if CIRCLE_OF5 then
+        OLD_CIRCLE_OF5 = true
+      end
+      CIRCLE_OF5 = false
       uiAbout()
       r.ImGui_EndTabItem(ctx)
     end
