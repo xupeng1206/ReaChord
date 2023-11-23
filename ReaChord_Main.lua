@@ -67,7 +67,7 @@ local CURRENT_CHORD_VOICING = ""
 local CURRENT_CHORD_PITCHED = {}
 local CURRENT_CHORD_LIST = {}
 local CURRENT_NICE_CHORD_LIST = {}
-local CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = 0
+local CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = 0
 
 local CURRENT_ANALYSIS_CHORD = ""
 local CURRENT_SIMILAR_CHORDS = {}
@@ -91,6 +91,8 @@ local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
 local ColorChordPadDefault = 0x8DB6CDFF
 
+local min_w = 800
+local min_h = 600
 local main_window_w_padding = 10
 local main_window_h_padding = 5
 local w
@@ -105,7 +107,7 @@ local w_chord_pad_space = 4
 local h_chord_pad_space = 4
 local w_chord_pad
 local w_chord_pad_half
-local h_chord_pad = 40
+local h_chord_pad = 30
 
 --! CIRCLE OF FIFTS VARS
 local CIRCLE_OF5 = false
@@ -169,14 +171,14 @@ local function onFullChordNameChange()
   end
   local voicing = StringSplit(CURRENT_CHORD_VOICING, ",")
   local notes = ListExtend({ CURRENT_CHORD_BASS }, voicing)
-  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
 end
 
 local function PlayPiano()
   local voicing = StringSplit(CURRENT_CHORD_VOICING, ",")
   local notes = ListExtend({ CURRENT_CHORD_BASS }, voicing)
   local note_midi_index
-  _, note_midi_index = T_NotePitched(notes)
+  _, note_midi_index = T_NotePitched(notes, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
   R_StopPlay()
   local midi_notes = {}
   for _, midi_index in ipairs(note_midi_index) do
@@ -188,12 +190,16 @@ end
 local function playChordPad(key_idx)
   local full_meta = CHORD_PAD_METAS[key_idx]
   local full_meta_split = StringSplit(full_meta, "|")
-  if #full_meta_split == 2 then
+  if #full_meta_split > 1 then
     local notes = full_meta_split[2]
     local oct = StringSplit(full_meta_split[1], "/")[3]
+    local oct_shift_after_first_note = 0
+    if #full_meta_split > 2 then
+      oct_shift_after_first_note = tonumber(full_meta_split[3])
+    end
     local note_split = StringSplit(notes, ",")
     local note_midi_index
-    _, note_midi_index = T_NotePitched(note_split)
+    _, note_midi_index = T_NotePitched(note_split, oct_shift_after_first_note)
     local midi_notes = {}
     for _, midi_index in ipairs(note_midi_index) do
       table.insert(midi_notes, midi_index + 36 + oct * 12)
@@ -245,7 +251,7 @@ local function onVoicingShift(direction)
   voicing_split = all_voicing_split[cur_idx]
   CURRENT_CHORD_VOICING = ListJoinToString(voicing_split, ",")
   local notes = ListExtend({ CURRENT_CHORD_BASS }, voicing_split)
-  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
 end
 
 local function onOctShift(direction)
@@ -403,7 +409,7 @@ end
 local function onInsertClick()
   local meta = CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME .. "/" .. CURRENT_OCT
   local notes = ListExtend({ CURRENT_CHORD_BASS }, StringSplit(CURRENT_CHORD_VOICING, ","))
-  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes, CURRENT_INSERT_BEATS)
+  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes, CURRENT_INSERT_BEATS, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
 end
 
 local function onChordPadAssign(key)
@@ -411,12 +417,12 @@ local function onChordPadAssign(key)
   if CURRENT_CHORD_ROOT == CURRENT_CHORD_BASS then
     CHORD_PAD_VALUES[key_idx] = CURRENT_CHORD_NAME
     local meta = CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME .. "/" .. CURRENT_OCT
-    local full_meta = meta .. "|" .. CURRENT_CHORD_BASS .. "," .. CURRENT_CHORD_VOICING
+    local full_meta = meta .. "|" .. CURRENT_CHORD_BASS .. "," .. CURRENT_CHORD_VOICING .. "|" .. CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE
     CHORD_PAD_METAS[key_idx] = full_meta
   else
     CHORD_PAD_VALUES[key_idx] = CURRENT_CHORD_NAME .. "/" .. CURRENT_CHORD_BASS
     local meta = CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME .. "/" .. CURRENT_OCT
-    local full_meta = meta .. "|" .. CURRENT_CHORD_BASS .. "," .. CURRENT_CHORD_VOICING
+    local full_meta = meta .. "|" .. CURRENT_CHORD_BASS .. "," .. CURRENT_CHORD_VOICING .. "|" .. CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE
     CHORD_PAD_METAS[key_idx] = full_meta
   end
   r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
@@ -464,7 +470,7 @@ local function initChordPads()
     local ceil_voicing, _ = T_MakeChord(ceil_chord)
     local ceil_voicing_str = ListJoinToString(ceil_voicing, ",")
     local ceil_meta = CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME .. "/" .. CURRENT_OCT
-    local ceil_full_meta = ceil_meta .. "|" .. note .. "," .. ceil_voicing_str
+    local ceil_full_meta = ceil_meta .. "|" .. note .. "," .. ceil_voicing_str .. "|" .. CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE
     CHORD_PAD_VALUES[idx] = ceil_chord
     CHORD_PAD_METAS[idx] = ceil_full_meta
   end
@@ -476,9 +482,13 @@ local function chordMapRefresh(key_idx)
   local chord = CHORD_PAD_VALUES[key_idx]
   local full_meta = CHORD_PAD_METAS[key_idx]
   local full_meta_split = StringSplit(full_meta, "|")
-  if #full_meta_split == 2 then
+  if #full_meta_split > 1 then
     local meta = full_meta_split[1]
     local notes = StringSplit(full_meta_split[2], ",")
+    CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = 0
+    if #full_meta_split > 2 then
+      CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = tonumber(full_meta_split[3])
+    end
 
     if chord == "" then
       refreshUIWhenScaleChangeWithSelectChordChange()
@@ -509,7 +519,7 @@ local function chordMapRefresh(key_idx)
         end
       end
       CURRENT_CHORD_VOICING = ListJoinToString(CURRENT_CHORD_VOICING_table, ",")
-      CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+      CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
       CURRENT_OCT = meta_split[3]
       CURRENT_SCALE_ROOT = meta_split[1]
       CURRENT_SCALE_NAME = meta_split[2]
@@ -807,14 +817,24 @@ local function uiOctSelector()
   end
 end
 
-local function uiCircleOfFifts()
+local function uiCircleOf5Switch()
   if CIRCLE_OF5 then
     if uiColorBtn("Circle Of Fifts", ColorBlue, 120, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
+      if CIRCLE_OF5 then
+        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
+      else
+        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)  
+      end
     end
   else
     if uiColorBtn("Circle Of Fifts", ColorNormalNote, 120, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
+      if CIRCLE_OF5 then
+        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
+      else
+        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)  
+      end
     end
   end
 end
@@ -839,7 +859,7 @@ local function uiTopLine()
 
   --! ADD CIRCLE OF FIFTS TOGGLE
   -- length 120
-  uiCircleOfFifts()
+  uiCircleOf5Switch()
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
@@ -850,10 +870,10 @@ local function uiVoicing()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 35)
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, CURRENT_FIRST_TWO_NOTE_OCT_SHIFT .. "##voicing", 30) then
-    CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = CURRENT_FIRST_TWO_NOTE_OCT_SHIFT + 1
-    if CURRENT_FIRST_TWO_NOTE_OCT_SHIFT == 2 then
-      CURRENT_FIRST_TWO_NOTE_OCT_SHIFT = 0
+  if r.ImGui_Button(ctx, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE .. "##voicing", 30) then
+    CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE + 1
+    if CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE == 2 then
+      CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = 0
     end
     onListenClick()
   end
@@ -877,7 +897,7 @@ local function uiVoicing()
     r.ImGui_SameLine(ctx)
   end
   CURRENT_CHORD_VOICING = ListJoinToString(nice_notes, ",")
-  CURRENT_CHORD_PITCHED, _ = T_NotePitched(ListExtend({ CURRENT_CHORD_BASS }, nice_notes))
+  CURRENT_CHORD_PITCHED, _ = T_NotePitched(ListExtend({ CURRENT_CHORD_BASS }, nice_notes), CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
 
   if r.ImGui_Button(ctx, "<##voicing", 30) then
     onVoicingShift("<")
@@ -1273,7 +1293,7 @@ local function uiChordPadTitle()
 
   uiReadOnlyColorBtn("Chord Pad", ColorGray, w - 160 - w_default_space)
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Init Chord Pad", 160) then
+  if r.ImGui_Button(ctx, "Reset Chord Pad", 160) then
     initChordPads()
   end
 
@@ -1355,7 +1375,7 @@ local function bindKeyBoard()
   end
 
   -- Y
-  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) or r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Z(), false)then
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Y(), false) then
     CHORD_PAD_SELECTED = "[Y]"
     local key_idx = ListIndex(CHORD_PAD_KEYS, "[Y]")
     R_StopPlay()
@@ -1574,7 +1594,11 @@ local function uiExtension()
         local notes = StringSplit(meta_split[2], ",")
         local chord_name = meta_split[3]
         local beats = tonumber(meta_split[4])
-        R_InsertChordItem(chord_name, meta, notes, beats)
+        local oct_shift_after_first_note = 0
+        if #meta_split>4 then
+          oct_shift_after_first_note = tonumber(meta_split[5])
+        end
+        R_InsertChordItem(chord_name, meta, notes, beats, oct_shift_after_first_note)
       end
     end
   end
@@ -1714,10 +1738,8 @@ end
 
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetNextWindowSize(ctx, 800, 800, r.ImGui_Cond_FirstUseEver())
-  --! CONSTRAIN WINDOW SIZE MAYBE?
-  --r.ImGui_SetNextWindowSizeConstraints( ctx, CIRCLE_OF5 and 700 + 400 or 700, 600, FLT_MAX, FLT_MAX )
-  --r.ImGui_SetNextWindowSizeConstraints( ctx, 780, 600, FLT_MAX, FLT_MAX)
+  r.ImGui_SetWindowSize(ctx, 800, 600, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w*2, min_h*1.5)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), main_window_w_padding, main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
@@ -1755,7 +1777,7 @@ local function init()
     CHORD_PAD_METAS = pad_metas_split
   end
 
-  local chord, meta, notes, beats = R_SelectChordItem()
+  local chord, meta, notes, beats, oct_shfit_after_first_note = R_SelectChordItem()
   CURRENT_INSERT_BEATS = 4
   if chord == "" then
     -- no item selected, fetch scale meta from project
@@ -1771,6 +1793,7 @@ local function init()
     refreshUIWhenScaleChangeWithSelectChordChange()
   else
     CURRENT_INSERT_BEATS = beats
+    CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = oct_shfit_after_first_note
     local chord_split = StringSplit(chord, "/")
     local meta_split = StringSplit(meta, "/")
 
@@ -1797,7 +1820,7 @@ local function init()
       end
     end
     CURRENT_CHORD_VOICING = ListJoinToString(CURRENT_CHORD_VOICING_table, ",")
-    CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes)
+    CURRENT_CHORD_PITCHED, _ = T_NotePitched(notes, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
     CURRENT_OCT = meta_split[3]
     CURRENT_SCALE_ROOT = meta_split[1]
     CURRENT_SCALE_NAME = meta_split[2]

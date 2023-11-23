@@ -420,20 +420,26 @@ function  T_ChordTrans(chord, scale, diff)
     return newRoot..tag
 end
 
-function T_NotePitched(notes)
+function T_NotePitched(notes, oct_shift_after_first_note)
     local preIdx = 0
     local curOct = 0
     local notePitched = {}
     local noteIdxes = {}
-    for _, note in ipairs(notes) do
+    for idx, note in ipairs(notes) do
         local curIdx = T_NoteIndex(G_NOTE_LIST_X4, note)
         curIdx =curIdx + curOct * 12
         if curIdx <= preIdx then
             curOct = curOct + 1
             curIdx = curIdx + 12
         end
-        table.insert(noteIdxes, curIdx-1)
-        table.insert(notePitched, note..curOct)
+        local insertIdx = curIdx-1
+        local insertOct = curOct
+        if idx>1 then
+            insertIdx = insertIdx + 12 * oct_shift_after_first_note
+            insertOct = insertOct + oct_shift_after_first_note
+        end
+        table.insert(noteIdxes, insertIdx)
+        table.insert(notePitched, note..insertOct)
         preIdx = curIdx
     end
     return notePitched, noteIdxes

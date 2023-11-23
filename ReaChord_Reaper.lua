@@ -91,7 +91,7 @@ function R_DeleteFirstSelectChordItem()
     return deleted, position, length, beats
 end
 
-function R_InsertChordItem(chord, meta, notes, beats)
+function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
     local _, chord_pattern = T_SplitChordRootAndPattern(full_split[1])
@@ -136,7 +136,7 @@ function R_InsertChordItem(chord, meta, notes, beats)
     local midi_item = r.CreateNewMIDIItemInProj(midi_track, start_position, end_position, false)
     -- midi take
     local midi_take = r.GetActiveTake(midi_item)
-    local _, note_midi_index = T_NotePitched(notes)
+    local _, note_midi_index = T_NotePitched(notes, oct_shift_after_first_note)
     local oct = StringSplit(meta, "/")[3]
     for _, note in ipairs(note_midi_index) do
         r.MIDI_InsertNote(
@@ -147,7 +147,7 @@ function R_InsertChordItem(chord, meta, notes, beats)
         )
     end
     local note_str = ListJoinToString(notes, ",")
-    local full_meta = ListJoinToString({ meta, note_str, chord, beats }, "|")
+    local full_meta = ListJoinToString({ meta, note_str, chord, beats, oct_shift_after_first_note }, "|")
     _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", full_meta, true)
     r.SetMediaItemSelected(midi_item, true)
     -- group item
@@ -166,6 +166,7 @@ function R_SelectChordItem()
     local chord = ""
     local meta = ""
     local beats = 0
+    local oct_shift_after_first_note = 0
     local notes = {}
     local selectIdx = -1
     for idx = 0, chord_item_count - 1 do
@@ -184,9 +185,12 @@ function R_SelectChordItem()
         local full_meta_split = StringSplit(full_meta, "|")
         meta = full_meta_split[1]
         beats = tonumber(full_meta_split[4])
+        if #full_meta_split>4 then
+            oct_shift_after_first_note = tonumber(full_meta_split[5])
+        end
         notes = StringSplit(full_meta_split[2], ",")
     end
-    return chord, meta, notes, beats
+    return chord, meta, notes, beats, oct_shift_after_first_note
 end
 
 function R_SelectChordItems()
