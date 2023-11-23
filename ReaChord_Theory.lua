@@ -4,8 +4,6 @@
 local r = reaper
 print = r.ShowConsoleMsg
 
-dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
-
 G_NOTE_LETTERS = {"C", "D", "E", "F", "G", "A", "B"}
 G_NOTE_LETTERS_X4  = ListX4(G_NOTE_LETTERS)
 
