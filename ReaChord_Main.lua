@@ -91,7 +91,7 @@ local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
 local ColorChordPadDefault = 0x8DB6CDFF
 
-local min_w = 800
+local min_w = 900
 local min_h = 600
 local main_window_w_padding = 10
 local main_window_h_padding = 5
@@ -100,7 +100,7 @@ local h
 local w_piano_space = 2
 local w_piano_key
 local w_piano_half_key
-local h_piano = 30
+local h_piano = 20
 local w_default_space = 4
 local h_default_space = 4
 local w_chord_pad_space = 4
@@ -161,6 +161,14 @@ local function refreshWindowSize()
   w_piano_half_key = math.max(2, w / 98 - 1)
   w_chord_pad = math.max(4, w / 7 - 4)
   w_chord_pad_half = math.max(2, w / 14 - 2)
+end
+
+local function changeWindowSizeForCircle()
+  if CIRCLE_OF5 then
+    r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
+  else
+    r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)
+  end
 end
 
 local function onFullChordNameChange()
@@ -429,6 +437,61 @@ local function onChordPadAssign(key)
   r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
 end
 
+local function onChordPadTrans(key, shift)
+  local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+  local chord = CHORD_PAD_VALUES[key_idx]
+  local l, _ = SplitListAtIndex(chord, 1)
+  if l[1] == "[" then
+    return
+  end
+  local full_meta = CHORD_PAD_METAS[key_idx]
+  local full_meta_split = StringSplit(full_meta, "|")
+  local notes = StringSplit(full_meta_split[2], ",")
+  local pure_voicing = {}
+  for idx, v in ipairs(notes) do
+      if idx > 1 then
+          table.insert(pure_voicing, v)
+      end
+  end
+  local meta = full_meta_split[1]
+  local meta_split = StringSplit(meta, "/")
+  local scale_root = meta_split[1]
+  local scale_name = meta_split[2]
+  local oct = meta_split[3]
+  local oct_shift_after_first_note = 0
+  if #full_meta_split>2 then
+    oct_shift_after_first_note=full_meta_split[3]
+  end
+  local chord_split = StringSplit(chord, "/")
+  local new_chord = ''
+  local new_pure_chord = ''
+  local new_chord_bass = ''
+  if #chord_split == 1 then
+      new_chord = T_ChordTrans(chord, scale_root .. "/" .. scale_name, shift)
+      new_pure_chord = new_chord
+      new_chord_bass = string.sub(new_chord, 1, 1)
+      if string.sub(new_chord, 2, 2) == "#" or string.sub(new_chord, 2, 2) == "b" then
+          new_chord_bass = string.sub(new_chord, 1, 2)
+      end
+  else
+      new_pure_chord = T_ChordTrans(chord_split[1], scale_root .. "/" .. scale_name, shift)
+      new_chord_bass = T_NoteTrans(chord_split[2], scale_root .. "/" .. scale_name, shift)
+      new_chord = new_pure_chord .. "/" .. new_chord_bass
+  end
+  local new_scale = T_ScaleTrans(scale_root .. "/" .. scale_name, shift)
+  local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing, shift)
+
+  -- start to trans
+  CHORD_PAD_VALUES[key_idx] = new_chord
+  local meta = new_scale .. "/" .. oct
+  local full_meta = meta .. "|" .. new_chord_bass .. "," .. new_pure_voicing .. "|" .. oct_shift_after_first_note
+  CHORD_PAD_METAS[key_idx] = full_meta
+
+  r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
+  r.SetExtState("ReaChord", "CHORD_PAD_METAS", ListJoinToString(CHORD_PAD_METAS, "~"), false)
+
+end
+
 local function initChordPads()
   local notes = {}
   local local_scale_nice_notes, _ = T_MakeScale(CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME)
@@ -547,9 +610,12 @@ local function uiColorBtn(text, color, ww, hh)
 end
 
 local function uiMiniPianoForSimilarChords()
+  local mini_w_half = 13
+  local mini_w = 26
+  local mini_h = 30
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key - w_piano_space, h_piano, r.ImGui_ButtonFlags_None())
+  r.ImGui_InvisibleButton(ctx, "##", mini_w_half - w_piano_space, mini_h, r.ImGui_ButtonFlags_None())
   for _, note in ipairs({
     "Db0/C#0", "Eb0/D#0", "-", "Gb0/F#0", "Ab0/G#0", "Bb0/A#0", "-",
     "Db1/C#1", "Eb1/D#1", "-", "Gb1/F#1", "Ab1/G#1", "Bb1/A#1", '-',
@@ -557,13 +623,13 @@ local function uiMiniPianoForSimilarChords()
   }) do
     r.ImGui_SameLine(ctx)
     if note == "-" then
-      r.ImGui_InvisibleButton(ctx, "##", w_piano_key, h_piano, r.ImGui_ButtonFlags_None())
+      r.ImGui_InvisibleButton(ctx, "##", mini_w, mini_h, r.ImGui_ButtonFlags_None())
     else
       local note_split = StringSplit(note, "/")
       if ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_split[2]) > 0 then
-        r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+        r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       end
     end
   end
@@ -580,18 +646,22 @@ local function uiMiniPianoForSimilarChords()
       r.ImGui_SameLine(ctx)
     end
     if ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note) > 0 then
-      r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
 end
 
 local function uiMiniPianoForScalesByChord()
+  local mini_w_half = 13
+  local mini_w = 26
+  local mini_h = 30
+
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_piano_space, 0)
   -- black
-  r.ImGui_InvisibleButton(ctx, "##", w_piano_half_key - w_piano_space, h_piano, r.ImGui_ButtonFlags_None())
+  r.ImGui_InvisibleButton(ctx, "##", mini_w_half - w_piano_space, mini_h, r.ImGui_ButtonFlags_None())
   for _, note in ipairs({
     "Db0/C#0", "Eb0/D#0", "-", "Gb0/F#0", "Ab0/G#0", "Bb0/A#0", "-",
     "Db1/C#1", "Eb1/D#1", "-", "Gb1/F#1", "Ab1/G#1", "Bb1/A#1", '-',
@@ -599,13 +669,13 @@ local function uiMiniPianoForScalesByChord()
   }) do
     r.ImGui_SameLine(ctx)
     if note == "-" then
-      r.ImGui_InvisibleButton(ctx, "##", w_piano_key, h_piano, r.ImGui_ButtonFlags_None())
+      r.ImGui_InvisibleButton(ctx, "##", mini_w, mini_h, r.ImGui_ButtonFlags_None())
     else
       local note_split = StringSplit(note, "/")
       if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[2]) > 0 then
-        r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+        r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       end
     end
   end
@@ -622,9 +692,9 @@ local function uiMiniPianoForScalesByChord()
       r.ImGui_SameLine(ctx)
     end
     if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note) > 0 then
-      r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
@@ -819,22 +889,14 @@ end
 
 local function uiCircleOf5Switch()
   if CIRCLE_OF5 then
-    if uiColorBtn("Circle Of Fifts", ColorBlue, 120, 0) then
+    if uiColorBtn("Circle Of Five", ColorBlue, 120, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
-      if CIRCLE_OF5 then
-        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
-      else
-        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)  
-      end
+      changeWindowSizeForCircle()
     end
   else
-    if uiColorBtn("Circle Of Fifts", ColorNormalNote, 120, 0) then
+    if uiColorBtn("Circle Of Five", ColorNormalNote, 120, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
-      if CIRCLE_OF5 then
-        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
-      else
-        r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)  
-      end
+      changeWindowSizeForCircle()
     end
   end
 end
@@ -921,7 +983,7 @@ local function uiVoicing()
   uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn(CURRENT_CHORD_VOICING, ColorGray,
-    w - (7 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
+    w - (8 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
 
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -1030,7 +1092,7 @@ local function uiSimilarChords()
           local note_midi_index = {}
           if CURRENT_SELECTED_SIMILAR_CHORD ~= "" then
             local pure_notes, _ = T_MakeChord(CURRENT_SELECTED_SIMILAR_CHORD)
-            CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_midi_index = T_NotePitched(pure_notes)
+            CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_midi_index = T_NotePitched(pure_notes, 0)
 
             R_StopPlay()
             local midi_notes = {}
@@ -1075,7 +1137,7 @@ local function uiScalesByChord()
           CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD = display_v
           if CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD ~= "" then
             local pure_notes, _ = T_MakeScale(v)
-            CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, _ = T_NotePitched(pure_notes)
+            CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, _ = T_NotePitched(pure_notes, 0)
           end
         end
 
@@ -1704,7 +1766,7 @@ end
 
 local function uiMain()
   bindKeyBoard()
-  if r.ImGui_BeginTabBar(ctx, 'ReaChord', r.ImGui_TabBarFlags_None()) then
+  if r.ImGui_BeginTabBar(ctx, 'ReaChordTab', r.ImGui_TabBarFlags_None()) then
     if r.ImGui_BeginTabItem(ctx, ' Main ') then
       -- recover the CIRCLE_OF5 show status
       if OLD_CIRCLE_OF5 then
@@ -1738,7 +1800,7 @@ end
 
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
-  r.ImGui_SetWindowSize(ctx, 800, 600, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_SetWindowSize(ctx, min_w, min_h, r.ImGui_Cond_FirstUseEver())
   r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w*2, min_h*1.5)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), main_window_w_padding, main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)

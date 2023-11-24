@@ -235,6 +235,10 @@ function R_ChordItemTrans(diff)
             local meta = full_meta_split[1]
             local notes = StringSplit(full_meta_split[2], ",")
             local beats = full_meta_split[4]
+            local oct_shift_after_first_note = 0
+            if #full_meta_split>4 then
+                oct_shift_after_first_note = full_meta_split[5]
+            end
             local pure_voicing = {}
             for idx, v in ipairs(notes) do
                 if idx > 1 then
@@ -263,9 +267,7 @@ function R_ChordItemTrans(diff)
             end
             local new_scale = T_ScaleTrans(scale_root .. "/" .. scale_name, diff)
             local new_pure_voicing = T_VoicingTrans(new_pure_chord, pure_voicing, diff)
-            local new_full_meta = new_scale ..
-            "/" .. oct .. "|" ..
-            new_chord_bass .. "," .. ListJoinToString(new_pure_voicing, ",") .. "|" .. new_chord .. "|" .. beats
+            local new_full_meta = new_scale .. "/" .. oct .. "|" .. new_chord_bass .. "," .. ListJoinToString(new_pure_voicing, ",") .. "|" .. new_chord .. "|" .. beats .. "|" .. oct_shift_after_first_note
 
             local _, notecnt, _, _ = r.MIDI_CountEvts(midi_take)
             for idx = 0, notecnt - 1 do
