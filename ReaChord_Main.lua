@@ -91,7 +91,7 @@ local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
 local ColorChordPadDefault = 0x8DB6CDFF
 
-local min_w = 900
+local min_w = 850
 local min_h = 600
 local main_window_w_padding = 10
 local main_window_h_padding = 5
@@ -484,7 +484,7 @@ local function onChordPadTrans(key, shift)
   -- start to trans
   CHORD_PAD_VALUES[key_idx] = new_chord
   local meta = new_scale .. "/" .. oct
-  local full_meta = meta .. "|" .. new_chord_bass .. "," .. new_pure_voicing .. "|" .. oct_shift_after_first_note
+  local full_meta = meta .. "|" .. new_chord_bass .. "," .. ListJoinToString(new_pure_voicing, ",") .. "|" .. oct_shift_after_first_note
   CHORD_PAD_METAS[key_idx] = full_meta
 
   r.SetExtState("ReaChord", "CHORD_PAD_VALUES", ListJoinToString(CHORD_PAD_VALUES, "~"), false)
@@ -1238,6 +1238,53 @@ local function uiChordMap()
     end
   end
 
+  -- temp position
+
+  r.ImGui_SameLine(ctx)
+  r.ImGui_InvisibleButton(ctx, "##InvisibleChordMap", (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines)
+
+  -- CHORD_INSERT_MODE
+  r.ImGui_SameLine(ctx)
+  local insert_mode_color = ColorNormalNote
+  if CHORD_INSERT_MODE == "on" then
+    insert_mode_color = ColorYellow
+  end
+  if uiColorBtn("Insert Mode##mode", insert_mode_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+    if CHORD_INSERT_MODE == "on" then
+      CHORD_INSERT_MODE = "off"
+    else
+      CHORD_INSERT_MODE = "on"
+    end
+  end
+
+  -- CHORD_SIMILAR_MODE
+  r.ImGui_SameLine(ctx)
+  local similar_chord_color = ColorNormalNote
+  if CHORD_SIMILAR_MODE == "on" then
+    similar_chord_color = ColorYellow
+  end
+  if uiColorBtn("Similar Chord##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+    if CHORD_SIMILAR_MODE == "on" then
+      CHORD_SIMILAR_MODE = "off"
+    else
+      CHORD_SIMILAR_MODE = "on"
+    end
+  end
+
+  -- SCALE_BY_CHORD_MODE
+  r.ImGui_SameLine(ctx)
+  local scale_by_chord_color = ColorNormalNote
+  if SCALE_BY_CHORD_MODE == "on" then
+    scale_by_chord_color = ColorYellow
+  end
+  if uiColorBtn("Find Scale##mode", scale_by_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+    if SCALE_BY_CHORD_MODE == "on" then
+      SCALE_BY_CHORD_MODE = "off"
+    else
+      SCALE_BY_CHORD_MODE = "on"
+    end
+  end
+
   uiSimilarChords()
   uiScalesByChord()
 
@@ -1353,12 +1400,39 @@ end
 local function uiChordPadTitle()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, 0)
 
-  uiReadOnlyColorBtn("Chord Pad", ColorGray, w - 160 - w_default_space)
+  uiReadOnlyColorBtn("Chord Pad", ColorGray, w - 140 - 140 - 30 - 30 - 140 - 30 - 30 - 7 * w_default_space)
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Reset Chord Pad", 160) then
+  if r.ImGui_Button(ctx, "Reset Chord Pad", 140) then
     initChordPads()
   end
+  r.ImGui_SameLine(ctx)
+  uiReadOnlyColorBtn("One Pad Transpose:", ColorGray, 140)
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "<##selectpadtrans", 30) then
+    onChordPadTrans(CHORD_PAD_SELECTED, -1)
+  end
 
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, ">##selectpadtrans", 30) then
+    onChordPadTrans(CHORD_PAD_SELECTED, 1)
+  end
+  r.ImGui_SameLine(ctx)
+  uiReadOnlyColorBtn("All Pads Transpose:", ColorGray, 140)
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, "<##allpadtrans", 30) then
+    -- onChordPadTrans()
+    for _, key in ipairs(CHORD_PAD_KEYS) do
+      onChordPadTrans(key, -1)
+    end
+  end
+
+  r.ImGui_SameLine(ctx)
+  if r.ImGui_Button(ctx, ">##allpadtrans", 30) then
+    for _, key in ipairs(CHORD_PAD_KEYS) do
+      onChordPadTrans(key, 1)
+    end
+    -- onChordPadTrans()
+  end
   r.ImGui_PopStyleVar(ctx, 1)
 end
 

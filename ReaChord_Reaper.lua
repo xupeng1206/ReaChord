@@ -91,6 +91,81 @@ function R_DeleteFirstSelectChordItem()
     return deleted, position, length, beats
 end
 
+function R_DeleteSelectChordItems()
+    while true do
+        local delete, _, _, _ = R_DeleteFirstSelectChordItem()
+        if delete then
+        else
+            break
+        end
+    end
+end
+
+
+function R_CutAndSelectRightChordItem(start_pos)
+    -- must be created
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord_item_start = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local chord_item_end = chord_item_start + r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        if start_pos > chord_item_start and start_pos < chord_item_end then
+            -- try to cut and select the right one
+            r.SetMediaItemSelected(chord_item, true)
+            r.SetEditCurPos(start_pos, true, true)
+            r.Main_OnCommand(40759, 0)
+        end
+    end
+
+    for idx = 0, midi_item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local midi_item_start = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        local midi_item_end = midi_item_start + r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        if start_pos > midi_item_start and start_pos < midi_item_end then
+            -- try to cut and select the right one
+            r.SetMediaItemSelected(midi_item, true)
+            r.SetEditCurPos(start_pos, true, true)
+            r.Main_OnCommand(40759, 0)
+        end
+    end
+end
+
+function R_CutAndSelectLeftChordItem(end_pos)
+    -- must be created
+    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord_item_start = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local chord_item_end = chord_item_start + r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        if end_pos > chord_item_start and end_pos < chord_item_end then
+            -- try to cut and select the left one
+            r.SetMediaItemSelected(chord_item, true)
+            r.SetEditCurPos(end_pos, true, true)
+            r.Main_OnCommand(40758, 0)
+        end
+    end
+
+    for idx = 0, midi_item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local midi_item_start = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        local midi_item_end = midi_item_start + r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        if end_pos > midi_item_start and end_pos < midi_item_end then
+            -- try to cut and select the left one
+            r.SetMediaItemSelected(midi_item, true)
+            r.SetEditCurPos(end_pos, true, true)
+            r.Main_OnCommand(40758, 0)
+        end
+    end
+end
+
 function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
@@ -124,6 +199,11 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
         item_length = GetLengthForOneBeat() * beats
         start_position = r.GetCursorPosition()
         end_position = start_position + item_length
+
+        -- try to cut the chord item overlap
+        R_CutAndSelectRightChordItem(start_position)
+        R_CutAndSelectLeftChordItem(end_position)
+        R_DeleteSelectChordItems()
     end
 
     -- chord item
