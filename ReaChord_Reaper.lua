@@ -522,6 +522,9 @@ function R_StopPlay()
 end
 
 function R_ReadBankFile()
+    local file = assert(io.open(R_BankPath,'a+'))
+    file:close()
+
     local banks = {}
     for bk in io.lines(R_BankPath) do
         table.insert(banks, bk)
