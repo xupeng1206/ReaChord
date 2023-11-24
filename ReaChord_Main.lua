@@ -1257,20 +1257,6 @@ local function uiChordMap()
     end
   end
 
-  -- CHORD_SIMILAR_MODE
-  r.ImGui_SameLine(ctx)
-  local similar_chord_color = ColorNormalNote
-  if CHORD_SIMILAR_MODE == "on" then
-    similar_chord_color = ColorYellow
-  end
-  if uiColorBtn("Similar Chord##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-    if CHORD_SIMILAR_MODE == "on" then
-      CHORD_SIMILAR_MODE = "off"
-    else
-      CHORD_SIMILAR_MODE = "on"
-    end
-  end
-
   -- SCALE_BY_CHORD_MODE
   r.ImGui_SameLine(ctx)
   local scale_by_chord_color = ColorNormalNote
@@ -1282,6 +1268,21 @@ local function uiChordMap()
       SCALE_BY_CHORD_MODE = "off"
     else
       SCALE_BY_CHORD_MODE = "on"
+    end
+  end
+  
+
+  -- CHORD_SIMILAR_MODE
+  r.ImGui_SameLine(ctx)
+  local similar_chord_color = ColorNormalNote
+  if CHORD_SIMILAR_MODE == "on" then
+    similar_chord_color = ColorYellow
+  end
+  if uiColorBtn("Similar Chord##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+    if CHORD_SIMILAR_MODE == "on" then
+      CHORD_SIMILAR_MODE = "off"
+    else
+      CHORD_SIMILAR_MODE = "on"
     end
   end
 
