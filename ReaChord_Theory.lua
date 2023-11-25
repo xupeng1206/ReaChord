@@ -19,169 +19,331 @@ G_SIMPLE_NOTE_LIST = {
 
 G_CHORD_NAMES = {}
 G_CHORD_PATTERNS = {}
-G_CHORD_NAMES[1] = "X"
-G_CHORD_PATTERNS[1] = "1,3,5"
-G_CHORD_NAMES[2] = "Xm"
-G_CHORD_PATTERNS[2] = "1,b3,5"
-G_CHORD_NAMES[3] = "Xaug"
-G_CHORD_PATTERNS[3] = "1,3,#5"
-G_CHORD_NAMES[4] = "Xdim"
-G_CHORD_PATTERNS[4] = "1,b3,b5"
-G_CHORD_NAMES[5] = "Xsus4"
-G_CHORD_PATTERNS[5] = "1,4,5"
-G_CHORD_NAMES[6] = "Xsus2"
-G_CHORD_PATTERNS[6] = "1,2,5"
-G_CHORD_NAMES[7] = "X6"
-G_CHORD_PATTERNS[7] = "1,3,5,6"
-G_CHORD_NAMES[8] = "Xm6"
-G_CHORD_PATTERNS[8] = "1,b3,5,6"
-G_CHORD_NAMES[9] = "XM7"
-G_CHORD_PATTERNS[9] = "1,3,5,7"
-G_CHORD_NAMES[10] = "XmM7"
-G_CHORD_PATTERNS[10] = "1,b3,5,7"
-G_CHORD_NAMES[11] = "X7"
-G_CHORD_PATTERNS[11] = "1,3,5,b7"
-G_CHORD_NAMES[12] = "X7sus4"
-G_CHORD_PATTERNS[12] = "1,4,5,b7"
-G_CHORD_NAMES[13] = "X7b9"
-G_CHORD_PATTERNS[13] = "1,3,5,b7,b9"
-G_CHORD_NAMES[14] = "X7#9"
-G_CHORD_PATTERNS[14] = "1,3,5,b7,#9"
-G_CHORD_NAMES[15] = "X7#11"
-G_CHORD_PATTERNS[15] = "1,3,5,b7,#11"
-G_CHORD_NAMES[16] = "X7b13"
-G_CHORD_PATTERNS[16] = "1,3,5,b7,b13"
-G_CHORD_NAMES[17] = "X7b9#9"
-G_CHORD_PATTERNS[17] = "1,3,5,b7,b9,#9"
-G_CHORD_NAMES[18] = "X7b9#11"
-G_CHORD_PATTERNS[18] = "1,3,5,b7,b9,#11"
-G_CHORD_NAMES[19] = "X7b9b13"
-G_CHORD_PATTERNS[19] = "1,3,5,b7,b9,b13"
-G_CHORD_NAMES[20] = "X7#9#11"
-G_CHORD_PATTERNS[20] = "1,3,5,b7,#9,#11"
-G_CHORD_NAMES[21] = "X7#9b13"
-G_CHORD_PATTERNS[21] = "1,3,5,b7,#9,b13"
-G_CHORD_NAMES[22] = "X7#11b13"
-G_CHORD_PATTERNS[22] = "1,3,5,b7,#11,b13"
-G_CHORD_NAMES[23] = "X7b9#9#11"
-G_CHORD_PATTERNS[23] = "1,3,5,b7,b9,#9,#11"
-G_CHORD_NAMES[24] = "X7b9#9b13"
-G_CHORD_PATTERNS[24] = "1,3,5,b7,b9,#9,b13"
-G_CHORD_NAMES[25] = "X7b9#11b13"
-G_CHORD_PATTERNS[25] = "1,3,5,b7,b9,#11,b13"
-G_CHORD_NAMES[26] = "X7#9#11b13"
-G_CHORD_PATTERNS[26] = "1,3,5,b7,#9,#11,b13"
-G_CHORD_NAMES[27] = "X7b9#9#11b13"
-G_CHORD_PATTERNS[27] = "1,3,5,b7,b9,#9,#11,b13"
-G_CHORD_NAMES[28] = "Xm7"
-G_CHORD_PATTERNS[28] = "1,b3,5,b7"
-G_CHORD_NAMES[29] = "Xm7b5"
-G_CHORD_PATTERNS[29] = "1,b3,b5,b7"
-G_CHORD_NAMES[30] = "Xdim7"
-G_CHORD_PATTERNS[30] = "1,b3,b5,6"
-G_CHORD_NAMES[31] = "Xaug7"
-G_CHORD_PATTERNS[31] = "1,3,#5,7"
-G_CHORD_NAMES[32] = "X69"
-G_CHORD_PATTERNS[32] = "1,3,5,6,9"
-G_CHORD_NAMES[33] = "Xm69"
-G_CHORD_PATTERNS[33] = "1,b3,5,6,9"
-G_CHORD_NAMES[34] = "Xadd9"
-G_CHORD_PATTERNS[34] = "1,3,5,9"
-G_CHORD_NAMES[35] = "XM9"
-G_CHORD_PATTERNS[35] = "1,3,5,7,9"
-G_CHORD_NAMES[36] = "XmM9"
-G_CHORD_PATTERNS[36] = "1,b3,5,7,9"
-G_CHORD_NAMES[37] = "X9"
-G_CHORD_PATTERNS[37] = "1,3,5,b7,9"
-G_CHORD_NAMES[38] = "X9sus4"
-G_CHORD_PATTERNS[38] = "1,4,5,b7,9"
-G_CHORD_NAMES[39] = "Xm9"
-G_CHORD_PATTERNS[39] = "1,b3,5,b7,9"
-G_CHORD_NAMES[40] = "Xm9b5"
-G_CHORD_PATTERNS[40] = "1,b3,b5,b7,9"
-G_CHORD_NAMES[41] = "Xaug9"
-G_CHORD_PATTERNS[41] = "1,3,#5,b7,9"
-G_CHORD_NAMES[42] = "XaugM9"
-G_CHORD_PATTERNS[42] = "1,3,#5,7,9"
-G_CHORD_NAMES[43] = "Xdim9"
-G_CHORD_PATTERNS[43] = "1,b3,b5,6,9"
-G_CHORD_NAMES[44] = "X11"
-G_CHORD_PATTERNS[44] = "1,3,5,b7,9,11"
-G_CHORD_NAMES[45] = "Xm11"
-G_CHORD_PATTERNS[45] = "1,b3,5,b7,9,11"
-G_CHORD_NAMES[45] = "X13"
-G_CHORD_PATTERNS[45] = "1,3,5,b7,9,11,13"
+
+-- X
+table.insert(G_CHORD_NAMES, "X")
+table.insert(G_CHORD_PATTERNS, "1,3,5")
+
+-- Xm
+table.insert(G_CHORD_NAMES, "Xm")
+table.insert(G_CHORD_PATTERNS, "1,b3,5")
+
+-- Xaug
+table.insert(G_CHORD_NAMES, "Xaug")
+table.insert(G_CHORD_PATTERNS, "1,3,#5")
+
+-- Xdim
+table.insert(G_CHORD_NAMES, "Xdim")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5")
+
+-- Xsus4
+table.insert(G_CHORD_NAMES, "Xsus4")
+table.insert(G_CHORD_PATTERNS, "1,4,5")
+
+-- Xsus2
+table.insert(G_CHORD_NAMES, "Xsus2")
+table.insert(G_CHORD_PATTERNS, "1,2,5")
+
+-- X6
+table.insert(G_CHORD_NAMES, "X6")
+table.insert(G_CHORD_PATTERNS, "1,3,5,6")
+
+-- Xm6
+table.insert(G_CHORD_NAMES, "Xm6")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,6")
+
+-- XM7
+table.insert(G_CHORD_NAMES, "XM7")
+table.insert(G_CHORD_PATTERNS, "1,3,5,7")
+
+-- XmM7
+table.insert(G_CHORD_NAMES, "XmM7")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,7")
+
+-- X7
+table.insert(G_CHORD_NAMES, "X7")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7")
+
+-- X7sus4
+table.insert(G_CHORD_NAMES, "X7sus4")
+table.insert(G_CHORD_PATTERNS, "1,4,5,b7")
+
+-- X7b9
+table.insert(G_CHORD_NAMES, "X7b9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9")
+
+-- X7#9
+table.insert(G_CHORD_NAMES, "X7#9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9")
+
+-- X7#11
+table.insert(G_CHORD_NAMES, "X7#11")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#11")
+
+-- X7b13
+table.insert(G_CHORD_NAMES, "X7b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b13")
+
+-- Xm7
+table.insert(G_CHORD_NAMES, "Xm7")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,b7")
+
+-- Xm7b5
+table.insert(G_CHORD_NAMES, "Xm7b5")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5,b7")
+
+-- Xdim7
+table.insert(G_CHORD_NAMES, "Xdim7")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5,6")
+
+-- Xaug7
+table.insert(G_CHORD_NAMES, "Xaug7")
+table.insert(G_CHORD_PATTERNS, "1,3,#5,7")
+
+-- X69
+table.insert(G_CHORD_NAMES, "X69")
+table.insert(G_CHORD_PATTERNS, "1,3,5,6,9")
+
+-- Xm69
+table.insert(G_CHORD_NAMES, "Xm69")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,6,9")
+
+-- Xadd9
+table.insert(G_CHORD_NAMES, "Xadd9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,9")
+
+-- XM9
+table.insert(G_CHORD_NAMES, "XM9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,7,9")
+
+-- XmM9
+table.insert(G_CHORD_NAMES, "XmM9")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,7,9")
+
+-- X9
+table.insert(G_CHORD_NAMES, "X9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9")
+
+-- X9sus4
+table.insert(G_CHORD_NAMES, "X9sus4")
+table.insert(G_CHORD_PATTERNS, "1,4,5,b7,9")
+
+-- Xm9
+table.insert(G_CHORD_NAMES, "Xm9")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,b7,9")
+
+-- Xm9b5
+table.insert(G_CHORD_NAMES, "Xm9b5")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5,b7,9")
+
+-- Xaug9
+table.insert(G_CHORD_NAMES, "Xaug9")
+table.insert(G_CHORD_PATTERNS, "1,3,#5,b7,9")
+
+-- XaugM9
+table.insert(G_CHORD_NAMES, "XaugM9")
+table.insert(G_CHORD_PATTERNS, "1,3,#5,7,9")
+
+-- Xdim9
+table.insert(G_CHORD_NAMES, "Xdim9")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5,6,9")
+
+-- X11
+table.insert(G_CHORD_NAMES, "X11")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9,11")
+
+-- Xm11
+table.insert(G_CHORD_NAMES, "Xm11")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,b7,9,11")
+
+-- X13
+table.insert(G_CHORD_NAMES, "X13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9,11,13")
+
+-- X7b9#9
+table.insert(G_CHORD_NAMES, "X7b9#9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9")
+
+-- X7b9#11
+table.insert(G_CHORD_NAMES, "X7b9#11")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#11")
+
+-- X7b9b13
+table.insert(G_CHORD_NAMES, "X7b9b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,b13")
+
+-- X7#9#11
+table.insert(G_CHORD_NAMES, "X7#9#11")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,#11")
+
+-- X7#9b13
+table.insert(G_CHORD_NAMES, "X7#9b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,b13")
+
+-- X7#11b13
+table.insert(G_CHORD_NAMES, "X7#11b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#11,b13")
+
+-- X7b9#9#11
+table.insert(G_CHORD_NAMES, "X7b9#9#11")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,#11")
+
+-- X7b9#9b13
+table.insert(G_CHORD_NAMES, "X7b9#9b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,b13")
+
+-- X7b9#11b13
+table.insert(G_CHORD_NAMES, "X7b9#11b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#11,b13")
+
+-- X7#9#11b13
+table.insert(G_CHORD_NAMES, "X7#9#11b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,#11,b13")
+
+-- X7b9#9#11b13
+table.insert(G_CHORD_NAMES, "X7b9#9#11b13")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,#11,b13")
+
 
 G_SCALE_NAMES = {}
 G_SCALE_PATTERNS = {}
-G_SCALE_NAMES[1] = "Natural Maj"
-G_SCALE_PATTERNS[1] = "1,2,3,4,5,6,7"
-G_SCALE_NAMES[2] = "Harmonic Maj"
-G_SCALE_PATTERNS[2] = "1,2,3,4,5,b6,7"
-G_SCALE_NAMES[3] = "Melodic Maj"
-G_SCALE_PATTERNS[3] = "1,2,3,4,5,b6,b7"
-G_SCALE_NAMES[4] = "Natural Min"
-G_SCALE_PATTERNS[4] = "1,2,b3,4,5,b6,b7"
-G_SCALE_NAMES[5] = "Harmonic Min"
-G_SCALE_PATTERNS[5] = "1,2,b3,4,5,b6,7"
-G_SCALE_NAMES[6] = "Melodic Min"
-G_SCALE_PATTERNS[6] = "1,2,b3,4,5,6,7"
-G_SCALE_NAMES[7] = "Ionian"
-G_SCALE_PATTERNS[7] = "1,2,3,4,5,6,7"
-G_SCALE_NAMES[8] = "Dorian"
-G_SCALE_PATTERNS[8] = "1,2,b3,4,5,6,b7"
-G_SCALE_NAMES[9] = "Phrygian"
-G_SCALE_PATTERNS[9] = "1,b2,b3,4,5,b6,b7"
-G_SCALE_NAMES[10] = "Lydian"
-G_SCALE_PATTERNS[10] = "1,2,3,#4,5,6,7"
-G_SCALE_NAMES[11] = "Mixolydian"
-G_SCALE_PATTERNS[11] = "1,2,3,4,5,6,b7"
-G_SCALE_NAMES[12] = "Aeolian"
-G_SCALE_PATTERNS[12] = "1,2,b3,4,5,b6,b7"
-G_SCALE_NAMES[13] = "Locrian"
-G_SCALE_PATTERNS[13] = "1,b2,b3,4,b5,b6,b7"
-G_SCALE_NAMES[14] = "Whole Half Dim"
-G_SCALE_PATTERNS[14] = "1,2,b3,4,b5,b6,6,7"
-G_SCALE_NAMES[15] = "Half Whole Dim"
-G_SCALE_PATTERNS[15] = "1,b2,b3,3,b5,5,6,b7"
-G_SCALE_NAMES[16] = "Diatonic"
-G_SCALE_PATTERNS[16] = "1,2,3,#4,#5,#6"
-G_SCALE_NAMES[17] = "Blues"
-G_SCALE_PATTERNS[17] = "1,b3,4,b5,5,b7"
-G_SCALE_NAMES[18] = "Mix Blues"
-G_SCALE_PATTERNS[18] = "1,b3,3,4,b5,5,b7"
-G_SCALE_NAMES[19] = "Aux Blues"
-G_SCALE_PATTERNS[19] = "1,2,b3,3,4,#4,5,6,b7"
-G_SCALE_NAMES[20] = "Jazz Min"
-G_SCALE_PATTERNS[20] = "1,2,b3,4,5,6,7"
-G_SCALE_NAMES[21] = "Blues Maj"
-G_SCALE_PATTERNS[21] = "1,2,b3,4,b5,b6,7"
-G_SCALE_NAMES[22] = "Phrygian Dominant"
-G_SCALE_PATTERNS[22] = "1,b2,3,4,5,b6,b7"
-G_SCALE_NAMES[23] = "Lydian Dominant"
-G_SCALE_PATTERNS[23] = "1,2,3,#4,5,6,b7"
-G_SCALE_NAMES[24] = "Super Locrian"
-G_SCALE_PATTERNS[24] = "1,b2,b3,3,b5,b6,b7"
-G_SCALE_NAMES[25] = "Gypsy"
-G_SCALE_PATTERNS[25] = "1,b3,#4,5,b6,b7"
-G_SCALE_NAMES[26] = "Hungarian Maj"
-G_SCALE_PATTERNS[26] = "1,#2,3,#4,5,6,b7"
-G_SCALE_NAMES[27] = "Hungarian Min"
-G_SCALE_PATTERNS[27] = "1,2,b3,#4,5,b6,7"
-G_SCALE_NAMES[28] = "Bibop"
-G_SCALE_PATTERNS[28] = "1,2,3,4,5,6,b7,7"
-G_SCALE_NAMES[29] = "India"
-G_SCALE_PATTERNS[29] = "1,2,3,4,5,b6,b7"
-G_SCALE_NAMES[30] = "Japanese"
-G_SCALE_PATTERNS[30] = "1,3,4,6,7"
-G_SCALE_NAMES[31] = "Russia"
-G_SCALE_PATTERNS[31] = "1,b2,2,b3,4,5,b6,6,b7,7"
-G_SCALE_NAMES[32] = "Arabian"
-G_SCALE_PATTERNS[32] = "1,b2,3,4,5,b6,b7"
-G_SCALE_NAMES[33] = "Oriental"
-G_SCALE_PATTERNS[33] = "1,b2,3,4,b5,6,b7"
-G_SCALE_NAMES[34] = "Spanish"
-G_SCALE_PATTERNS[34] = "1,b2,b3,3,4,b5,b6,b7"
+
+-- Natural Maj
+table.insert(G_SCALE_NAMES, "Natural Maj")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,6,7")
+
+-- Harmonic Maj
+table.insert(G_SCALE_NAMES, "Harmonic Maj")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,b6,7")
+
+-- Melodic Maj
+table.insert(G_SCALE_NAMES, "Melodic Maj")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,b6,b7")
+
+-- Natural Min
+table.insert(G_SCALE_NAMES, "Natural Min")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,b6,b7")
+
+-- Harmonic Min
+table.insert(G_SCALE_NAMES, "Harmonic Min")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,b6,7")
+
+-- Melodic Min
+table.insert(G_SCALE_NAMES, "Melodic Min")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,6,7")
+
+-- Ionian
+table.insert(G_SCALE_NAMES, "Ionian")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,6,7")
+
+-- Dorian
+table.insert(G_SCALE_NAMES, "Dorian")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,6,b7")
+
+-- Phrygian
+table.insert(G_SCALE_NAMES, "Phrygian")
+table.insert(G_SCALE_PATTERNS, "1,b2,b3,4,5,b6,b7")
+
+-- Lydian
+table.insert(G_SCALE_NAMES, "Lydian")
+table.insert(G_SCALE_PATTERNS, "1,2,3,#4,5,6,7")
+
+-- Mixolydian
+table.insert(G_SCALE_NAMES, "Mixolydian")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,6,b7")
+
+-- Aeolian
+table.insert(G_SCALE_NAMES, "Aeolian")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,b6,b7")
+
+-- Locrian
+table.insert(G_SCALE_NAMES, "Locrian")
+table.insert(G_SCALE_PATTERNS, "1,b2,b3,4,b5,b6,b7")
+
+-- Whole Half Dim
+table.insert(G_SCALE_NAMES, "Whole Half Dim")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,b5,b6,6,7")
+
+-- Half Whole Dim
+table.insert(G_SCALE_NAMES, "Half Whole Dim")
+table.insert(G_SCALE_PATTERNS, "1,b2,b3,3,b5,5,6,b7")
+
+-- Diatonic
+table.insert(G_SCALE_NAMES, "Diatonic")
+table.insert(G_SCALE_PATTERNS, "1,2,3,#4,#5,#6")
+
+-- Blues
+table.insert(G_SCALE_NAMES, "Blues")
+table.insert(G_SCALE_PATTERNS, "1,b3,4,b5,5,b7")
+
+-- Mix Blues
+table.insert(G_SCALE_NAMES, "Mix Blues")
+table.insert(G_SCALE_PATTERNS, "1,b3,3,4,b5,5,b7")
+
+-- Aux Blues
+table.insert(G_SCALE_NAMES, "Aux Blues")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,3,4,#4,5,6,b7")
+
+-- Jazz Min
+table.insert(G_SCALE_NAMES, "Jazz Min")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,5,6,7")
+
+-- Blues Maj
+table.insert(G_SCALE_NAMES, "Blues Maj")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,4,b5,b6,7")
+
+-- Phrygian Dominant
+table.insert(G_SCALE_NAMES, "Phrygian Dominant")
+table.insert(G_SCALE_PATTERNS, "1,b2,3,4,5,b6,b7")
+
+-- Lydian Dominant
+table.insert(G_SCALE_NAMES, "Lydian Dominant")
+table.insert(G_SCALE_PATTERNS, "1,2,3,#4,5,6,b7")
+
+-- Super Locrian
+table.insert(G_SCALE_NAMES, "Super Locrian")
+table.insert(G_SCALE_PATTERNS, "1,b2,b3,3,b5,b6,b7")
+
+-- Gypsy
+table.insert(G_SCALE_NAMES, "Gypsy")
+table.insert(G_SCALE_PATTERNS, "1,b3,#4,5,b6,b7")
+
+-- Hungarian Maj
+table.insert(G_SCALE_NAMES, "Hungarian Maj")
+table.insert(G_SCALE_PATTERNS, "1,#2,3,#4,5,6,b7")
+
+-- Hungarian Min
+table.insert(G_SCALE_NAMES, "Hungarian Min")
+table.insert(G_SCALE_PATTERNS, "1,2,b3,#4,5,b6,7")
+
+-- Bibop
+table.insert(G_SCALE_NAMES, "Bibop")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,6,b7,7")
+
+-- India
+table.insert(G_SCALE_NAMES, "India")
+table.insert(G_SCALE_PATTERNS, "1,2,3,4,5,b6,b7")
+
+-- Japanese
+table.insert(G_SCALE_NAMES, "Japanese")
+table.insert(G_SCALE_PATTERNS, "1,3,4,6,7")
+
+-- Russia
+table.insert(G_SCALE_NAMES, "Russia")
+table.insert(G_SCALE_PATTERNS, "1,b2,2,b3,4,5,b6,6,b7,7")
+
+-- Arabian
+table.insert(G_SCALE_NAMES, "Arabian")
+table.insert(G_SCALE_PATTERNS, "1,b2,3,4,5,b6,b7")
+
+-- Oriental
+table.insert(G_SCALE_NAMES, "Oriental")
+table.insert(G_SCALE_PATTERNS, "1,b2,3,4,b5,6,b7")
+
+-- Spanish
+table.insert(G_SCALE_NAMES, "Spanish")
+table.insert(G_SCALE_PATTERNS, "1,b2,b3,3,4,b5,b6,b7")
+
 
 
 G_WHOLE_HALF_SCALE_PATTERN = "1,b2,2,b3,3,4,b5,5,b6,6,b7,7"

@@ -289,6 +289,7 @@ end
 local function refreshUIWhenChordRootChange()
   local nice_chords = {}
   local normal_chords = {}
+  local chords = {}
   for _, chord_tag in ipairs(G_CHORD_NAMES) do
     local chord = CURRENT_CHORD_ROOT
     local chord_tag_split = StringSplit(chord_tag, "X")
@@ -300,6 +301,7 @@ local function refreshUIWhenChordRootChange()
     else
       table.insert(normal_chords, chord)
     end
+    table.insert(chords, chord)
   end
   if #nice_chords > 0 then
     onSelectChordChange(nice_chords[1])
@@ -309,7 +311,8 @@ local function refreshUIWhenChordRootChange()
     PlayPiano()
   end
   CURRENT_NICE_CHORD_LIST = nice_chords
-  CURRENT_CHORD_LIST = ListExtend(nice_chords, normal_chords)
+  -- CURRENT_CHORD_LIST = ListExtend(nice_chords, normal_chords)
+  CURRENT_CHORD_LIST = chords
 end
 
 local function refreshUIWhenScaleChange()
@@ -1239,17 +1242,13 @@ local function uiChordMap()
   end
 
   -- temp position
-
-  r.ImGui_SameLine(ctx)
-  r.ImGui_InvisibleButton(ctx, "##InvisibleChordMap", (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines)
-
   -- CHORD_INSERT_MODE
   r.ImGui_SameLine(ctx)
   local insert_mode_color = ColorNormalNote
   if CHORD_INSERT_MODE == "on" then
     insert_mode_color = ColorYellow
   end
-  if uiColorBtn("Insert Mode##mode", insert_mode_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+  if uiColorBtn("<Insert Mode>##mode", insert_mode_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
     if CHORD_INSERT_MODE == "on" then
       CHORD_INSERT_MODE = "off"
     else
@@ -1263,7 +1262,7 @@ local function uiChordMap()
   if SCALE_BY_CHORD_MODE == "on" then
     scale_by_chord_color = ColorYellow
   end
-  if uiColorBtn("Find Scale##mode", scale_by_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+  if uiColorBtn("<Find Scale>##mode", scale_by_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
     if SCALE_BY_CHORD_MODE == "on" then
       SCALE_BY_CHORD_MODE = "off"
     else
@@ -1278,7 +1277,7 @@ local function uiChordMap()
   if CHORD_SIMILAR_MODE == "on" then
     similar_chord_color = ColorYellow
   end
-  if uiColorBtn("Similar Chord##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
+  if uiColorBtn("<Similar Chord>##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
     if CHORD_SIMILAR_MODE == "on" then
       CHORD_SIMILAR_MODE = "off"
     else
