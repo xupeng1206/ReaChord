@@ -125,13 +125,15 @@ local w_circle_of_5 = 400
 --! THIS SHOULD BE READ FROM CURRENT DATA
 --! JUST FOR INITIAL IMPLEMENTATION USE HARDCODED
 local LAST_PIE_ROOT_VAL = 0
-local items_maj = {"C","G","D","A","E","B","Gb","Db","Ab","Eb", "Bb","F" }
-local items_min = {"Am","Em","Bm","F#m","C#m","G#m","Ebm","Bbm","Fm","Cm","Gm","Dm" }
+local items_maj = {"C","G","D","A","E","B","Gb","Db","Ab","Eb", "Bb","F"}
+-- local items_min = {"Am","Em","Bm","F#m","C#m","G#m","Ebm","Bbm","Fm","Cm","Gm","Dm" }
+-- local items_min = {"Am","Em","Bm","Gbm","Dbm","Abm","Ebm","Bbm","Fm","Cm","Gm","Dm"}
+local items_min = {"A","E","B","Gb","Db","Ab","Eb","Bb","F","C","G","D"}
 
 local prog = {
   ["MAJ"] = {
     ["MAJ"] = { [0] = "I", [1] = "V", [11] = "IV", [-1] = "IV" },
-    ["MIN"] = { [0] = "VI", [1] = "III", [2] = "VII", [11] = "II", [-1] = "II" },
+    ["MIN"] = { [0] = "vi", [1] = "iii", [2] = "vii", [11] = "ii", [-1] = "ii" },
   },
   ["MIN"] = {
     ["MAJ"] = { [0] = 3, [1] = 7, [11] = 6, [-1] = 6 },
@@ -1377,8 +1379,9 @@ function PiePopupSelectMenu(tbl, sc_type, RADIUS_MAX, aw, ah, vx, vy)
     r.ImGui_SetCursorScreenPos(ctx, pos[1], pos[2])
     if r.ImGui_InvisibleButton(ctx, "##2" .. i .. sc_type, btn_w, btn_h) then
       --! PLAY CHORD ON PRESS
-      local note = sc_type == "MIN" and item_label:sub(1, -2) or item_label
-      onChordRootChange(note)
+      -- local note = sc_type == "MIN" and item_label:sub(1, -2) or item_label
+      -- onChordRootChange(note)
+      onChordRootChange(item_label)
     end
 
     local hovered = r.ImGui_IsItemHovered(ctx)
@@ -1386,12 +1389,12 @@ function PiePopupSelectMenu(tbl, sc_type, RADIUS_MAX, aw, ah, vx, vy)
   end
   r.ImGui_SetCursorScreenPos(ctx, center_x - 20, center_y)
   --! NOT SURE IF CHANGING KEY FROM HERE IS NEEDED
-  -- if r.ImGui_Button(ctx, "-") and ANIM_STOP then
+  -- if r.ImGui_Button(ctx, "<") and ANIM_STOP then
   --   START_TIME = r.time_precise()
   --   NEW_POS = CUR_POS + 1
   -- end
   -- r.ImGui_SameLine(ctx)
-  -- if r.ImGui_Button(ctx, "+") and ANIM_STOP then
+  -- if r.ImGui_Button(ctx, ">") and ANIM_STOP then
   --   START_TIME = r.time_precise()
   --   NEW_POS = CUR_POS - 1
   -- end
