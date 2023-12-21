@@ -19,6 +19,21 @@ function NewLineTag()
     -- end
 end
 
+function R_ImportChordTrack()
+    local targeTrack
+    for trackIndex = 0, r.CountTracks(0) - 1 do
+        local track = r.GetTrack(0, trackIndex)
+        local ok, trackName = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+        if ok and trackName == R_ChordTrackName then
+            targeTrack = track
+            break
+        end
+    end
+    if targeTrack == nil then
+        r.Main_openProject(r.GetResourcePath().."/TrackTemplates/ChordTrack.RTrackTemplate")
+    end
+end
+
 function GetOrCreateTrackByName(name)
     local targeTrack
     for trackIndex = 0, r.CountTracks(0) - 1 do
