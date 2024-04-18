@@ -8,6 +8,7 @@ R_ChordTrackName = "REACHORD_TRACK"
 R_ChordTrackMidi = "REACHORD_MIDI"
 
 R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks.txt'
+R_ColorConfPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Colors.txt'
 
 function NewLineTag()
     return "\r\n"
@@ -565,4 +566,15 @@ function R_RefreshBank(bks)
         end
         io.close()
     end
+end
+
+function R_GetColorConf()
+    local file = assert(io.open(R_ColorConfPath,'a+'))
+    file:close()
+
+    local colors = {}
+    for color in io.lines(R_ColorConfPath) do
+        table.insert(colors, color)
+    end
+    return colors
 end

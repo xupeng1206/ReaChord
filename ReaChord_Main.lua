@@ -91,6 +91,13 @@ local ColorNormalNote = 0x838B8BFF
 local ColorBtnHover = 0x4876FFFF
 local ColorChordPadDefault = 0x8DB6CDFF
 
+local ColorPieBtnLR = 0x555555FF
+local ColorPieBtnU1 = 0xff00ffff
+local ColorPieBtnU2 = 0xff00ffaa
+local ColorPieBtnD1 = 0x00aaaaff
+local ColorPieBtnD2 = 0x00aaaaaa
+local ColorPieBtnHoverd = 0x4772B3FF
+
 local min_w = 850
 local min_h = 600
 local main_window_w_padding = 10
@@ -1309,7 +1316,7 @@ function DrawListButton(name, color, hovered)
   local xs, ys = r.ImGui_GetItemRectMin(ctx)
   local xe, ye = r.ImGui_GetItemRectMax(ctx)
   local w, h = xe - xs, ye - ys
-  r.ImGui_DrawList_AddRectFilled(draw_list, xs, ys, xe, ye, hovered and 0x4772B3FF or color, 5)
+  r.ImGui_DrawList_AddRectFilled(draw_list, xs, ys, xe, ye, hovered and ColorPieBtnHoverd or color, 5)
 
   local label_size = r.ImGui_CalcTextSize(ctx, name)
   local font_size = r.ImGui_GetFontSize(ctx)
@@ -1330,7 +1337,7 @@ function PiePopupSelectMenu(tbl, sc_type, RADIUS_MAX, aw, ah, vx, vy)
 
   local ANIM = START_TIME and Anim(CUR_POS, NEW_POS, 0.2, START_TIME) or CUR_POS
   for i = 0, #tbl - 1 do
-    local color = 0x555555FF
+    local color = ColorPieBtnLR
     local c_idx = i
     c_idx = i > 6 and c_idx - 12 or c_idx
     local item = i + 1
@@ -1369,11 +1376,11 @@ function PiePopupSelectMenu(tbl, sc_type, RADIUS_MAX, aw, ah, vx, vy)
         if sc_type == "MAJ" and t_sin > -0.8 then
           --! SKIP MAJOR CHORD
         else
-          color = LAST_PIE_SCALE == sc_type and 0xff00ffff or 0xff00ffaa
+          color = LAST_PIE_SCALE == sc_type and ColorPieBtnU1 or ColorPieBtnU2
         end
       end
     elseif t_sin <= 1 and t_sin > 0.8 then
-      color = LAST_PIE_SCALE == sc_type and 0x00aaaaff or 0x00aaaaaa
+      color = LAST_PIE_SCALE == sc_type and ColorPieBtnD1 or ColorPieBtnD2
     end
 
     r.ImGui_SetCursorScreenPos(ctx, pos[1], pos[2])
@@ -1875,6 +1882,19 @@ local function uiMain()
   end
 end
 
+local function refreshColors()
+  local colors = R_GetColorConf()
+  for i,v in ipairs(colors) do
+    local v_split = StringSplit(v, '=')
+    local name = v_split[1]
+    local color = v_split[2]
+    if name == "MainBgColor" then
+      MainBgColor = color
+      -- todo
+    end
+  end
+end
+
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
   r.ImGui_SetWindowSize(ctx, min_w, min_h, r.ImGui_Cond_FirstUseEver())
@@ -1890,6 +1910,8 @@ local function loop()
 
   local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true, window_flags)
   if visible then
+    -- todo fetch color from conf
+    refreshColors()
     refreshWindowSize()
     uiMain()
     r.ImGui_End(ctx)
