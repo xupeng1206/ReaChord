@@ -1,10 +1,12 @@
 --@noindex
 --NoIndex: true
 
+--// USER CONFIG AREA 
+-- RDColorBackground = "#333333"
+RDColorBackground = "#333333"
+RDColorTextLight = "White"
+RDColorTextGray = "Gray"
 
---// USER CONFIG AREA -->
-text_color = "White"   -- support names (see color function) and hex values with #
-background_color = "#333333"              -- support names and hex values with #. REAPER defaults are dark grey #333333 and brigth grey #A4A4A4
 no_regions_text = true -- set to false to desactivate "NO REGIONS UNDER PLAY CURSOR" instructions
 console = true         -- Display debug messages in the console
 
@@ -220,7 +222,7 @@ end
 
 function GFXPrintLine(string)
     CenterAndResizeText(string)
-    color("Gray")
+    color(RDColorTextGray)
     gfx.printf(string)
     gfx.y = gfx.y + font_size
 end
@@ -235,16 +237,16 @@ function GFXPrintChord(pre4, pre3, pre2, pre1, cur, post1, post2, post3, post4)
     gfx.x = gfx.w / 2 - curw / 2 - pre1w - pre2w - pre3w -pre4w
     gfx.y = gfx.y
 
-    color("Gray")
+    color(RDColorTextGray)
     gfx.printf(pre4 .. "  ")
     gfx.printf(pre3 .. "  ")
     gfx.printf(pre2 .. "  ")
     gfx.printf(pre1 .. "  ")
 
-    color("White")
+    color(RDColorTextLight)
     gfx.printf(cur)
 
-    color("Gray")
+    color(RDColorTextGray)
     gfx.printf("  " .. post1)
     gfx.printf("  " .. post2)
     gfx.printf("  " .. post3)
@@ -254,9 +256,28 @@ function GFXPrintChord(pre4, pre3, pre2, pre1, cur, post1, post2, post3, post4)
 end
 
 function DrawBackground()
-    color(background_color)
+    color(RDColorBackground)
     gfx.rect(0, 0, gfx.w, gfx.h)
 end
+
+local function refreshColors()
+    RDColorBackground = "#333333"
+    RDColorTextLight = "White"
+    RDColorTextGray = "Gray"
+    local colors = R_GetColorConf()
+    for name, color in pairs(colors) do
+      if name == "RDColorBackground" then
+        RDColorBackground = '#'..color:sub(5,10)
+      end
+      if name == "RDColorTextLight" then
+        RDColorTextLight = '#'..color:sub(5,10)
+      end
+      if name == "RDColorTextGray" then
+        RDColorTextGray = '#'..color:sub(5,10)
+      end
+    end
+  end
+
 
 --// INIT //--
 function init()
@@ -264,6 +285,7 @@ function init()
     gfx.init("ReaChord Reader", vars.wlen, vars.hlen, vars.docked, vars.xpos, vars.ypos) -- name,width,height,dockstate,xpos,ypos
     gfx.setfont(1, font_name, font_size, 'b')
     --color(text_color)
+    refreshColors()
 end
 
 function DoExitFunctions()
@@ -334,7 +356,6 @@ function run()
     -- region_end -> region_end
     -- region_name -> chord
     --
-
     initChordDisplay()
 
     is_region, region_start, region_end, region_name = R_GetChordItemInfoByPosition(play_pos)

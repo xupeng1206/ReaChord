@@ -7,6 +7,7 @@
 --   [main] ReaChord_Reader.lua
 --   [main] ReaChord_Reader_Start.lua
 --   [main] ReaChord_Act_Item2Sound.lua
+--   [main] ReaChord_ColorPalette.lua
 --   ReaChord_Reaper.lua
 --   ReaChord_Theory.lua
 --   ReaChord_Util.lua
@@ -77,14 +78,14 @@ local CURRENT_SCALES_FOR_ANALYSIS_CHORD = {}
 local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD = ""
 local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED = {}
 
-local MainBgColor = 0xEEE9E9FF
-local ColorWhite = 0xFFFFFFFF
-local ColorBlack = 0x000000FF
+local ColorMainBackground = 0xEEE9E9FF
+local ColorPianoWhite = 0xFFFFFFFF
+local ColorPianoBlack = 0x000000FF
 local ColorGray = 0x696969FF
 local ColorPink = 0xFF6EB4FF
 local ColorYellow = 0xCD950CFF
 local ColorDarkPink = 0xBC8F8FFF
-local ColorMiniBlackKey = 0x6C7B8BFF
+local ColorMiniPianoBlack = 0x6C7B8BFF
 local ColorRed = 0xCD2626FF
 local ColorBlue = 0x0000FFFF
 local ColorNormalNote = 0x838B8BFF
@@ -170,6 +171,70 @@ local function refreshWindowSize()
   w_piano_half_key = math.max(2, w / 98 - 1)
   w_chord_pad = math.max(4, w / 7 - 4)
   w_chord_pad_half = math.max(2, w / 14 - 2)
+end
+
+
+local function refreshColors()
+  local colors = R_GetColorConf()
+  for name, color in pairs(colors) do
+    if name == "ColorMainBackground" then
+      ColorMainBackground = color
+    end
+    if name == "ColorPianoWhite" then
+      ColorPianoWhite = color
+    end
+    if name == "ColorPianoBlack" then
+      ColorPianoBlack = color
+    end
+    if name == "ColorGray" then
+      ColorGray = color
+    end
+    if name == "ColorPink" then
+      ColorPink = color
+    end
+    if name == "ColorYellow" then
+      ColorYellow = color
+    end
+    if name == "ColorDarkPink" then
+      ColorDarkPink = color
+    end
+    if name == "ColorMiniPianoBlack" then
+      ColorMiniPianoBlack = color
+    end
+    if name == "ColorRed" then
+      ColorRed = color
+    end
+    if name == "ColorBlue" then
+      ColorBlue = color
+    end
+    if name == "ColorNormalNote" then
+      ColorNormalNote = color
+    end
+    if name == "ColorBtnHover" then
+      ColorBtnHover = color
+    end
+    if name == "ColorChordPadDefault" then
+      ColorChordPadDefault = color
+    end
+    if name == "ColorPieBtnLR" then
+      ColorPieBtnLR = color
+    end
+    if name == "ColorPieBtnU1" then
+      ColorPieBtnU1 = color
+    end
+    if name == "ColorPieBtnU2" then
+      ColorPieBtnU2 = color
+    end
+    if name == "ColorPieBtnD1" then
+      ColorPieBtnD1 = color
+    end
+    if name == "ColorPieBtnD2" then
+      ColorPieBtnD2 = color
+    end
+    if name == "ColorPieBtnHoverd" then
+      ColorPieBtnHoverd = color
+    end
+  end
 end
 
 local function changeWindowSizeForCircle()
@@ -390,13 +455,13 @@ local function onScaleRootChange(val)
     end
   end
   
-  for i = 0, #items_min-1 do
-    if items_min[i+1] == val then
-      START_TIME = r.time_precise()
-      NEW_POS = CUR_POS + (LAST_PIE_ROOT_VAL-i)
-      LAST_PIE_ROOT_VAL = i
-    end
-  end
+  -- for i = 0, #items_min-1 do
+  --   if items_min[i+1] == val then
+  --     START_TIME = r.time_precise()
+  --     NEW_POS = CUR_POS + (LAST_PIE_ROOT_VAL-i)
+  --     LAST_PIE_ROOT_VAL = i
+  --   end
+  -- end
 
   refreshUIWhenScaleChangeWithSelectChordChange()
   r.SetExtState("ReaChord", "ScaleRoot", val, false)
@@ -641,7 +706,7 @@ local function uiMiniPianoForSimilarChords()
       if ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note_split[2]) > 0 then
         r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
+        r.ImGui_ColorButton(ctx, "##", ColorMiniPianoBlack, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       end
     end
   end
@@ -660,7 +725,7 @@ local function uiMiniPianoForSimilarChords()
     if ListIndex(CURRENT_SELECTED_SIMILAR_CHORD_PITCHED, note) > 0 then
       r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
+      r.ImGui_ColorButton(ctx, "##", ColorPianoWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
@@ -687,7 +752,7 @@ local function uiMiniPianoForScalesByChord()
       if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note_split[2]) > 0 then
         r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorMiniBlackKey, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
+        r.ImGui_ColorButton(ctx, "##", ColorMiniPianoBlack, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
       end
     end
   end
@@ -706,7 +771,7 @@ local function uiMiniPianoForScalesByChord()
     if ListIndex(CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED, note) > 0 then
       r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
+      r.ImGui_ColorButton(ctx, "##", ColorPianoWhite, r.ImGui_ColorEditFlags_NoTooltip(), mini_w, mini_h)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
@@ -734,7 +799,7 @@ local function uiPiano()
       if ListIndex(CURRENT_CHORD_PITCHED, note_split[1]) > 0 or ListIndex(CURRENT_CHORD_PITCHED, note_split[2]) > 0 then
         r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
       else
-        r.ImGui_ColorButton(ctx, "##", ColorBlack, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+        r.ImGui_ColorButton(ctx, "##", ColorPianoBlack, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
       end
     end
   end
@@ -757,7 +822,7 @@ local function uiPiano()
     if ListIndex(CURRENT_CHORD_PITCHED, note) > 0 then
       r.ImGui_ColorButton(ctx, "##", ColorBlue, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
     else
-      r.ImGui_ColorButton(ctx, "##", ColorWhite, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
+      r.ImGui_ColorButton(ctx, "##", ColorPianoWhite, r.ImGui_ColorEditFlags_NoTooltip(), w_piano_key, h_piano)
     end
   end
   r.ImGui_PopStyleVar(ctx, 1)
@@ -1882,26 +1947,13 @@ local function uiMain()
   end
 end
 
-local function refreshColors()
-  local colors = R_GetColorConf()
-  for i,v in ipairs(colors) do
-    local v_split = StringSplit(v, '=')
-    local name = v_split[1]
-    local color = v_split[2]
-    if name == "MainBgColor" then
-      MainBgColor = color
-      -- todo
-    end
-  end
-end
-
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
   r.ImGui_SetWindowSize(ctx, min_w, min_h, r.ImGui_Cond_FirstUseEver())
   r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w*2, min_h*1.5)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), main_window_w_padding, main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), MainBgColor)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), ColorMainBackground)
 
   local window_flags = r.ImGui_WindowFlags_None()
   window_flags = window_flags | r.ImGui_WindowFlags_NoScrollbar()
@@ -1910,8 +1962,6 @@ local function loop()
 
   local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true, window_flags)
   if visible then
-    -- todo fetch color from conf
-    refreshColors()
     refreshWindowSize()
     uiMain()
     r.ImGui_End(ctx)
@@ -1926,6 +1976,7 @@ local function loop()
 end
 
 local function init()
+  refreshColors()
   R_ImportChordTrack()
   R_ArmOnlyChordTrack()
   local pad_values = r.GetExtState("ReaChord", "CHORD_PAD_VALUES")

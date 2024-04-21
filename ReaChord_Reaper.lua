@@ -574,7 +574,23 @@ function R_GetColorConf()
 
     local colors = {}
     for color in io.lines(R_ColorConfPath) do
-        table.insert(colors, color)
+        local color_split = StringSplit(color, '=')
+        colors[color_split[1]] = color_split[2]
     end
     return colors
+end
+
+function R_SaveColorConf(colors)
+    local file = io.open(R_ColorConfPath, 'w+')
+    if file then
+        io.output(file)
+        for color, value in pairs(colors) do
+            local val = string.format("0x%08X", value)
+            if #val == 18 then
+                val = '0x' .. val:sub(11, 18)
+            end
+            io.write(color, '=', val, '\n')
+        end
+        io.close()
+    end
 end
