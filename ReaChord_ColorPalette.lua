@@ -111,8 +111,8 @@ function uiMain()
   _, ColorPieBtnHoverd = uiColorEdit4('ColorPieBtnHoverd', ColorPieBtnHoverd)
   uiReadOnlyColorBtn("ReaChord Reader", 0x696969FF, w)
   _, RDColorBackground = uiColorEdit3('RDColorBackground', RDColorBackground)
-  _, RDColorTextLight = uiColorEdit3('RD_Color_Text_Light', RDColorTextLight)
-  _, RDColorTextGray = uiColorEdit3('RD_Color_Text_Gray', RDColorTextGray)
+  _, RDColorTextLight = uiColorEdit3('RDColorTextLight', RDColorTextLight)
+  _, RDColorTextGray = uiColorEdit3('RDColorTextGray', RDColorTextGray)
   uiReadOnlyColorBtn("Action", 0x696969FF, w)
   if uiColorBtn("Save", 0x838B8BFF, (w-main_window_w_padding)/2, 100 ) then
     local colors = {}
