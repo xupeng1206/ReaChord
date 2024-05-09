@@ -28,42 +28,7 @@ vars.ypos = 100
 ext_name = "ReaChord Reader"
 
 region_duration = 1
-pre_4_chord_txt = ""
-pre_4_simple_chord_txt = ""
-pre_4_full_chord_txt = ""
-
-pre_3_chord_txt = ""
-pre_3_simple_chord_txt = ""
-pre_3_full_chord_txt = ""
-
-pre_2_chord_txt = ""
-pre_2_simple_chord_txt = ""
-pre_2_full_chord_txt = ""
-
-pre_1_chord_txt = ""
-pre_1_simple_chord_txt = ""
-pre_1_full_chord_txt = ""
-
-
-chord_txt = ""
-simple_chord_txt = ""
-full_chord_txt = ""
-
-post_1_chord_txt = ""
-post_1_simple_chord_txt = ""
-post_1_full_chord_txt = ""
-
-post_2_chord_txt = ""
-post_2_simple_chord_txt = ""
-post_2_full_chord_txt = ""
-
-post_3_chord_txt = ""
-post_3_simple_chord_txt = ""
-post_3_full_chord_txt = ""
-
-post_4_chord_txt = ""
-post_4_simple_chord_txt = ""
-post_4_full_chord_txt = ""
+current_notes = "No Notes"
 
 -- Performance
 local reaper = reaper
@@ -80,42 +45,7 @@ function Msg(value)
 end
 
 function initChordDisplay()
-    pre_4_chord_txt = ""
-    pre_4_simple_chord_txt = ""
-    pre_4_full_chord_txt = ""
-
-    pre_3_chord_txt = ""
-    pre_3_simple_chord_txt = ""
-    pre_3_full_chord_txt = ""
-
-    pre_2_chord_txt = ""
-    pre_2_simple_chord_txt = ""
-    pre_2_full_chord_txt = ""
-
-    pre_1_chord_txt = ""
-    pre_1_simple_chord_txt = ""
-    pre_1_full_chord_txt = ""
-
-
-    chord_txt = ""
-    simple_chord_txt = ""
-    full_chord_txt = ""
-
-    post_1_chord_txt = ""
-    post_1_simple_chord_txt = ""
-    post_1_full_chord_txt = ""
-
-    post_2_chord_txt = ""
-    post_2_simple_chord_txt = ""
-    post_2_full_chord_txt = ""
-
-    post_3_chord_txt = ""
-    post_3_simple_chord_txt = ""
-    post_3_full_chord_txt = ""
-
-    post_4_chord_txt = ""
-    post_4_simple_chord_txt = ""
-    post_4_full_chord_txt = ""
+    current_notes = "No Notes"
 end
 
 -- Set ToolBar Button State
@@ -228,34 +158,6 @@ function GFXPrintLine(string)
     gfx.y = gfx.y + font_size
 end
 
-function GFXPrintChord(pre4, pre3, pre2, pre1, cur, post1, post2, post3, post4)
-    -- CenterAndResizeText(pre3 .."  ".. pre2 .."  ".. pre1 .."  ".. cur .."  ".. post1 .."  ".. post2 .."  ".. post3)
-    local pre1w, pre1h, pre1size = StringArea(pre1 .. "  ", 1)
-    local pre2w, pre2h, pre2size = StringArea(pre2 .. "  ", 1)
-    local pre3w, pre3h, pre3size = StringArea(pre3 .. "  ", 1)
-    local pre4w, pre4h, pre4size = StringArea(pre4 .. "  ", 1)
-    local curw, curh, cursize = StringArea(cur, 1)
-    gfx.x = gfx.w / 2 - curw / 2 - pre1w - pre2w - pre3w -pre4w
-    gfx.y = gfx.y
-
-    color(RDColorTextGray)
-    gfx.printf(pre4 .. "  ")
-    gfx.printf(pre3 .. "  ")
-    gfx.printf(pre2 .. "  ")
-    gfx.printf(pre1 .. "  ")
-
-    color(RDColorTextLight)
-    gfx.printf(cur)
-
-    color(RDColorTextGray)
-    gfx.printf("  " .. post1)
-    gfx.printf("  " .. post2)
-    gfx.printf("  " .. post3)
-    gfx.printf("  " .. post4)
-
-    gfx.y = gfx.y + font_size
-end
-
 function DrawBackground()
     color(RDColorBackground)
     gfx.rect(0, 0, gfx.w, gfx.h)
@@ -283,7 +185,7 @@ local function refreshColors()
 --// INIT //--
 function init()
     GetExtStates()
-    gfx.init("ReaChord Reader", vars.wlen, vars.hlen, vars.docked, vars.xpos, vars.ypos) -- name,width,height,dockstate,xpos,ypos
+    gfx.init("ReaChord NoteReader", vars.wlen, vars.hlen, vars.docked, vars.xpos, vars.ypos) -- name,width,height,dockstate,xpos,ypos
     gfx.setfont(1, font_name, font_size, 'b')
     --color(text_color)
     refreshColors()
@@ -335,120 +237,14 @@ function run()
     play_state = reaper.GetPlayState()
     if play_state == 0 then play_pos = reaper.GetCursorPosition() else play_pos = reaper.GetPlayPosition() end
 
-    --   -- IS REGION
-    --   marker_idx, region_idx = reaper.GetLastMarkerAndCurRegion(0, play_pos)
-    --   if region_idx >= 0 then -- IF LAST REGION
-
-    --     retval, is_region, region_start, region_end, region_name, markrgnindexnumber, region_color = reaper.EnumProjectMarkers3(0, region_idx)
-    --     buf = play_pos - region_start - offset
-    --     buf = reaper.format_timestr_pos(buf, "", format)
-    --     end_buf = region_end - play_pos - offset
-    --     end_string = reaper.format_timestr_pos(end_buf, "", format)
-    --     buf = buf .. " → " .. end_string
-    --     region_duration = region_end - region_start
-    --   else
-    --     is_region = false
-    --     gfx.y = 0
-    --   end -- IF LAST REGION
-
-    -- Try to get chord item, code structure same as the region clock
-    -- is_region -> have item
-    -- region_start -> item start
-    -- region_end -> region_end
-    -- region_name -> chord
-    --
     initChordDisplay()
 
-    is_region, region_start, region_end, region_name = R_GetChordItemInfoByPosition(play_pos)
+    is_region, region_start, region_end, region_meta = R_GetChordItemMeteByPosition(play_pos)
     region_color = 0
     if is_region then
         region_duration = region_end - region_start
-        local chord_split = StringSplit(region_name, NewLineTag())
-        full_chord_txt = region_name
-        chord_txt = chord_split[1]
-        simple_chord_txt = chord_split[2]
-
-        -- get pre post item
-        -- pre 1
-        local ret, item_start, item_end, item_chord
-        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_start - 1)
-        if ret then
-            local item_chord_split = StringSplit(item_chord, NewLineTag())
-            pre_1_full_chord_txt = item_chord
-            pre_1_chord_txt = item_chord_split[1]
-            pre_1_simple_chord_txt = item_chord_split[2]
-        end
-        -- pre 2
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                pre_2_full_chord_txt = item_chord
-                pre_2_chord_txt = item_chord_split[1]
-                pre_2_simple_chord_txt = item_chord_split[2]
-            end
-        end
-
-        -- pre 3
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                pre_3_full_chord_txt = item_chord
-                pre_3_chord_txt = item_chord_split[1]
-                pre_3_simple_chord_txt = item_chord_split[2]
-            end
-        end
-
-        -- pre 4
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                pre_4_full_chord_txt = item_chord
-                pre_4_chord_txt = item_chord_split[1]
-                pre_4_simple_chord_txt = item_chord_split[2]
-            end
-        end
-
-        -- post 1
-
-        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_end + 1)
-        if ret then
-            local item_chord_split = StringSplit(item_chord, NewLineTag())
-            post_1_full_chord_txt = item_chord
-            post_1_chord_txt = item_chord_split[1]
-            post_1_simple_chord_txt = item_chord_split[2]
-        end
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                post_2_full_chord_txt = item_chord
-                post_2_chord_txt = item_chord_split[1]
-                post_2_simple_chord_txt = item_chord_split[2]
-            end
-        end
-
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                post_3_full_chord_txt = item_chord
-                post_3_chord_txt = item_chord_split[1]
-                post_3_simple_chord_txt = item_chord_split[2]
-            end
-        end
-
-        if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
-            if ret then
-                local item_chord_split = StringSplit(item_chord, NewLineTag())
-                post_4_full_chord_txt = item_chord
-                post_4_chord_txt = item_chord_split[1]
-                post_4_simple_chord_txt = item_chord_split[2]
-            end
-        end
+        local meta_split = StringSplit(region_meta, "|")
+        current_notes = ListJoinToString(StringSplit(meta_split[2], ","), " ")
     else
         gfx.y = 0
     end
@@ -490,14 +286,12 @@ function run()
     if is_region == true then
         DrawProgressBar()
         if format > 0 then
-            GFXPrintChord(pre_4_chord_txt, pre_3_chord_txt, pre_2_chord_txt, pre_1_chord_txt, chord_txt, post_1_chord_txt,
-                post_2_chord_txt, post_3_chord_txt, post_4_chord_txt)
+            GFXPrintLine(current_notes)
         else
-            GFXPrintChord(pre_4_simple_chord_txt, pre_3_simple_chord_txt, pre_2_simple_chord_txt, pre_1_simple_chord_txt, simple_chord_txt,
-                post_1_simple_chord_txt, post_2_simple_chord_txt, post_3_simple_chord_txt, post_4_simple_chord_txt)
+            GFXPrintLine(current_notes)
         end
     else
-        GFXPrintLine("No Chord")
+        GFXPrintLine("No Notes")
     end
 
     gfx.update()

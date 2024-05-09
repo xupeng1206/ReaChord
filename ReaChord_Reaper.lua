@@ -502,6 +502,26 @@ function R_GetChordItemInfoByPosition(position)
     return false, 0, 0, ""
 end
 
+function R_GetChordItemMeteByPosition(position)
+    local midi_track = GetTrackByName(R_ChordTrackMidi)
+    if midi_track == nil then
+        return false, 0, 0, ""
+    end
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    for idx = 0, midi_item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local midi_item_start = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        local midi_item_end = midi_item_start + r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        if position >= midi_item_start and position <= midi_item_end then
+            -- todo
+            local midi_take = r.GetActiveTake(midi_item)
+            local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+            return true, midi_item_start, midi_item_end, full_meta
+        end
+    end
+    return false, 0, 0, ""
+end
+
 function R_ArmOnlyChordTrack()
     r.ClearAllRecArmed()
     local chord_track = GetTrackByName(R_ChordTrackName)
