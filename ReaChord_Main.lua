@@ -5,7 +5,6 @@
 --  Update
 -- @provides
 --   [main] ReaChord_Reader.lua
---   [main] ReaChord_Reader_Start.lua
 --   [main] ReaChord_Act_Item2Sound.lua
 --   [main] ReaChord_ColorPalette.lua
 --   [main] ReaChord_NoteReader.lua

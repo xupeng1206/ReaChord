@@ -25,7 +25,7 @@ vars.docked = 0
 vars.xpos = 100
 vars.ypos = 100
 
-ext_name = "ReaChord Reader"
+ext_name = "ReaChord NoteReader"
 
 region_duration = 1
 current_notes = "No Notes"
