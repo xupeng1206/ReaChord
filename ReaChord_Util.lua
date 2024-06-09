@@ -11,6 +11,10 @@ function ListX4(lst)
     return newLst
 end
 
+function StringTrim(s)
+    return string.gsub(s, "%s+", "")
+end
+
 
 function StringSplit(str, sp)
     local result = {}
@@ -51,7 +55,7 @@ function ListJoinToString(lst, sp)
     return result
 end
 
-function ListIndex (lst, val)
+function ListIndex(lst, val)
     for idx, v in ipairs(lst) do
         if v == val then
             return idx
@@ -88,6 +92,17 @@ function ListExtend(aLst, bLst)
     end
     for _, val in ipairs(bLst) do
         table.insert(newLst, val)
+    end
+    return newLst
+end
+
+function ListUniqExtend(aLst, bLst)
+    local newLst = {}
+    for _, val in ipairs(aLst) do
+        newLst =ListAddUniqValue(newLst, val)
+    end
+    for _, val in ipairs(bLst) do
+        newLst =ListAddUniqValue(newLst, val)
     end
     return newLst
 end
@@ -142,6 +157,13 @@ end
 
 function PrintList(lst) 
     for _, v in ipairs(lst) do
-        print(v.." ")
+        print(v.."\n")
     end
+end
+
+function PrintNumListInLine(lst) 
+    for _, v in ipairs(lst) do
+        print(tostring(v).." ")
+    end
+    print("\n")
 end

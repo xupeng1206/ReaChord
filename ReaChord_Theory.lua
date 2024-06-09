@@ -19,190 +19,469 @@ G_SIMPLE_NOTE_LIST = {
 
 G_CHORD_NAMES = {}
 G_CHORD_PATTERNS = {}
+G_CHORD_PATTERNS_2 = {}
+G_CHORD_TYPES = {}
+G_ALL_CHORD_TYPES = {"Major", "Minor", "Dominant", "Suspended", "Augmented", "Diminished"}
+G_CHORD_COLOR_NOTES = {"b2 | b9","2 | 9","b3 | #2 | #9","4 | 11","b5 | #4 | #11","b6 | #5 | b13","6 | 13"," b7 | #6","7"}
 
--- X
+-- Major chords
+
 table.insert(G_CHORD_NAMES, "X")
 table.insert(G_CHORD_PATTERNS, "1,3,5")
+table.insert(G_CHORD_PATTERNS_2, "1 5 8")
+table.insert(G_CHORD_TYPES, "Major")
 
--- Xm
-table.insert(G_CHORD_NAMES, "Xm")
-table.insert(G_CHORD_PATTERNS, "1,b3,5")
+table.insert(G_CHORD_NAMES, "XM7 omit3")
+table.insert(G_CHORD_PATTERNS, "1,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 8 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- Xaug
-table.insert(G_CHORD_NAMES, "Xaug")
-table.insert(G_CHORD_PATTERNS, "1,3,#5")
+table.insert(G_CHORD_NAMES, "XM7 omit5")
+table.insert(G_CHORD_PATTERNS, "1,3,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- Xdim
-table.insert(G_CHORD_NAMES, "Xdim")
-table.insert(G_CHORD_PATTERNS, "1,b3,b5")
-
--- Xsus4
-table.insert(G_CHORD_NAMES, "Xsus4")
-table.insert(G_CHORD_PATTERNS, "1,4,5")
-
--- Xsus2
-table.insert(G_CHORD_NAMES, "Xsus2")
-table.insert(G_CHORD_PATTERNS, "1,2,5")
-
--- X6
-table.insert(G_CHORD_NAMES, "X6")
-table.insert(G_CHORD_PATTERNS, "1,3,5,6")
-
--- Xm6
-table.insert(G_CHORD_NAMES, "Xm6")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,6")
-
--- XM7
 table.insert(G_CHORD_NAMES, "XM7")
 table.insert(G_CHORD_PATTERNS, "1,3,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 8 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- XmM7
-table.insert(G_CHORD_NAMES, "XmM7")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,7")
+table.insert(G_CHORD_NAMES, "XM9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7
-table.insert(G_CHORD_NAMES, "X7")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7")
+table.insert(G_CHORD_NAMES, "XM9")
+table.insert(G_CHORD_PATTERNS, "1,2,3,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 8 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7sus4
-table.insert(G_CHORD_NAMES, "X7sus4")
-table.insert(G_CHORD_PATTERNS, "1,4,5,b7")
+table.insert(G_CHORD_NAMES, "XM11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,4,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 6 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7b9
-table.insert(G_CHORD_NAMES, "X7b9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9")
+table.insert(G_CHORD_NAMES, "XM11 omit9")
+table.insert(G_CHORD_PATTERNS, "1,3,4,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 6 8 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7#9
-table.insert(G_CHORD_NAMES, "X7#9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9")
+table.insert(G_CHORD_NAMES, "XM11")
+table.insert(G_CHORD_PATTERNS, "1,2,3,4,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 6 8 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7#11
-table.insert(G_CHORD_NAMES, "X7#11")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#11")
+table.insert(G_CHORD_NAMES, "XM13 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,4,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 6 10 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- X7b13
-table.insert(G_CHORD_NAMES, "X7b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b13")
+table.insert(G_CHORD_NAMES, "XM13 omit9")
+table.insert(G_CHORD_PATTERNS, "1,3,4,5,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 6 8 10 12")
+table.insert(G_CHORD_TYPES, "Major")
 
--- Xm7
+table.insert(G_CHORD_NAMES, "XM13")
+table.insert(G_CHORD_PATTERNS, "1,2,3,4,5,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 6 8 10 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "X6 omit3")
+table.insert(G_CHORD_PATTERNS, "1,5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 8 10")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "X6")
+table.insert(G_CHORD_PATTERNS, "1,3,5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 5 8 10")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "X69 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,6")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 10")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "X69")
+table.insert(G_CHORD_PATTERNS, "1,2,3,5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 8 10")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM7#11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,3,#4,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 7 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM7#11")
+table.insert(G_CHORD_PATTERNS, "1,3,#4,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 7 8 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM9#11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM9#11")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 8 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM13#11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 10 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM13#11 omit9")
+table.insert(G_CHORD_PATTERNS, "1,3,#4,5,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 7 8 10 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "XM13#11")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,5,6,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 8 10 12")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "Xadd9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "Xadd9")
+table.insert(G_CHORD_PATTERNS, "1,2,3,5")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 8")
+table.insert(G_CHORD_TYPES, "Major")
+
+table.insert(G_CHORD_NAMES, "Xadd11")
+table.insert(G_CHORD_PATTERNS, "1,3,4,5")
+table.insert(G_CHORD_PATTERNS_2, "1 5 6 8")
+table.insert(G_CHORD_TYPES, "Major")
+
+-- Minor
+
+table.insert(G_CHORD_NAMES, "Xm")
+table.insert(G_CHORD_PATTERNS, "1,b3,5")
+table.insert(G_CHORD_PATTERNS_2, "1 4 8")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm7 omit5")
+table.insert(G_CHORD_PATTERNS, "1,b3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
 table.insert(G_CHORD_NAMES, "Xm7")
 table.insert(G_CHORD_PATTERNS, "1,b3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 8 11")
+table.insert(G_CHORD_TYPES, "Minor")
 
--- Xm7b5
-table.insert(G_CHORD_NAMES, "Xm7b5")
-table.insert(G_CHORD_PATTERNS, "1,b3,b5,b7")
+table.insert(G_CHORD_NAMES, "XmM7 omit5")
+table.insert(G_CHORD_PATTERNS, "1,b3,7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 12")
+table.insert(G_CHORD_TYPES, "Minor")
 
--- Xdim7
+table.insert(G_CHORD_NAMES, "XmM7")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 8 12")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "XmM9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 12")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "XmM9")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 8 12")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm9")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 8 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,4,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 6 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm11 omit9")
+table.insert(G_CHORD_PATTERNS, "1,b3,4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 6 8 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm11")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 6 8 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm13 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,4,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 6 10 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm13 omit9")
+table.insert(G_CHORD_PATTERNS, "1,b3,4,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 6 8 10 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm13")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,4,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 6 8 10 11")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm6")
+table.insert(G_CHORD_PATTERNS, "1,b3,5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 4 8 10")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm69 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,6")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 10")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xm69")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 8 10")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xmadd9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xmadd9")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,5")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 8")
+table.insert(G_CHORD_TYPES, "Minor")
+
+table.insert(G_CHORD_NAMES, "Xmadd11")
+table.insert(G_CHORD_PATTERNS, "1,b3,4,5")
+table.insert(G_CHORD_PATTERNS_2, "1 4 6 8")
+table.insert(G_CHORD_TYPES, "Minor")
+
+-- Dominant
+
+table.insert(G_CHORD_NAMES, "X7 omit3")
+table.insert(G_CHORD_PATTERNS, "1,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7 omit5")
+table.insert(G_CHORD_PATTERNS, "1,3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7")
+table.insert(G_CHORD_PATTERNS, "1,3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X9 omit3")
+table.insert(G_CHORD_PATTERNS, "1,2,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X9")
+table.insert(G_CHORD_PATTERNS, "1,2,3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13 omit9")
+table.insert(G_CHORD_PATTERNS, "1,3,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 8 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13")
+table.insert(G_CHORD_PATTERNS, "1,2,3,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 8 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,3,#4,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 7 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#11")
+table.insert(G_CHORD_PATTERNS, "1,3,#4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 7 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X9#11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X9#11")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7b9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,b2,3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 5 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7b9")
+table.insert(G_CHORD_PATTERNS, "1,b2,3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 5 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7b9#11")
+table.insert(G_CHORD_PATTERNS, "1,b2,3,#4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 5 7 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,#2,3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 5 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#9")
+table.insert(G_CHORD_PATTERNS, "1,#2,3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 5 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#5#9")
+table.insert(G_CHORD_PATTERNS, "1,#2,3,#5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 5 9 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7#9#11")
+table.insert(G_CHORD_PATTERNS, "1,#2,3,#4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 5 7 8 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13b9")
+table.insert(G_CHORD_PATTERNS, "1,b2,3,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 5 8 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13#11")
+table.insert(G_CHORD_PATTERNS, "1,2,3,#4,5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 8 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X7 add13")
+table.insert(G_CHORD_PATTERNS, "1,3,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+table.insert(G_CHORD_NAMES, "X13b5")
+table.insert(G_CHORD_PATTERNS, "1,2,3,b5,6,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 5 7 10 11")
+table.insert(G_CHORD_TYPES, "Dominant")
+
+
+-- Suspended
+
+table.insert(G_CHORD_NAMES, "Xsus4")
+table.insert(G_CHORD_PATTERNS, "1,4,5")
+table.insert(G_CHORD_PATTERNS_2, "1 6 8")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "Xsus2")
+table.insert(G_CHORD_PATTERNS, "1,2,5")
+table.insert(G_CHORD_PATTERNS_2, "1 3 8")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "X7sus4 omit5")
+table.insert(G_CHORD_PATTERNS, "1,4,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 6 11")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "X7sus4")
+table.insert(G_CHORD_PATTERNS, "1,4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 6 8 11")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "X11 omit5")
+table.insert(G_CHORD_PATTERNS, "1,2,4,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 6 11")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "X11 omit9")
+table.insert(G_CHORD_PATTERNS, "1,4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 6 8 11")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+table.insert(G_CHORD_NAMES, "X11")
+table.insert(G_CHORD_PATTERNS, "1,2,4,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 6 8 11")
+table.insert(G_CHORD_TYPES, "Suspended")
+
+
+-- Augmented
+
+table.insert(G_CHORD_NAMES, "Xaug")
+table.insert(G_CHORD_PATTERNS, "1,3,#5")
+table.insert(G_CHORD_PATTERNS_2, "1 5 9")
+table.insert(G_CHORD_TYPES, "Augmented")
+
+table.insert(G_CHORD_NAMES, "Xaug7")
+table.insert(G_CHORD_PATTERNS, "1,3,#5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 9 11")
+table.insert(G_CHORD_TYPES, "Augmented")
+
+table.insert(G_CHORD_NAMES, "XaugM7")
+table.insert(G_CHORD_PATTERNS, "1,3,#5,7")
+table.insert(G_CHORD_PATTERNS_2, "1 5 9 12")
+table.insert(G_CHORD_TYPES, "Augmented")
+
+-- Diminished
+
+table.insert(G_CHORD_NAMES, "Xdim")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5")
+table.insert(G_CHORD_PATTERNS_2, "1 4 7")
+table.insert(G_CHORD_TYPES, "Diminished")
+
 table.insert(G_CHORD_NAMES, "Xdim7")
 table.insert(G_CHORD_PATTERNS, "1,b3,b5,6")
+table.insert(G_CHORD_PATTERNS_2, "1 4 7 10")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- Xaug7
-table.insert(G_CHORD_NAMES, "Xaug7")
-table.insert(G_CHORD_PATTERNS, "1,3,#5,7")
+table.insert(G_CHORD_NAMES, "Xm7b5")
+table.insert(G_CHORD_PATTERNS, "1,b3,b5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 4 7 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- X69
-table.insert(G_CHORD_NAMES, "X69")
-table.insert(G_CHORD_PATTERNS, "1,3,5,6,9")
+table.insert(G_CHORD_NAMES, "Xm7b9")
+table.insert(G_CHORD_PATTERNS, "1,b2,b3,5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 4 8 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- Xm69
-table.insert(G_CHORD_NAMES, "Xm69")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,6,9")
+table.insert(G_CHORD_NAMES, "Xm7b5b9")
+table.insert(G_CHORD_PATTERNS, "1,b2,b3,b5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 4 7 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- Xadd9
-table.insert(G_CHORD_NAMES, "Xadd9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,9")
+table.insert(G_CHORD_NAMES, "Xm7b9 omit5")
+table.insert(G_CHORD_PATTERNS, "1,b2,b3,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 2 4 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- XM9
-table.insert(G_CHORD_NAMES, "XM9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,7,9")
-
--- XmM9
-table.insert(G_CHORD_NAMES, "XmM9")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,7,9")
-
--- X9
-table.insert(G_CHORD_NAMES, "X9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9")
-
--- X9sus4
-table.insert(G_CHORD_NAMES, "X9sus4")
-table.insert(G_CHORD_PATTERNS, "1,4,5,b7,9")
-
--- Xm9
-table.insert(G_CHORD_NAMES, "Xm9")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,b7,9")
-
--- Xm9b5
 table.insert(G_CHORD_NAMES, "Xm9b5")
-table.insert(G_CHORD_PATTERNS, "1,b3,b5,b7,9")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,b5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 7 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
--- Xaug9
-table.insert(G_CHORD_NAMES, "Xaug9")
-table.insert(G_CHORD_PATTERNS, "1,3,#5,b7,9")
-
--- XaugM9
-table.insert(G_CHORD_NAMES, "XaugM9")
-table.insert(G_CHORD_PATTERNS, "1,3,#5,7,9")
-
--- Xdim9
-table.insert(G_CHORD_NAMES, "Xdim9")
-table.insert(G_CHORD_PATTERNS, "1,b3,b5,6,9")
-
--- X11
-table.insert(G_CHORD_NAMES, "X11")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9,11")
-
--- Xm11
-table.insert(G_CHORD_NAMES, "Xm11")
-table.insert(G_CHORD_PATTERNS, "1,b3,5,b7,9,11")
-
--- X13
-table.insert(G_CHORD_NAMES, "X13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,9,11,13")
-
--- X7b9#9
-table.insert(G_CHORD_NAMES, "X7b9#9")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9")
-
--- X7b9#11
-table.insert(G_CHORD_NAMES, "X7b9#11")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#11")
-
--- X7b9b13
-table.insert(G_CHORD_NAMES, "X7b9b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,b13")
-
--- X7#9#11
-table.insert(G_CHORD_NAMES, "X7#9#11")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,#11")
-
--- X7#9b13
-table.insert(G_CHORD_NAMES, "X7#9b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,b13")
-
--- X7#11b13
-table.insert(G_CHORD_NAMES, "X7#11b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#11,b13")
-
--- X7b9#9#11
-table.insert(G_CHORD_NAMES, "X7b9#9#11")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,#11")
-
--- X7b9#9b13
-table.insert(G_CHORD_NAMES, "X7b9#9b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,b13")
-
--- X7b9#11b13
-table.insert(G_CHORD_NAMES, "X7b9#11b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#11,b13")
-
--- X7#9#11b13
-table.insert(G_CHORD_NAMES, "X7#9#11b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,#9,#11,b13")
-
--- X7b9#9#11b13
-table.insert(G_CHORD_NAMES, "X7b9#9#11b13")
-table.insert(G_CHORD_PATTERNS, "1,3,5,b7,b9,#9,#11,b13")
+table.insert(G_CHORD_NAMES, "Xm11b5")
+table.insert(G_CHORD_PATTERNS, "1,2,b3,4,b5,b7")
+table.insert(G_CHORD_PATTERNS_2, "1 3 4 6 7 11")
+table.insert(G_CHORD_TYPES, "Diminished")
 
 
 G_SCALE_NAMES = {}
@@ -614,4 +893,138 @@ function T_NoteName2Num(note, scale_root)
         return StringSplit(G_WHOLE_HALF_SCALE_PATTERN, ",")[index]
     end
     return "X"
+end
+
+function T_ChordType(chord)
+    local _, tag = T_SplitChordRootAndPattern(chord)
+    local idx = ListIndex(G_CHORD_NAMES, "X"..tag)
+    if idx > 0 then
+        return G_CHORD_TYPES[idx]
+    end
+    return "Major"
+end
+
+function T_ChordFilter(chord, type, colors)
+    local _, tag = T_SplitChordRootAndPattern(chord)
+    local idx = ListIndex(G_CHORD_NAMES, "X"..tag)
+    if idx == 0 then
+        return false
+    end
+    if G_CHORD_TYPES[idx] ~= type then
+        return false
+    end
+
+    
+    if #colors == 0 then
+        return true
+    end
+    
+    local s_note = StringSplit(G_CHORD_PATTERNS[idx], ",")
+
+    for _, color in ipairs(colors) do
+        local found = false
+        for _, note in ipairs(StringSplit(color, "|")) do
+            local clean_note = StringTrim(note)
+            if ListIndex(s_note, clean_note) > 0 then
+                found = true
+                break
+            end
+        end
+        if found == false then
+            return false
+        end
+    end
+    return true
+end
+
+function T_ChordListFilter(chords, type, colors)
+    local filtered_chords = {}
+    for _, chord in ipairs(chords) do
+        if T_ChordFilter(chord, type, colors) then
+            table.insert(filtered_chords, chord)
+        end
+    end
+    return filtered_chords
+end
+
+function T_NotePitchToNote(note, scale_root)
+    local _, m_notes = T_Parse(scale_root, G_WHOLE_HALF_SCALE_PATTERN)
+    if note >= 12 then
+        repeat
+            note = note - 12
+        until note < 12
+    end
+    local note_names = StringSplit(G_NOTE_LIST[note+1], "/")
+    for _, name in ipairs(note_names) do
+        if ListIndex(m_notes, name) > 1 then
+            return name
+        end
+    end
+    return note_names[1]
+end
+
+function T_NotesToChords(notes, scale_root)
+    local chords = {}
+    local chord_details = {}
+    -- sorted notes
+    if #notes <= 2 then
+        return chords, chord_details
+    end
+
+    -- make note in 1 oct and sorted
+    local first_node = notes[1]
+    local p_notes = {}
+    local p_notes_128 = {}
+    for idx, note in ipairs(notes) do
+        local p_note = note
+        if p_note - first_node >= 12 then
+            repeat
+                p_note = p_note - 12
+            until p_note - first_node < 12
+        end
+        p_notes_128[p_note+1] = 1
+    end
+    for i = 1, 128 do
+        if p_notes_128[i] == 1 then
+            table.insert(p_notes, i-1)
+        end
+    end
+
+    -- all shift
+    local all_p_notes = {DeepCopyList(p_notes)}
+    for i = 1, #p_notes -1 do
+        local p_notes_l, p_notes_r = SplitListAtIndex(p_notes, i)
+        local new_p_notes_l = {}
+        for _, n in ipairs(p_notes_l) do
+            -- shift
+            table.insert(new_p_notes_l, n+12)
+        end
+        local new_p_notes = ListExtend(p_notes_r, new_p_notes_l)
+        local new_new_p_notes = {}
+        if new_p_notes[#new_p_notes] > 127 then
+            for _, n in ipairs(new_p_notes) do
+                table.insert(new_new_p_notes, n-12)
+            end
+        else
+            new_new_p_notes = new_p_notes
+        end
+        table.insert(all_p_notes, new_new_p_notes)
+    end
+    for _, one in ipairs(all_p_notes) do
+        local t_root_note = one[1]
+        local t_tag_notes = {}
+        for _, note in ipairs(one) do
+            local t_tag_note = note - (t_root_note - 1)
+            table.insert(t_tag_notes, tostring(t_tag_note))
+        end
+        local pattern2 = ListJoinToString(t_tag_notes, " ")
+        local tag_index = ListIndex(G_CHORD_PATTERNS_2, pattern2)
+        if tag_index>0 then
+            local tag_name = StringSplit(G_CHORD_NAMES[tag_index], "X")[2]
+            local t_root_note_str = T_NotePitchToNote(t_root_note, scale_root)
+            table.insert(chords, t_root_note_str..tag_name)
+            table.insert(chord_details, {t_root_note_str, tag_name})
+        end
+    end
+    return chords, chord_details
 end

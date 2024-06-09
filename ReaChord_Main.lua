@@ -8,10 +8,11 @@
 --   [main] ReaChord_Act_Item2Sound.lua
 --   [main] ReaChord_ColorPalette.lua
 --   [main] ReaChord_NoteReader.lua
+--   [main] ReaChord_CleanState.lua
+--   [main] ReaChord_InputChordReader.lua
 --   ReaChord_Reaper.lua
 --   ReaChord_Theory.lua
 --   ReaChord_Util.lua
---   ReaChord_Banks.txt
 --   ReaChord_About.jpg
 --   doc/*.png
 
@@ -29,8 +30,10 @@ local FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 
 local CHORD_PAD_KEYS = { "[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]" }
 local CHORD_PAD_VALUES = { "[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]" }
+local CHORD_PAD_VALUES_DEFAULT = { "[A]", "[W]", "[S]", "[E]", "[D]", "[F]", "[T]", "[G]", "[Y]", "[H]", "[U]", "[J]" }
 local CHORD_PAD_METAS = { "", "", "", "", "", "", "", "", "", "", "", "" }
-local CHORD_PAD_SELECTED = ""
+local CHORD_PAD_METAS_DEFAULT = { "", "", "", "", "", "", "", "", "", "", "", "" }
+local CHORD_PAD_SELECTED = "[A]"
 
 local CHORD_INSERT_MODE = "off"
 local CHORD_SIMILAR_MODE = "off"
@@ -59,7 +62,9 @@ local CURRENT_OCT = "0"
 local CURRENT_INSERT_BEATS = 4
 
 local CURRENT_CHORD_ROOT = "C"
+r.SetExtState("ReaChord", "ScaleRoot", "C", false)
 local CURRENT_CHORD_NAME = ""
+r.SetExtState("ReaChord", "ScaleName", "", false)
 local CURRENT_CHORD_FULL_NAME = ""
 local CURRENT_CHORD_BASS = "C"
 local CURRENT_CHORD_DEFAULT_VOICING = ""
@@ -77,6 +82,8 @@ local CURRENT_SELECTED_SIMILAR_CHORD_PITCHED = {}
 local CURRENT_SCALES_FOR_ANALYSIS_CHORD = {}
 local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD = ""
 local CURRENT_SELECTED_SCALE_FOR_ANALYSIS_CHORD_PITCHED = {}
+local CURRENT_SELECTED_CHORD_TYPE = "Major"
+local CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
 
 local ColorMainBackground = 0xEEE9E9FF
 local ColorPianoWhite = 0xFFFFFFFF
@@ -116,6 +123,8 @@ local h_chord_pad_space = 4
 local w_chord_pad
 local w_chord_pad_half
 local h_chord_pad = 30
+
+local MIDI_INPUT_ENABLE = false
 
 --! CIRCLE OF FIFTS VARS
 local CIRCLE_OF5 = false
@@ -377,16 +386,27 @@ local function refreshUIWhenChordRootChange()
     end
     table.insert(chords, chord)
   end
+  local now_chord = ""
   if #nice_chords > 0 then
     onSelectChordChange(nice_chords[1])
-    PlayPiano()
+    now_chord = nice_chords[1]
+    if MIDI_INPUT_ENABLE then
+    else
+      PlayPiano()
+    end
   else
     onSelectChordChange(normal_chords[1])
-    PlayPiano()
+    now_chord = normal_chords[1]
+    if MIDI_INPUT_ENABLE then
+    else
+      PlayPiano()
+    end
   end
   CURRENT_NICE_CHORD_LIST = nice_chords
   -- CURRENT_CHORD_LIST = ListExtend(nice_chords, normal_chords)
   CURRENT_CHORD_LIST = chords
+  CURRENT_SELECTED_CHORD_TYPE = T_ChordType(now_chord)
+  CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
 end
 
 local function refreshUIWhenScaleChange()
@@ -516,7 +536,13 @@ end
 
 local function onChordPadTrans(key, shift)
   local key_idx = ListIndex(CHORD_PAD_KEYS, key)
+  if key_idx == 0 then
+    return
+  end
   local chord = CHORD_PAD_VALUES[key_idx]
+  if chord == key then
+    return
+  end
   local l, _ = SplitListAtIndex(chord, 1)
   if l[1] == "[" then
     return
@@ -570,6 +596,13 @@ local function onChordPadTrans(key, shift)
 end
 
 local function initChordPads()
+  CHORD_PAD_VALUES = CHORD_PAD_VALUES_DEFAULT
+  CHORD_PAD_METAS = CHORD_PAD_METAS_DEFAULT
+  r.DeleteExtState("ReaChord", "CHORD_PAD_VALUES", false )
+  r.DeleteExtState("ReaChord", "CHORD_PAD_METAS", false )
+end
+
+local function initChordPadsOld()
   local notes = {}
   local local_scale_nice_notes, _ = T_MakeScale(CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME)
   local scale_root_index_start = T_NoteIndex(G_NOTE_LIST_X4, CURRENT_SCALE_ROOT)
@@ -663,6 +696,8 @@ local function chordMapRefresh(key_idx)
       CURRENT_OCT = meta_split[3]
       CURRENT_SCALE_ROOT = meta_split[1]
       CURRENT_SCALE_NAME = meta_split[2]
+      CURRENT_SELECTED_CHORD_TYPE = T_ChordType(CURRENT_CHORD_NAME)
+      CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
       refreshUIWhenScaleChange()
     end
   end
@@ -964,6 +999,12 @@ local function uiOctSelector()
   end
 end
 
+local function uiMidiInputSwitch()
+  if uiColorBtn("Midi Input", MIDI_INPUT_ENABLE and ColorBlue or ColorNormalNote, 80, 0) then
+    MIDI_INPUT_ENABLE = not MIDI_INPUT_ENABLE
+  end
+end
+
 local function uiCircleOf5Switch()
   if CIRCLE_OF5 then
     if uiColorBtn("Circle Of Five", ColorBlue, 120, 0) then
@@ -988,12 +1029,15 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 3 * w_default_space - 120)
+  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 3 * w_default_space - 120 - 80)
   r.ImGui_SetNextItemWidth(ctx, next_width)
   uiScaleNameSelector()
   r.ImGui_SameLine(ctx)
   -- length 3 * w_default_space + 160
   uiOctSelector()
+  r.ImGui_SameLine(ctx)
+
+  uiMidiInputSwitch()
   r.ImGui_SameLine(ctx)
 
   --! ADD CIRCLE OF FIFTS TOGGLE
@@ -1007,7 +1051,7 @@ local function uiVoicing()
 
   uiReadOnlyColorBtn("Notes:", ColorGray, 60)
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 35)
+  uiReadOnlyColorBtn(CURRENT_CHORD_BASS, ColorGray, 30)
   r.ImGui_SameLine(ctx)
   if r.ImGui_Button(ctx, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE .. "##voicing", 30) then
     CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE = CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE + 1
@@ -1019,19 +1063,9 @@ local function uiVoicing()
   r.ImGui_SameLine(ctx)
   local default_notes = StringSplit(CURRENT_CHORD_DEFAULT_VOICING, ",")
   local nice_notes = StringSplit(CURRENT_CHORD_VOICING, ",")
-  for idx, note in ipairs(default_notes) do
-    local index = ListIndex(nice_notes, note)
-    if index < 0 then
-      -- not in
-      if uiColorBtn(" " .. note .. " ##voicing_note", ColorGray, 35, 0) then
-        table.insert(nice_notes, note)
-        onListenClick()
-      end
-    else
-      if uiColorBtn(" " .. note .. " ##voicing_note", ColorBlue, 35, 0) then
-        nice_notes = ListDeleteIndex(nice_notes, index)
-        onListenClick()
-      end
+  for idx, note in ipairs(nice_notes) do
+
+    if uiReadOnlyColorBtn(" " .. note .. " ##voicing_note", ColorGray, 30) then
     end
     r.ImGui_SameLine(ctx)
   end
@@ -1053,14 +1087,56 @@ local function uiVoicing()
     onListenClick()
   end
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Insert", 60) then
-    onInsertClick()
+
+  local r_ww = (w - 60 - 30 - 30 - #nice_notes * 30 - 30 - 30 - 60  - (8 + #nice_notes) * w_default_space) / 3
+  -- temp position
+  -- CHORD_INSERT_MODE
+  local insert_mode_color = ColorNormalNote
+  if CHORD_INSERT_MODE == "on" then
+    insert_mode_color = ColorYellow
   end
+  if uiColorBtn("<Insert Mode>##mode", insert_mode_color, r_ww, 0) then
+    if CHORD_INSERT_MODE == "on" then
+      CHORD_INSERT_MODE = "off"
+    else
+      CHORD_INSERT_MODE = "on"
+    end
+  end
+
+  -- SCALE_BY_CHORD_MODE
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
+  local scale_by_chord_color = ColorNormalNote
+  if SCALE_BY_CHORD_MODE == "on" then
+    scale_by_chord_color = ColorYellow
+  end
+  if uiColorBtn("<Find Scale>##mode", scale_by_chord_color, r_ww, 0) then
+    if SCALE_BY_CHORD_MODE == "on" then
+      SCALE_BY_CHORD_MODE = "off"
+    else
+      SCALE_BY_CHORD_MODE = "on"
+    end
+  end
+  
+
+  -- CHORD_SIMILAR_MODE
   r.ImGui_SameLine(ctx)
-  uiReadOnlyColorBtn(CURRENT_CHORD_VOICING, ColorGray,
-    w - (8 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
+  local similar_chord_color = ColorNormalNote
+  if CHORD_SIMILAR_MODE == "on" then
+    similar_chord_color = ColorYellow
+  end
+  if uiColorBtn("<Similar Chord>##mode", similar_chord_color, r_ww, 0) then
+    if CHORD_SIMILAR_MODE == "on" then
+      CHORD_SIMILAR_MODE = "off"
+    else
+      CHORD_SIMILAR_MODE = "on"
+    end
+  end
+
+  -- TODO
+  -- uiReadOnlyColorBtn("Voicing:", ColorGray, 70)
+  -- r.ImGui_SameLine(ctx)
+  -- uiReadOnlyColorBtn(CURRENT_CHORD_VOICING, ColorGray,
+  --   w - (8 + #default_notes) * w_default_space - 70 - 35 - 30 - 30 - 30 - 60 - 60 - 60 - 35 * #default_notes)
 
   r.ImGui_PopStyleVar(ctx, 1)
 end
@@ -1231,131 +1307,156 @@ local function uiScalesByChord()
   end
 end
 
+
+local function uiChordType()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
+  local col = #G_ALL_CHORD_TYPES
+  local col_gap = col - 1
+  local ww = w
+  local hh = 40
+  for i = 1, col do
+    local chord_type = G_ALL_CHORD_TYPES[i]
+    if chord_type == CURRENT_SELECTED_CHORD_TYPE then
+      if uiColorBtn(chord_type .. "##chord_type", ColorBlue, (ww - col_gap * w_default_space) / col, hh) then
+        CURRENT_SELECTED_CHORD_TYPE = chord_type
+        CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
+      end
+    else
+      if uiColorBtn(chord_type .. "##chord_type", ColorDarkPink, (ww - col_gap * w_default_space) / col, hh) then
+        CURRENT_SELECTED_CHORD_TYPE = chord_type
+        CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
+      end
+    end
+    if i < col then
+      r.ImGui_SameLine(ctx)
+    end
+  end
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
+local function uiChordAddonNote()
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
+  local col = #G_CHORD_COLOR_NOTES
+  local col_gap = col - 1
+  local ww = w
+  local hh = 0
+  for i = 1, col do
+    local color_note = G_CHORD_COLOR_NOTES[i]
+    
+    if ListIndex(CURRENT_SELECTED_CHORD_COLOR_NOTES, color_note) > 0  then
+      if uiColorBtn(color_note .. "##color_note", ColorBlue, (ww - col_gap * w_default_space) / col, hh) then
+        local idx = ListIndex(CURRENT_SELECTED_CHORD_COLOR_NOTES, color_note)
+        if idx > 0 then
+          CURRENT_SELECTED_CHORD_COLOR_NOTES = ListDeleteIndex(CURRENT_SELECTED_CHORD_COLOR_NOTES, idx)
+        else
+          CURRENT_SELECTED_CHORD_COLOR_NOTES = ListAddUniqValue(CURRENT_SELECTED_CHORD_COLOR_NOTES, color_note)
+        end
+      end
+    else
+      if uiColorBtn(color_note .. "##color_note", ColorChordPadDefault, (ww - col_gap * w_default_space) / col, hh) then
+        local idx = ListIndex(CURRENT_SELECTED_CHORD_COLOR_NOTES, color_note)
+        if idx > 0 then
+          CURRENT_SELECTED_CHORD_COLOR_NOTES = ListDeleteIndex(CURRENT_SELECTED_CHORD_COLOR_NOTES, idx)
+        else
+          CURRENT_SELECTED_CHORD_COLOR_NOTES = ListAddUniqValue(CURRENT_SELECTED_CHORD_COLOR_NOTES, color_note)
+        end
+      end
+    end
+    if i < col then
+      r.ImGui_SameLine(ctx)
+    end
+  end
+  r.ImGui_PopStyleVar(ctx, 1)
+end
+
+
 local function uiChordMap()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), w_default_space, h_default_space)
 
-  local lines = math.ceil(#G_CHORD_NAMES / 7)
+  local chord_list_filtered = T_ChordListFilter(CURRENT_CHORD_LIST, CURRENT_SELECTED_CHORD_TYPE, CURRENT_SELECTED_CHORD_COLOR_NOTES)
+
+  local col = 6
+  local col_gap = col - 1
+  -- local lines = math.ceil(#G_CHORD_NAMES / col)
+  local lines = 5
   local ww = w
-  local hh = h - main_window_h_padding * 2 - 2 * lines - h_piano * 2 - 9 * 25 - 7 * 1 - h_chord_pad * 2
-  -- 7 x 7
+  local hh = h - main_window_h_padding * 2 - 2 * lines - h_piano * 2 - 11 * 25 - 40 - 10 * 1 - h_chord_pad * 2
+  -- 6 x LINES
   for i = 0, lines - 1 do
-    for j = 1, 7 do
-      local idx = i * 7 + j
-      if idx > #CURRENT_CHORD_LIST then
-        break
-      end
+    for j = 1, col do
+      local idx = i * col + j
       if j > 1 then
         r.ImGui_SameLine(ctx)
       end
-      local chord = CURRENT_CHORD_LIST[idx]
-      if chord == CURRENT_CHORD_NAME then
-        if uiColorBtn(chord .. "##chord", ColorBlue, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-          onSelectChordChange(chord)
-          PlayPiano()
-          if CHORD_INSERT_MODE == "on" then
-            onInsertClick()
-          end
-          if CHORD_SIMILAR_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Similar Chords')
-          end
-          if SCALE_BY_CHORD_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
-          end
-        end
-        if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
-          -- Set payload to carry the index of our item (could be anything)
-          r.ImGui_SetDragDropPayload(ctx, 'DND_DEMO_CELL', tostring(idx))
-
-          -- Display preview (could be anything, e.g. when dragging an image we could decide to display
-          -- the filename and a small preview of the image, etc.)
-          r.ImGui_Text(ctx, ('Chord: %s'):format(CURRENT_CHORD_FULL_NAME))
-          r.ImGui_EndDragDropSource(ctx)
-        end
-      elseif ListIndex(CURRENT_NICE_CHORD_LIST, chord) > 0 then
-        if uiColorBtn(chord .. "##chord", ColorPink, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-          onSelectChordChange(chord)
-          PlayPiano()
-          if CHORD_INSERT_MODE == "on" then
-            onInsertClick()
-          end
-          if CHORD_SIMILAR_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Similar Chords')
-          end
-          if SCALE_BY_CHORD_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
-          end
-        end
+      if idx > #chord_list_filtered then
+        r.ImGui_InvisibleButton(ctx, "##", (ww - col_gap * w_default_space) / col, (hh - col_gap * w_default_space) / lines, r.ImGui_ButtonFlags_None())
       else
-        if uiColorBtn(chord .. "##chord", ColorNormalNote, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-          onSelectChordChange(chord)
-          PlayPiano()
-          if CHORD_INSERT_MODE == "on" then
-            onInsertClick()
+        local chord = chord_list_filtered[idx]
+        if chord == CURRENT_CHORD_NAME then
+          if uiColorBtn(chord .. "##chord", ColorBlue, (ww - col_gap * w_default_space) / col, (hh - col_gap * w_default_space) / lines) then
+            onSelectChordChange(chord)
+            PlayPiano()
+            if CHORD_INSERT_MODE == "on" then
+              onInsertClick()
+            end
+            if CHORD_SIMILAR_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Similar Chords')
+            end
+            if SCALE_BY_CHORD_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Scales By Chord')
+            end
           end
-          if CHORD_SIMILAR_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Similar Chords')
+          if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
+            -- Set payload to carry the index of our item (could be anything)
+            r.ImGui_SetDragDropPayload(ctx, 'DND_DEMO_CELL', tostring(idx))
+
+            -- Display preview (could be anything, e.g. when dragging an image we could decide to display
+            -- the filename and a small preview of the image, etc.)
+            r.ImGui_Text(ctx, ('Chord: %s'):format(CURRENT_CHORD_FULL_NAME))
+            r.ImGui_EndDragDropSource(ctx)
           end
-          if SCALE_BY_CHORD_MODE == "on" then
-            CURRENT_ANALYSIS_CHORD = chord
-            CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
-            r.ImGui_OpenPopup(ctx, 'Scales By Chord')
+        elseif ListIndex(CURRENT_NICE_CHORD_LIST, chord) > 0 then
+          if uiColorBtn(chord .. "##chord", ColorPink, (ww - col_gap * w_default_space) / col, (hh - col_gap * w_default_space) / lines) then
+            onSelectChordChange(chord)
+            PlayPiano()
+            if CHORD_INSERT_MODE == "on" then
+              onInsertClick()
+            end
+            if CHORD_SIMILAR_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Similar Chords')
+            end
+            if SCALE_BY_CHORD_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Scales By Chord')
+            end
+          end
+        else
+          if uiColorBtn(chord .. "##chord", ColorNormalNote, (ww - col_gap * w_default_space) / col, (hh - col_gap * w_default_space) / lines) then
+            onSelectChordChange(chord)
+            PlayPiano()
+            if CHORD_INSERT_MODE == "on" then
+              onInsertClick()
+            end
+            if CHORD_SIMILAR_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SIMILAR_CHORDS = T_FindSimilarChords(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Similar Chords')
+            end
+            if SCALE_BY_CHORD_MODE == "on" then
+              CURRENT_ANALYSIS_CHORD = chord
+              CURRENT_SCALES_FOR_ANALYSIS_CHORD = T_FindScalesByChord(chord, CURRENT_CHORD_BASS)
+              r.ImGui_OpenPopup(ctx, 'Scales By Chord')
+            end
           end
         end
       end
-    end
-  end
-
-  -- temp position
-  -- CHORD_INSERT_MODE
-  r.ImGui_SameLine(ctx)
-  local insert_mode_color = ColorNormalNote
-  if CHORD_INSERT_MODE == "on" then
-    insert_mode_color = ColorYellow
-  end
-  if uiColorBtn("<Insert Mode>##mode", insert_mode_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-    if CHORD_INSERT_MODE == "on" then
-      CHORD_INSERT_MODE = "off"
-    else
-      CHORD_INSERT_MODE = "on"
-    end
-  end
-
-  -- SCALE_BY_CHORD_MODE
-  r.ImGui_SameLine(ctx)
-  local scale_by_chord_color = ColorNormalNote
-  if SCALE_BY_CHORD_MODE == "on" then
-    scale_by_chord_color = ColorYellow
-  end
-  if uiColorBtn("<Find Scale>##mode", scale_by_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-    if SCALE_BY_CHORD_MODE == "on" then
-      SCALE_BY_CHORD_MODE = "off"
-    else
-      SCALE_BY_CHORD_MODE = "on"
-    end
-  end
-  
-
-  -- CHORD_SIMILAR_MODE
-  r.ImGui_SameLine(ctx)
-  local similar_chord_color = ColorNormalNote
-  if CHORD_SIMILAR_MODE == "on" then
-    similar_chord_color = ColorYellow
-  end
-  if uiColorBtn("<Similar Chord>##mode", similar_chord_color, (ww - 6 * w_default_space) / 7, (hh - 6 * w_default_space) / lines) then
-    if CHORD_SIMILAR_MODE == "on" then
-      CHORD_SIMILAR_MODE = "off"
-    else
-      CHORD_SIMILAR_MODE = "on"
     end
   end
 
@@ -1512,6 +1613,25 @@ local function uiChordPadTitle()
 end
 
 local function uiChordSelector()
+
+  if MIDI_INPUT_ENABLE then
+    local chords, chord_details = R_GetMIDIInputChord(CURRENT_SCALE_ROOT)
+    -- use first chord
+    if #chords>0 then
+      local pure_chord = StringSplit(chords[1], "/")[1]
+      local details = chord_details[1]
+      local chord_root = details[1]
+      local chord_tag = details[2]
+      local chord_bass = details[3]
+      local chord_type = T_ChordType(pure_chord)
+      CURRENT_SELECTED_CHORD_TYPE = chord_type
+      CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
+      onChordRootChange(chord_root)
+      CURRENT_CHORD_BASS = chord_bass
+      onSelectChordChange(pure_chord)
+    end
+  end
+
   if r.ImGui_BeginChild(ctx, "UI_CHORD_SELECTOR", 0, 0) then
     if r.ImGui_BeginChild(ctx, "UI_CHORD_MAIN", w, 0) then
       uiTopLine()
@@ -1524,6 +1644,9 @@ local function uiChordSelector()
       r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
       uiChordLength()
       r.ImGui_InvisibleButton(ctx, "##", w, 1, r.ImGui_ButtonFlags_None())
+      uiReadOnlyColorBtn("Chord Filter", ColorGray, w)
+      uiChordType()
+      uiChordAddonNote()
       uiReadOnlyColorBtn("Chord Map", ColorGray, w)
       uiChordMap()
       uiVoicing()
@@ -1860,7 +1983,11 @@ local function uiExtension()
       if CHORD_PROGRESSION_SELECTED_INDEX <= #CHORD_PROGRESSION_LIST then
         CHORD_PROGRESSION_LIST = ListDeleteIndex(CHORD_PROGRESSION_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
         CHORD_PROGRESSION_SIMPLE_LIST = ListDeleteIndex(CHORD_PROGRESSION_SIMPLE_LIST, CHORD_PROGRESSION_SELECTED_INDEX)
-        CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SELECTED_INDEX - 1
+        if CHORD_PROGRESSION_SELECTED_INDEX == 0 then
+          CHORD_PROGRESSION_SELECTED_INDEX = 0
+        else
+          CHORD_PROGRESSION_SELECTED_INDEX = CHORD_PROGRESSION_SELECTED_INDEX - 1
+        end
         R_RefreshBank(CHORD_PROGRESSION_LIST)
         CHORD_PROGRESSION_FILTER = ""
         r.ImGui_CloseCurrentPopup(ctx)
@@ -1950,7 +2077,7 @@ end
 local function loop()
   r.ImGui_PushFont(ctx, G_FONT)
   r.ImGui_SetWindowSize(ctx, min_w, min_h, r.ImGui_Cond_FirstUseEver())
-  r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w*2, min_h*1.5)
+  r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w*2, min_h*2)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), main_window_w_padding, main_window_h_padding)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), ColorMainBackground)
@@ -2037,6 +2164,8 @@ local function init()
     CURRENT_OCT = meta_split[3]
     CURRENT_SCALE_ROOT = meta_split[1]
     CURRENT_SCALE_NAME = meta_split[2]
+    CURRENT_SELECTED_CHORD_TYPE = T_ChordType(CURRENT_CHORD_NAME)
+    CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
     refreshUIWhenScaleChange()
   end
   refreshChordProgressionBanks()

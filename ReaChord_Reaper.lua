@@ -7,7 +7,7 @@ print = r.ShowConsoleMsg
 R_ChordTrackName = "REACHORD_TRACK"
 R_ChordTrackMidi = "REACHORD_MIDI"
 
-R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks.txt'
+R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks_v2.txt'
 R_ColorConfPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Colors.txt'
 
 function NewLineTag()
@@ -35,7 +35,7 @@ function R_ImportChordTrack()
     end
 end
 
-function GetOrCreateTrackByName(name)
+function R_GetOrCreateTrackByName(name)
     local targeTrack
     for trackIndex = 0, r.CountTracks(0) - 1 do
         local track = r.GetTrack(0, trackIndex)
@@ -54,7 +54,7 @@ function GetOrCreateTrackByName(name)
     return targeTrack
 end
 
-function GetTrackByName(name)
+function R_GetTrackByName(name)
     local targeTrack
     for trackIndex = 0, r.CountTracks(0) - 1 do
         local track = r.GetTrack(0, trackIndex)
@@ -67,7 +67,7 @@ function GetTrackByName(name)
     return targeTrack
 end
 
-function GetLengthForOneBeat()
+function R_GetLengthForOneBeat()
     local bpm_base, _ = r.GetProjectTimeSignature(0)
     local bpm_now = bpm_base
     tempoIdx = r.FindTempoTimeSigMarker(0, r.GetCursorPosition())
@@ -79,8 +79,8 @@ function GetLengthForOneBeat()
 end
 
 function R_DeleteFirstSelectChordItem()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
     local item_count = r.CountTrackMediaItems(midi_track)
     local deleted = false
     local position = -1
@@ -120,8 +120,8 @@ end
 
 function R_CutAndSelectRightChordItem(start_pos)
     -- must be created
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
 
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     local midi_item_count = r.CountTrackMediaItems(midi_track)
@@ -152,8 +152,8 @@ end
 
 function R_CutAndSelectLeftChordItem(end_pos)
     -- must be created
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
 
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     local midi_item_count = r.CountTrackMediaItems(midi_track)
@@ -192,8 +192,8 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
         s_chord = s_chord .. "/" .. s_bass .. "'"
     end
 
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
 
     local deleted, d_position, d_length, d_beats = R_DeleteFirstSelectChordItem()
 
@@ -212,7 +212,7 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
         beats = d_beats
     else
         -- insert item at cursor
-        item_length = GetLengthForOneBeat() * beats
+        item_length = R_GetLengthForOneBeat() * beats
         start_position = r.GetCursorPosition()
         end_position = start_position + item_length
 
@@ -256,8 +256,8 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
 end
 
 function R_SelectChordItem()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     local chord = ""
     local meta = ""
@@ -290,8 +290,8 @@ function R_SelectChordItem()
 end
 
 function R_SelectChordItems()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     local chords = {}
     local found = "false"
@@ -314,8 +314,8 @@ function R_SelectChordItems()
 end
 
 function R_ChordItemTrans(diff)
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
@@ -377,8 +377,8 @@ function R_ChordItemTrans(diff)
 end
 
 function R_ChordItemRefresh()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
-    local midi_track = GetOrCreateTrackByName(R_ChordTrackMidi)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
     local chord_item_count = r.CountTrackMediaItems(midi_track)
     local chord_lst = {}
     for _ = 0, chord_item_count - 1 do
@@ -391,7 +391,7 @@ function R_ChordItemRefresh()
         local midi_item = r.GetTrackMediaItem(midi_track, idx)
         local pos = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
         local len = r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
-        local beats = len / GetLengthForOneBeat()
+        local beats = len / R_GetLengthForOneBeat()
         local midi_take = r.GetActiveTake(midi_item)
         local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
         local full_meta_split = StringSplit(full_meta, "|")
@@ -437,7 +437,7 @@ function R_DeleteRegionByName(target)
 end
 
 function R_ChordItem2Marker()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
@@ -450,7 +450,7 @@ function R_ChordItem2Marker()
 end
 
 function R_DeleteAllChordMarker()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
@@ -461,7 +461,7 @@ function R_DeleteAllChordMarker()
 end
 
 function R_ChordItem2Region()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
@@ -474,7 +474,7 @@ function R_ChordItem2Region()
 end
 
 function R_DeleteAllChordRegion()
-    local chord_track = GetOrCreateTrackByName(R_ChordTrackName)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local chord_item_count = r.CountTrackMediaItems(chord_track)
     for idx = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, idx)
@@ -485,7 +485,7 @@ function R_DeleteAllChordRegion()
 end
 
 function R_GetChordItemInfoByPosition(position)
-    local chord_track = GetTrackByName(R_ChordTrackName)
+    local chord_track = R_GetTrackByName(R_ChordTrackName)
     if chord_track == nil then
         return false, 0, 0, ""
     end
@@ -503,7 +503,7 @@ function R_GetChordItemInfoByPosition(position)
 end
 
 function R_GetChordItemMeteByPosition(position)
-    local midi_track = GetTrackByName(R_ChordTrackMidi)
+    local midi_track = R_GetTrackByName(R_ChordTrackMidi)
     if midi_track == nil then
         return false, 0, 0, ""
     end
@@ -524,7 +524,7 @@ end
 
 function R_ArmOnlyChordTrack()
     r.ClearAllRecArmed()
-    local chord_track = GetTrackByName(R_ChordTrackName)
+    local chord_track = R_GetTrackByName(R_ChordTrackName)
     if chord_track == nil then
         return
     end
@@ -563,7 +563,9 @@ function R_ReadBankFile()
 
     local banks = {}
     for bk in io.lines(R_BankPath) do
-        table.insert(banks, bk)
+        if bk ~= "" then
+            table.insert(banks, bk)
+        end
     end
     return banks
 end
@@ -613,4 +615,151 @@ function R_SaveColorConf(colors)
         end
         io.close()
     end
+end
+
+
+G_PREV_INPUT_INDEX = 0
+G_INPUT_NOTE_MAP = {}
+G_INPUT_NOTE_CNT = 0
+G_INPUT_TRACK_NUMBER_NAME = ""
+
+
+function R_GetMIDIInputNotes()
+    local track = r.GetSelectedTrack(0, 0)
+    if track == nil then
+        track = R_GetTrackByName("R_ChordTrackName")
+    end
+    if track == nil then
+        return {}
+    end
+    local _, track_name = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+    local track_no = r.GetMediaTrackInfo_Value(track, 'IP_TRACKNUMBER')
+    local track_no_name = tostring(track_no) .. "|" .. track_name
+    if track_no_name ~= G_INPUT_TRACK_NUMBER_NAME then
+        G_PREV_INPUT_INDEX = 0
+        G_INPUT_NOTE_MAP = {}
+        G_INPUT_NOTE_CNT = 0
+        G_INPUT_TRACK_NUMBER_NAME = track_no_name
+    end
+    local rec_in = r.GetMediaTrackInfo_Value(track, 'I_RECINPUT')
+    local rec_arm = r.GetMediaTrackInfo_Value(track, 'I_RECARM')
+    local is_recording_midi = rec_arm == 1 and rec_in & 4096 == 4096
+    if not is_recording_midi then return {} end
+
+    local filter_channel = rec_in & 31
+    local filter_dev_id = (rec_in >> 5) & 127
+
+    local idx, buf, _, dev_id = r.MIDI_GetRecentInputEvent(0)
+    if idx > G_PREV_INPUT_INDEX then
+        local new_idx = idx
+        local i = 0
+        repeat
+            if G_PREV_INPUT_INDEX ~= 0 and #buf == 3 then
+                if filter_dev_id == 63 or filter_dev_id == dev_id then
+                    local msg1 = buf:byte(1)
+                    local channel = (msg1 & 0x0F) + 1
+                    if filter_channel == 0 or filter_channel == channel then
+                        local msg2 = buf:byte(2)
+                        local msg3 = buf:byte(3)
+                        local is_note_on = msg1 & 0xF0 == 0x90
+                        local is_note_off = msg1 & 0xF0 == 0x80
+                        -- Check for 0x90 note offs with 0 velocity
+                        if is_note_on and msg3 == 0 then
+                            is_note_on = false
+                            is_note_off = true
+                        end
+                        if is_note_on and not G_INPUT_NOTE_MAP[msg2] then
+                            G_INPUT_NOTE_MAP[msg2] = 1
+                            G_INPUT_NOTE_CNT = G_INPUT_NOTE_CNT + 1
+                        end
+                        if is_note_off and G_INPUT_NOTE_MAP[msg2] == 1 then
+                            G_INPUT_NOTE_MAP[msg2] = nil
+                            if G_INPUT_NOTE_CNT > 0 then
+                                G_INPUT_NOTE_CNT = G_INPUT_NOTE_CNT - 1
+                            end
+                        end
+                    end
+                end
+            end
+            i = i + 1
+            idx, buf, _, dev_id = r.MIDI_GetRecentInputEvent(i)
+        until idx == G_PREV_INPUT_INDEX
+
+        G_PREV_INPUT_INDEX = new_idx
+    end
+
+    if G_INPUT_NOTE_CNT == 0 then
+        return {}
+    end
+
+    if G_INPUT_NOTE_CNT >= 3 then
+        local notes = {}
+        for n = 0, 127 do
+            if G_INPUT_NOTE_MAP[n] == 1 then
+                table.insert(notes, n)
+            end
+        end
+        return notes
+    else
+        return {}
+    end
+end
+
+function R_FilterChordByBass(chords, details, bass_note)
+    local ret_chords = {}
+    local ret_details = {}
+    for idx, _ in ipairs(chords) do
+        local bass = details[idx][3]
+        if bass == bass_note then
+            table.insert(ret_chords, chords[idx])
+            table.insert(ret_details, details[idx])
+        end
+    end
+    return ret_chords, ret_details
+end
+
+function R_GetMIDIInputChord(scale_root)
+    local notes = R_GetMIDIInputNotes()
+    if #notes <= 2 then
+        return {}, {}
+    end
+    -- 
+    local bass_note = T_NotePitchToNote(notes[1], scale_root)
+    local chords1, chord_details1 = T_NotesToChords(notes, scale_root)
+    for idx, _ in ipairs(chords1) do
+        -- bass note same the root note， bass note at 3 pos
+        table.insert(chord_details1[idx], chord_details1[idx][1])
+    end
+
+    local ret_chords, ret_details = R_FilterChordByBass(chords1, chord_details1, bass_note)
+    if #ret_chords > 0 then
+        return ret_chords, ret_details
+    end
+
+    -- 
+    local notes_l, notes_r = SplitListAtIndex(notes, 1)
+    local chords2, chord_details2 = T_NotesToChords(notes_r, scale_root)
+    local chords2_new = {}
+    local chord_details2_new = {}
+    local bass_note = T_NotePitchToNote(notes_l[1], scale_root)
+    for idx, _ in ipairs(chords2) do
+        if bass_note ~= chord_details2[idx][1] then
+            table.insert(chords2_new, chords2[idx].."/"..bass_note)
+            table.insert(chord_details2[idx], bass_note)
+            table.insert(chord_details2_new, chord_details2[idx])
+        end
+    end
+    local ret_chords, ret_details = R_FilterChordByBass(chords2_new, chord_details2_new, bass_note)
+    if #ret_chords > 0 then
+        return ret_chords, ret_details
+    end
+    -- reset bass root
+    
+    for idx, _ in ipairs(chords1) do
+        -- body
+        table.insert(ret_chords, chords1[idx].."/"..bass_note)
+        chord_details1[idx][3] = bass_note
+        table.insert(ret_details, chord_details1[idx])
+    end
+    return ret_chords, ret_details
 end

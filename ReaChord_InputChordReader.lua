@@ -25,15 +25,16 @@ vars.docked = 0
 vars.xpos = 100
 vars.ypos = 100
 
-ext_name = "ReaChord Reader"
+ext_name = "ReaChord InputChordReader"
 
 region_duration = 1
-current_notes = "No Notes"
+current_chords = "No Chord Detected"
 
 -- Performance
 local reaper = reaper
 
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
 
@@ -45,7 +46,7 @@ function Msg(value)
 end
 
 function initChordDisplay()
-    current_notes = "No Notes"
+    current_chords = "No Notes"
 end
 
 -- Set ToolBar Button State
@@ -112,7 +113,8 @@ end
 
 --// ELEMENTS //--
 function DrawProgressBar() -- Idea from Heda's Notes Reader
-    progress_percent = (play_pos - region_start) / region_duration
+    -- progress_percent = (play_pos - region_start) / region_duration
+    progress_percent = 0
     rect_h = gfx.h / 10
 
     INT2RGB(region_color)
@@ -243,12 +245,18 @@ function run()
     is_region, region_start, region_end, region_meta = R_GetChordItemMeteByPosition(play_pos)
     region_color = 0
     if is_region then
-        region_duration = region_end - region_start
-        local meta_split = StringSplit(region_meta, "|")
-        current_notes = ListJoinToString(StringSplit(meta_split[2], ","), " ")
+        -- region_duration = region_end - region_start
+        -- local meta_split = StringSplit(region_meta, "|")
+        -- current_chords = ListJoinToString(StringSplit(meta_split[2], ","), " ")
     else
         gfx.y = 0
     end
+    local scale_root = reaper.GetExtState("ReaChord", "ScaleRoot")
+    if scale_root == nil or scale_root == "" then
+        scale_root = "C"
+    end
+    local chords, chord_details = R_GetMIDIInputChord(scale_root)
+    current_chords = ListJoinToString(chords, " | ")
 
     if gfx.mouse_cap == 2 and (not is_region or gfx.mouse_y < rect_h) then
         local dock = gfx.dock(-1) == 0 and "Dock" or "Undock"
@@ -284,15 +292,15 @@ function run()
     end
 
     -- DRAW
-    if is_region == true then
+    if current_chords ~= "" then
         DrawProgressBar()
         if format > 0 then
-            GFXPrintLine(current_notes)
+            GFXPrintLine(current_chords)
         else
-            GFXPrintLine(current_notes)
+            GFXPrintLine(current_chords)
         end
     else
-        GFXPrintLine("No Notes")
+        GFXPrintLine("No Chord Detected")
     end
 
     gfx.update()
