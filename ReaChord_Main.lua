@@ -1626,7 +1626,7 @@ local function uiChordSelector()
       local chord_type = T_ChordType(pure_chord)
       CURRENT_SELECTED_CHORD_TYPE = chord_type
       CURRENT_SELECTED_CHORD_COLOR_NOTES = {}
-      onChordRootChange(chord_root)
+      CURRENT_CHORD_ROOT = chord_root
       CURRENT_CHORD_BASS = chord_bass
       onSelectChordChange(pure_chord)
     end
