@@ -282,7 +282,7 @@ local function refreshColors()
 
 --// INIT //--
 function init()
-    R_ImportChordTrack()
+    -- R_ImportChordTrack()
     GetExtStates()
     gfx.init("ReaChord Reader", vars.wlen, vars.hlen, vars.docked, vars.xpos, vars.ypos) -- name,width,height,dockstate,xpos,ypos
     gfx.setfont(1, font_name, font_size, 'b')

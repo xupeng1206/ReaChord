@@ -25,7 +25,7 @@ vars.docked = 0
 vars.xpos = 100
 vars.ypos = 100
 
-ext_name = "ReaChord Reader"
+ext_name = "ReaChord NoteReader"
 
 region_duration = 1
 current_notes = "No Notes"
@@ -184,7 +184,7 @@ local function refreshColors()
 
 --// INIT //--
 function init()
-    R_ImportChordTrack()
+    -- R_ImportChordTrack()
     GetExtStates()
     gfx.init("ReaChord NoteReader", vars.wlen, vars.hlen, vars.docked, vars.xpos, vars.ypos) -- name,width,height,dockstate,xpos,ypos
     gfx.setfont(1, font_name, font_size, 'b')
