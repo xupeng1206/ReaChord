@@ -293,7 +293,7 @@ function run()
 
     -- DRAW
     if current_chords ~= "" then
-        DrawProgressBar()
+        -- DrawProgressBar()
         if format > 0 then
             GFXPrintLine(current_chords)
         else
