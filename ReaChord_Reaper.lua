@@ -239,7 +239,7 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
             midi_take, false, false,
             r.MIDI_GetPPQPosFromProjTime(midi_take, start_position),
             r.MIDI_GetPPQPosFromProjTime(midi_take, end_position),
-            0, note + 36 + oct * 12, 90, false
+            0, note + 48 + oct * 12, 90, false
         )
     end
     local note_str = ListJoinToString(notes, ",")
@@ -621,7 +621,10 @@ end
 G_PREV_INPUT_INDEX = 0
 G_INPUT_NOTE_MAP = {}
 G_INPUT_NOTE_CNT = 0
+G_INPUT_NOTE_MAP_NO_CC64 = {}
+G_INPUT_NOTE_CNT_NO_CC64 = 0
 G_INPUT_TRACK_NUMBER_NAME = ""
+G_CC64_VALUE = 0
 
 
 function R_GetMIDIInputNotes()
@@ -639,7 +642,10 @@ function R_GetMIDIInputNotes()
         G_PREV_INPUT_INDEX = 0
         G_INPUT_NOTE_MAP = {}
         G_INPUT_NOTE_CNT = 0
+        G_INPUT_NOTE_MAP_NO_CC64 = {}
+        G_INPUT_NOTE_CNT_NO_CC64 = 0
         G_INPUT_TRACK_NUMBER_NAME = track_no_name
+        G_CC64_VALUE = 0
     end
     local rec_in = r.GetMediaTrackInfo_Value(track, 'I_RECINPUT')
     local rec_arm = r.GetMediaTrackInfo_Value(track, 'I_RECARM')
@@ -663,6 +669,13 @@ function R_GetMIDIInputNotes()
                         local msg3 = buf:byte(3)
                         local is_note_on = msg1 & 0xF0 == 0x90
                         local is_note_off = msg1 & 0xF0 == 0x80
+                        -- Check for CC64 (Sustain Pedal)
+                        local is_cc = msg1 & 0xF0 == 0xB0
+                        if is_cc and msg2 == 64 then
+                            if msg3 > 100 or msg3 < 30 then
+                                G_CC64_VALUE = msg3
+                            end
+                        end
                         -- Check for 0x90 note offs with 0 velocity
                         if is_note_on and msg3 == 0 then
                             is_note_on = false
@@ -672,10 +685,29 @@ function R_GetMIDIInputNotes()
                             G_INPUT_NOTE_MAP[msg2] = 1
                             G_INPUT_NOTE_CNT = G_INPUT_NOTE_CNT + 1
                         end
-                        if is_note_off and G_INPUT_NOTE_MAP[msg2] == 1 then
+                        if is_note_on and not G_INPUT_NOTE_MAP_NO_CC64[msg2] then
+                            G_INPUT_NOTE_MAP_NO_CC64[msg2] = 1
+                            G_INPUT_NOTE_CNT_NO_CC64 = G_INPUT_NOTE_CNT_NO_CC64 + 1
+                        end
+                        if is_note_off and G_INPUT_NOTE_MAP[msg2] == 1 and G_CC64_VALUE <= 100 then
                             G_INPUT_NOTE_MAP[msg2] = nil
                             if G_INPUT_NOTE_CNT > 0 then
                                 G_INPUT_NOTE_CNT = G_INPUT_NOTE_CNT - 1
+                            end
+                        end
+                        if is_note_off and G_INPUT_NOTE_MAP_NO_CC64[msg2] == 1 then
+                            G_INPUT_NOTE_MAP_NO_CC64[msg2] = nil
+                            if G_INPUT_NOTE_CNT_NO_CC64 > 0 then
+                                G_INPUT_NOTE_CNT_NO_CC64 = G_INPUT_NOTE_CNT_NO_CC64 - 1
+                            end
+                        end
+                        if G_CC64_VALUE<=100 then
+                            G_INPUT_NOTE_CNT = G_INPUT_NOTE_CNT_NO_CC64
+                            G_INPUT_NOTE_MAP = {}
+                            for n = 0, 127 do
+                                if G_INPUT_NOTE_MAP_NO_CC64[n] == 1 then
+                                    G_INPUT_NOTE_MAP[n] = 1
+                                end
                             end
                         end
                     end

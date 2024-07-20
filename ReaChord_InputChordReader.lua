@@ -236,21 +236,8 @@ function run()
 
     DrawBackground()
 
-    -- PLAY STATE
-    play_state = reaper.GetPlayState()
-    if play_state == 0 then play_pos = reaper.GetCursorPosition() else play_pos = reaper.GetPlayPosition() end
+    gfx.y = 0
 
-    initChordDisplay()
-
-    is_region, region_start, region_end, region_meta = R_GetChordItemMeteByPosition(play_pos)
-    region_color = 0
-    if is_region then
-        -- region_duration = region_end - region_start
-        -- local meta_split = StringSplit(region_meta, "|")
-        -- current_chords = ListJoinToString(StringSplit(meta_split[2], ","), " ")
-    else
-        gfx.y = 0
-    end
     local scale_root = reaper.GetExtState("ReaChord", "ScaleRoot")
     if scale_root == nil or scale_root == "" then
         scale_root = "C"
@@ -267,31 +254,6 @@ function run()
         end
     end
 
-    -- From SPK77's Clock script
-    -- CHANGE FORMAT WITH A CLICK
-    if mouse_state == 0 and gfx.mouse_cap == 2 and gfx.mouse_x > 5 and gfx.mouse_x < gfx.w - 5 and gfx.mouse_y > 5 and gfx.mouse_y < gfx.h - 5 then
-        mouse_state = 1
-        if format < 2 then
-            format = format + 1
-        else
-            format = 0
-        end
-    end
-
-    if gfx.mouse_cap == 0 then mouse_state = 0 end
-
-    -- Left clik return cursor at the begining of the region smooth seek
-    if gfx.mouse_cap == 1 then
-        if is_region then
-            if gfx.mouse_y < rect_h then
-                reaper.SetEditCurPos(region_start, false, true)
-            else
-                reaper.Main_OnCommand(40616, 0)
-            end
-        end
-    end
-
-    -- DRAW
     if current_chords ~= "" then
         -- DrawProgressBar()
         if format > 0 then

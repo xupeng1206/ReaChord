@@ -18,7 +18,7 @@ local function item2sound()
         R_StopPlay()
         local midi_notes={}
         for _, midi_index in ipairs(note_midi_index) do
-          table.insert(midi_notes, midi_index+36+oct*12)
+          table.insert(midi_notes, midi_index+48+oct*12)
         end
         R_Play(midi_notes)
     end

@@ -273,7 +273,7 @@ local function PlayPiano()
   R_StopPlay()
   local midi_notes = {}
   for _, midi_index in ipairs(note_midi_index) do
-    table.insert(midi_notes, midi_index + 36 + CURRENT_OCT * 12)
+    table.insert(midi_notes, midi_index + 48 + CURRENT_OCT * 12)
   end
   R_Play(midi_notes)
 end
@@ -293,7 +293,7 @@ local function playChordPad(key_idx)
     _, note_midi_index = T_NotePitched(note_split, oct_shift_after_first_note)
     local midi_notes = {}
     for _, midi_index in ipairs(note_midi_index) do
-      table.insert(midi_notes, midi_index + 36 + oct * 12)
+      table.insert(midi_notes, midi_index + 48 + oct * 12)
     end
     R_Play(midi_notes)
   end
@@ -1250,7 +1250,7 @@ local function uiSimilarChords()
             R_StopPlay()
             local midi_notes = {}
             for _, midi_index in ipairs(note_midi_index) do
-              table.insert(midi_notes, midi_index + 36 + (CURRENT_OCT + 1) * 12)
+              table.insert(midi_notes, midi_index + 48 + (CURRENT_OCT + 1) * 12)
             end
             R_Play(midi_notes)
           end
@@ -1813,6 +1813,57 @@ local function bindKeyBoard()
   if r.ImGui_IsKeyReleased(ctx, r.ImGui_Key_LeftShift()) then
     CHORD_INSERT_MODE = "off"
   end
+
+  -- number
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad0()) then
+    CURRENT_INSERT_BEATS = 4
+    R_ChordItemRefresh()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad1()) then
+    CURRENT_INSERT_BEATS = 1
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad2()) then
+    CURRENT_INSERT_BEATS = 2
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad3()) then
+    CURRENT_INSERT_BEATS = 3
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad4()) then
+    CURRENT_INSERT_BEATS = 4
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad5()) then
+    CURRENT_INSERT_BEATS = 5
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad6()) then
+    CURRENT_INSERT_BEATS = 6
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad7()) then
+    CURRENT_INSERT_BEATS = 7
+    onInsertClick()
+  end
+  if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad8()) then
+    CURRENT_INSERT_BEATS = 8
+    onInsertClick()
+  end
+  -- direction
+  -- if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then
+  --   --
+  -- end
+  -- if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then
+  --   --
+  -- end
+  -- if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_LeftArrow()) then
+  --   --
+  -- end
+  -- if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_RightArrow()) then
+  --   --
+  -- end
 end
 
 local function uiAbout()

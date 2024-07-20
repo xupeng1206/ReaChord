@@ -185,10 +185,12 @@ function DrawProgressBar() -- Idea from Heda's Notes Reader
     progress_percent = (play_pos - region_start) / region_duration
     rect_h = gfx.h / 10
 
-    INT2RGB(region_color)
+    -- INT2RGB(region_color)
+    color(RDColorBackground)
     gfx.rect(0, 0, gfx.w, rect_h)
 
-    rgba(255, 255, 255, 200)
+    -- rgba(255, 255, 255, 200)
+    color(RDColorTextGray)
     gfx.rect(0, 0, gfx.w * progress_percent, rect_h)
     gfx.y = rect_h * 2
 end
