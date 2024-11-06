@@ -6,6 +6,7 @@
 RDColorBackground = "#333333"
 RDColorTextLight = "White"
 RDColorTextGray = "Gray"
+RDColorProgressBar = "Gray"
 
 no_regions_text = true -- set to false to desactivate "NO REGIONS UNDER PLAY CURSOR" instructions
 console = true         -- Display debug messages in the console
@@ -190,7 +191,7 @@ function DrawProgressBar() -- Idea from Heda's Notes Reader
     gfx.rect(0, 0, gfx.w, rect_h)
 
     -- rgba(255, 255, 255, 200)
-    color(RDColorTextGray)
+    color(RDColorProgressBar)
     gfx.rect(0, 0, gfx.w * progress_percent, rect_h)
     gfx.y = rect_h * 2
 end
@@ -267,6 +268,7 @@ local function refreshColors()
     RDColorBackground = "#333333"
     RDColorTextLight = "White"
     RDColorTextGray = "Gray"
+    RDColorProgressBar = "Gray"
     local colors = R_GetColorConf()
     for name, color in pairs(colors) do
       if name == "RDColorBackground" then
@@ -277,6 +279,9 @@ local function refreshColors()
       end
       if name == "RDColorTextGray" then
         RDColorTextGray = '#'..color:sub(5,10)
+      end
+      if name == "RDColorProgressBar" then
+        RDColorProgressBar = '#'..color:sub(5,10)
       end
     end
   end

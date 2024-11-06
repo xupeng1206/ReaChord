@@ -56,6 +56,7 @@ local ColorPieBtnHoverd = 0x4772B3FF
 local RDColorBackground = 0x333333
 local RDColorTextLight = 0xFFFFFF
 local RDColorTextGray = 0x808080
+local RDColorProgressBar = 0x808080
 
 local function uiReadOnlyColorBtn(text, color, w)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
@@ -113,6 +114,7 @@ function uiMain()
   _, RDColorBackground = uiColorEdit3('RDColorBackground', RDColorBackground)
   _, RDColorTextLight = uiColorEdit3('RDColorTextLight', RDColorTextLight)
   _, RDColorTextGray = uiColorEdit3('RDColorTextGray', RDColorTextGray)
+  _, RDColorProgressBar = uiColorEdit3('RDColorProgressBar', RDColorProgressBar)
   uiReadOnlyColorBtn("Action", 0x696969FF, w)
   if uiColorBtn("Save", 0x838B8BFF, (w-main_window_w_padding)/2, 100 ) then
     local colors = {}
@@ -138,6 +140,7 @@ function uiMain()
     colors["RDColorBackground"] = RDColorBackground
     colors["RDColorTextLight"] = RDColorTextLight
     colors["RDColorTextGray"] = RDColorTextGray
+    colors["RDColorProgressBar"] = RDColorProgressBar
     R_SaveColorConf(colors)
   end
   r.ImGui_SameLine(ctx)
