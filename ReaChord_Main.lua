@@ -1083,9 +1083,19 @@ local function uiVoicing()
     onListenClick()
   end
   r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx, "Listen", 60) then
-    onListenClick()
+  
+  if CHORD_INSERT_MODE == "on" then
+    if r.ImGui_Button(ctx, "Insert", 60) then
+      onListenClick()
+      onInsertClick()
+    end
+  else
+    
+    if r.ImGui_Button(ctx, "Listen", 60) then
+      onListenClick()
+    end
   end
+
   r.ImGui_SameLine(ctx)
 
   local r_ww = (w - 60 - 30 - 30 - #nice_notes * 30 - 30 - 30 - 60  - (8 + #nice_notes) * w_default_space) / 3
@@ -2138,7 +2148,7 @@ local function loop()
   window_flags = window_flags | r.ImGui_WindowFlags_NoNav()
   window_flags = window_flags | r.ImGui_WindowFlags_NoDocking()
 
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord', true, window_flags)
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.4', true, window_flags)
   if visible then
     refreshWindowSize()
     uiMain()

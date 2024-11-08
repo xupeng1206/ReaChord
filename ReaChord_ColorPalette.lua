@@ -116,7 +116,7 @@ function uiMain()
   _, RDColorTextGray = uiColorEdit3('RDColorTextGray', RDColorTextGray)
   _, RDColorProgressBar = uiColorEdit3('RDColorProgressBar', RDColorProgressBar)
   uiReadOnlyColorBtn("Action", 0x696969FF, w)
-  if uiColorBtn("Save", 0x838B8BFF, (w-main_window_w_padding)/2, 100 ) then
+  if uiColorBtn("Save", 0x838B8BFF, (w-main_window_w_padding)/2, 75 ) then
     local colors = {}
     colors["ColorMainBackground"] = ColorMainBackground
     colors["ColorPianoWhite"] = ColorPianoWhite
@@ -144,7 +144,7 @@ function uiMain()
     R_SaveColorConf(colors)
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Reset", 0x838B8BFF, (w-main_window_w_padding)/2, 100 ) then
+  if uiColorBtn("Reset", 0x838B8BFF, (w-main_window_w_padding)/2, 75 ) then
     local colors = {}
     R_SaveColorConf(colors)
   end
