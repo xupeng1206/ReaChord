@@ -2148,7 +2148,7 @@ local function loop()
   window_flags = window_flags | r.ImGui_WindowFlags_NoNav()
   window_flags = window_flags | r.ImGui_WindowFlags_NoDocking()
 
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.4', true, window_flags)
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.5', true, window_flags)
   if visible then
     refreshWindowSize()
     uiMain()
@@ -2166,7 +2166,7 @@ end
 local function init()
   refreshColors()
   R_ImportChordTrack()
-  R_ArmOnlyChordTrack()
+  -- R_ArmOnlyChordTrack()
   local pad_values = r.GetExtState("ReaChord", "CHORD_PAD_VALUES")
   local pad_values_split = StringSplit(pad_values, "~")
   if #pad_values_split == 12 then
