@@ -68,14 +68,10 @@ function R_GetTrackByName(name)
 end
 
 function R_GetLengthForOneBeat()
-    local bpm_base, _ = r.GetProjectTimeSignature(0)
-    local bpm_now = bpm_base
-    tempoIdx = r.FindTempoTimeSigMarker(0, r.GetCursorPosition())
-    if tempoIdx > -1 then
-        _, _, _, _, bpm_now, _, _, _ = r.GetTempoTimeSigMarker(0, tempoIdx)
-    end
-    local duration = r.TimeMap2_QNToTime(0, 1) * bpm_base / bpm_now
-    return duration
+    -- why?
+    local timesig_num, timesig_denom, tempo = r.TimeMap_GetTimeSigAtTime(0, r.GetCursorPosition())
+	local ratio = 4 / timesig_denom
+	return 60 / tempo * ratio
 end
 
 function R_DeleteFirstSelectChordItem()

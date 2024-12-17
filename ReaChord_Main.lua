@@ -2148,7 +2148,7 @@ local function loop()
   window_flags = window_flags | r.ImGui_WindowFlags_NoNav()
   window_flags = window_flags | r.ImGui_WindowFlags_NoDocking()
 
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.5', true, window_flags)
+  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.6', true, window_flags)
   if visible then
     refreshWindowSize()
     uiMain()
