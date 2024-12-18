@@ -10,6 +10,8 @@ R_ChordTrackMidi = "REACHORD_MIDI"
 R_BankPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Banks_v2.txt'
 R_ColorConfPath = r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Colors.txt'
 
+BASE_NOTE_OFFSET = 48
+
 function NewLineTag()
     return "\r\n"
     -- if package.config:sub(1, 1) == "/" then
@@ -179,6 +181,81 @@ function R_CutAndSelectLeftChordItem(end_pos)
 end
 
 function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note)
+    local full_split = StringSplit(chord, "/")
+    local scale_root = StringSplit(meta, "/")[1]
+    local _, chord_pattern = T_SplitChordRootAndPattern(full_split[1])
+    local s_chord = T_NoteName2Num(notes[2], scale_root) .. "'" .. chord_pattern
+    if #full_split == 2 then
+        local s_bass = T_NoteName2Num(notes[1], scale_root)
+        s_chord = s_chord .. "/" .. s_bass .. "'"
+    end
+
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    local deleted, d_position, d_length, d_beats = R_DeleteFirstSelectChordItem()
+
+    r.SelectAllMediaItems(0, false)
+
+    local item_length = -1
+    local start_position = -1
+    local end_position = -1
+    local use_beats = -1
+
+    if deleted then
+        -- replace the select item
+        item_length = d_length
+        start_position = d_position
+        end_position = start_position + item_length
+        -- use the delete beats
+        use_beats = d_beats
+    else
+        -- insert item at cursor
+        use_beats = beats
+        item_length = R_GetLengthForOneBeat() * use_beats
+        start_position = r.GetCursorPosition()
+        end_position = start_position + item_length
+
+        -- try to cut the chord item overlap
+        R_CutAndSelectRightChordItem(start_position)
+        R_CutAndSelectLeftChordItem(end_position)
+        R_DeleteSelectChordItems()
+    end
+
+    -- chord item
+    local chord_item = r.AddMediaItemToTrack(chord_track)
+    r.SetMediaItemPosition(chord_item, start_position, false)
+    r.SetMediaItemLength(chord_item, item_length, true)
+    r.ULT_SetMediaItemNote(chord_item, chord .. NewLineTag() .. s_chord)
+    r.SetMediaItemSelected(chord_item, true)
+    -- midi item
+    local midi_item = r.CreateNewMIDIItemInProj(midi_track, start_position, end_position, false)
+    -- midi take
+    local midi_take = r.GetActiveTake(midi_item)
+    local _, note_midi_index = T_NotePitched(notes, oct_shift_after_first_note)
+    local oct = StringSplit(meta, "/")[3]
+    for _, note in ipairs(note_midi_index) do
+        r.MIDI_InsertNote(
+            midi_take, false, false,
+            r.MIDI_GetPPQPosFromProjTime(midi_take, start_position),
+            r.MIDI_GetPPQPosFromProjTime(midi_take, end_position),
+            0, note + BASE_NOTE_OFFSET + oct * 12, 90, false
+        )
+    end
+    local note_str = ListJoinToString(notes, ",")
+    local full_meta = ListJoinToString({ meta, note_str, chord, use_beats, oct_shift_after_first_note }, "|")
+    _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", full_meta, true)
+    r.SetMediaItemSelected(midi_item, true)
+    -- group item
+    r.Main_OnCommand(40032, 0)
+    -- unselect
+    r.SetMediaItemSelected(chord_item, false)
+    r.SetMediaItemSelected(midi_item, false)
+    -- move cursor
+    r.SetEditCurPos(end_position, true, true)
+end
+
+function R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_after_first_note, start_position, end_position)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
     local _, chord_pattern = T_SplitChordRootAndPattern(full_split[1])
@@ -755,13 +832,13 @@ function R_FilterChordByBass(chords, details, bass_note)
     return ret_chords, ret_details
 end
 
-function R_BuildChordByNotes(notes, scale_root)
+function R_BuildChordByNotes(notes, scale_root, scale_name)
     if #notes <= 2 then
         return {}, {}
     end
     -- 
-    local bass_note = T_NotePitchToNote(notes[1], scale_root)
-    local chords1, chord_details1 = T_NotesToChords(notes, scale_root)
+    local bass_note = T_NotePitchToNote(notes[1], scale_root, scale_name)
+    local chords1, chord_details1 = T_NotesToChords(notes, scale_root, scale_name)
     for idx, _ in ipairs(chords1) do
         -- bass note same the root note， bass note at 3 pos
         table.insert(chord_details1[idx], chord_details1[idx][1])
@@ -774,10 +851,10 @@ function R_BuildChordByNotes(notes, scale_root)
 
     -- 
     local notes_l, notes_r = SplitListAtIndex(notes, 1)
-    local chords2, chord_details2 = T_NotesToChords(notes_r, scale_root)
+    local chords2, chord_details2 = T_NotesToChords(notes_r, scale_root, scale_name)
     local chords2_new = {}
     local chord_details2_new = {}
-    local bass_note = T_NotePitchToNote(notes_l[1], scale_root)
+    local bass_note = T_NotePitchToNote(notes_l[1], scale_root, scale_name)
     for idx, _ in ipairs(chords2) do
         if bass_note ~= chord_details2[idx][1] then
             table.insert(chords2_new, chords2[idx].."/"..bass_note)
@@ -800,15 +877,15 @@ function R_BuildChordByNotes(notes, scale_root)
     return ret_chords, ret_details
 end
 
-function R_GetMIDIInputChord(scale_root)
+function R_GetMIDIInputChord(scale_root, scale_name)
     local notes = R_GetMIDIInputNotes()
-    return R_BuildChordByNotes(notes, scale_root)
+    return R_BuildChordByNotes(notes, scale_root, scale_name)
 end
 
 
 -- Most Code From FTC Lil_ChordBox / Code Block Start
 
-function R_FTCBuildChord(notes, scale_root)
+function R_FTCBuildChord(notes, scale_root, scale_name)
     -- -- Ori Code, mod by xupeng
     -- local chord_key, chord_root, inversion_root = IdentifyChord(notes)
     -- if chord_key then
@@ -825,7 +902,7 @@ function R_FTCBuildChord(notes, scale_root)
         table.insert(pitchs, note.pitch)
     end
     table.sort(pitchs)
-    local valid_chords, valid_details = R_BuildChordByNotes(pitchs, scale_root)
+    local valid_chords, valid_details = R_BuildChordByNotes(pitchs, scale_root, scale_name)
     if valid_chords then
         local chord = {
             notes = notes,
@@ -849,7 +926,7 @@ function R_FTCBuildChord(notes, scale_root)
 end
 
 
-function R_FTCGetChordsByTake(take, scale_root)
+function R_FTCGetChordsByTake(take, scale_root, scale_name)
     local _, note_cnt = r.MIDI_CountEvts(take)
 
     local chords = {}
@@ -870,7 +947,7 @@ function R_FTCGetChordsByTake(take, scale_root)
             if sppq >= chord_min_eppq then
                 local new_notes = {}
                 if #notes >= 2 then
-                    local chord = R_FTCBuildChord(notes, scale_root)
+                    local chord = R_FTCBuildChord(notes, scale_root, scale_name)
                     if chord then chords[#chords + 1] = chord end
                     for n = 3, #notes do
                         -- Remove notes that end prior to chord_min_eppq
@@ -880,7 +957,7 @@ function R_FTCGetChordsByTake(take, scale_root)
                             end
                         end
                         -- Try to build chords
-                        chord = R_FTCBuildChord(new_notes, scale_root)
+                        chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
                         if chord then
                             chord.sppq = chord_min_eppq
                             chord.eppq = math.min(chord.eppq, sppq)
@@ -908,7 +985,7 @@ function R_FTCGetChordsByTake(take, scale_root)
                 notes = new_notes
             else
                 if #notes >= 2 then
-                    local chord = R_FTCBuildChord(notes, scale_root)
+                    local chord = R_FTCBuildChord(notes, scale_root, scale_name)
                     if chord then
                         chord.eppq = math.min(chord.eppq, sppq)
                         -- Ignore very short arpeggiated chords
@@ -924,10 +1001,10 @@ function R_FTCGetChordsByTake(take, scale_root)
 
     local sel_chord
     if #sel_notes >= 2 then
-        sel_chord = R_FTCBuildChord(sel_notes, scale_root) or {name = 'none'}
+        sel_chord = R_FTCBuildChord(sel_notes, scale_root, scale_name) or {name = 'none'}
     end
     if #notes >= 2 then
-        local chord = R_FTCBuildChord(notes, scale_root)
+        local chord = R_FTCBuildChord(notes, scale_root, scale_name)
         if chord then chords[#chords + 1] = chord end
         for n = 3, #notes do
             local new_notes = {}
@@ -938,7 +1015,7 @@ function R_FTCGetChordsByTake(take, scale_root)
                 end
             end
             -- Try to build chords
-            chord = R_FTCBuildChord(new_notes, scale_root)
+            chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
             if chord then
                 chord.sppq = chord_min_eppq
                 -- Ignore short chords
@@ -955,7 +1032,7 @@ end
 
 -- Most Code From FTC Lil_ChordBox / Code Block End
 
-function R_MIDI2ChordTrack(scale_root)
+function R_MIDI2ChordTrack(scale_root, scale_name)
     -- Get the first select midi item
     local midi_take
     local item_count = r.CountMediaItems(0)
@@ -972,32 +1049,36 @@ function R_MIDI2ChordTrack(scale_root)
     if midi_take == nil then
         return
     end
-    local ftc_chords, _ = R_FTCGetChordsByTake(midi_take, scale_root)
+    local ftc_chords, _ = R_FTCGetChordsByTake(midi_take, scale_root, scale_name)
     for _, ftc_chord in ipairs(ftc_chords) do
-        -- local chord = {
-        --     notes = notes,
-        --     pitchs = pitchs,
-        --     valid_chords = valid_chords,
-        --     valid_details = valid_details,
-        -- }
-        local ftc_notes = ftc_chord.notes
-        local pitchs = ftc_chords.pitchs
-        local reachords = ftc_chords.valid_chords
-        local reachord_details = ftc_chords.valid_details
-        local chord_idx = T_SelectSimplestChord(reachords)
-        local reachord = reachords[chord_idx]
-        local reachord_detail = reachord_details[chord_idx]
-        local start_pos = GetProjTimeFromPPQPos(take, chord.sppq)
-        local end_pos = GetProjTimeFromPPQPos(take, chord.eppq)
+        local pitchs = ftc_chord.pitchs
+        local chords = ftc_chord.valid_chords
+        -- local chord_details = ftc_chord.valid_details
+        local chord_idx = T_SelectSimplestChord(chords, scale_root, scale_name)
+        local chord = chords[chord_idx]
+        -- local chord_detail = chord_details[chord_idx]
+        local start_pos = r.MIDI_GetProjTimeFromPPQPos(midi_take, ftc_chord.sppq)
+        local end_pos = r.MIDI_GetProjTimeFromPPQPos(midi_take, ftc_chord.eppq)
         local length = end_pos - start_pos
 
-        local pure_chord = StringSplit(reachord, "/")[1]
-        local details = chord_details[1]
-        local chord_root = details[1]
-        local chord_tag = details[2]
-        local chord_bass = details[3]
-        local chord_type = T_ChordType(pure_chord)
-        -- todo
+        -- local pure_chord = StringSplit(chord, "/")[1]
+        -- local chord_root = chord_detail[1]
+        -- local chord_tag = chord_detail[2]
+        -- local chord_bass = chord_detail[3]
+        -- local chord_type = T_ChordType(pure_chord)
+
+        local oct = (pitchs[1] - 48) // 12
+        local oct_shift_after_first_note = 0
+        if (pitchs[2] - pitchs[1]) > 12 then
+            oct_shift_after_first_note = 1
+        end
+        local beats = length / R_GetLengthForOneBeat()
+        local notes = {}
+        for _, pitch in ipairs(pitchs) do
+            table.insert(notes, T_NotePitchToNote(pitch, scale_root, scale_name))
+        end
+        local meta = scale_root .. "/" .. scale_name .. "/" .. oct
+        R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_after_first_note, start_pos, end_pos)
     end
 end
 

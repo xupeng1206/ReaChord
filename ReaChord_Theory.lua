@@ -947,8 +947,8 @@ function T_ChordListFilter(chords, type, colors)
     return filtered_chords
 end
 
-function T_NotePitchToNote(note, scale_root)
-    local _, m_notes = T_Parse(scale_root, G_WHOLE_HALF_SCALE_PATTERN)
+function T_NotePitchToNote(note, scale_root, scale_name)
+    local p_notes, m_notes = T_MakeScale(scale_root .. "/" .. scale_name)
     if note >= 12 then
         repeat
             note = note - 12
@@ -956,14 +956,14 @@ function T_NotePitchToNote(note, scale_root)
     end
     local note_names = StringSplit(G_NOTE_LIST[note+1], "/")
     for _, name in ipairs(note_names) do
-        if ListIndex(m_notes, name) > 1 then
+        if ListIndex(p_notes, name) > 0 then
             return name
         end
     end
     return note_names[1]
 end
 
-function T_NotesToChords(notes, scale_root)
+function T_NotesToChords(notes, scale_root, scale_name)
     local chords = {}
     local chord_details = {}
     -- sorted notes
@@ -1021,7 +1021,7 @@ function T_NotesToChords(notes, scale_root)
         local tag_index = ListIndex(G_CHORD_PATTERNS_2, pattern2)
         if tag_index>0 then
             local tag_name = StringSplit(G_CHORD_NAMES[tag_index], "X")[2]
-            local t_root_note_str = T_NotePitchToNote(t_root_note, scale_root)
+            local t_root_note_str = T_NotePitchToNote(t_root_note, scale_root, scale_name)
             table.insert(chords, t_root_note_str..tag_name)
             table.insert(chord_details, {t_root_note_str, tag_name})
         end
@@ -1029,7 +1029,7 @@ function T_NotesToChords(notes, scale_root)
     return chords, chord_details
 end
 
-function T_SelectSimplestChord(chords)
+function T_SelectSimplestChord(chords, scale_root, scale_name)
     if #chords == 0 then
         return -1
     end
@@ -1041,12 +1041,12 @@ function T_SelectSimplestChord(chords)
             short_chords = {}
         end
         if #chord == short_length then
-            table.insert(short_chords, idx)
+            table.insert(short_chords, chord)
         end
     end
-    if #short_chords == 1 {
+    if #short_chords == 1 then
         return ListIndex(chords, short_chords[1])
-    }
+    end
     local chord_complexity = {}
     for idx, chord in ipairs(short_chords) do
         if ListIndex(chord_complexity, chord) == -1 then

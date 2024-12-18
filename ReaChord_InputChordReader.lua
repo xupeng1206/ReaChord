@@ -242,7 +242,11 @@ function run()
     if scale_root == nil or scale_root == "" then
         scale_root = "C"
     end
-    local chords, chord_details = R_GetMIDIInputChord(scale_root)
+    local scale_name = reaper.GetExtState("ReaChord", "ScaleName")
+    if scale_name == nil or scale_name == "" then
+        scale_name = "Natural Maj"
+    end
+    local chords, chord_details = R_GetMIDIInputChord(scale_root, scale_name)
     current_chords = ListJoinToString(chords, " | ")
 
     if gfx.mouse_cap == 2 and (not is_region or gfx.mouse_y < rect_h) then

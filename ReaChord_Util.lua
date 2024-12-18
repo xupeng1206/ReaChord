@@ -18,7 +18,7 @@ end
 
 function StringSplit(str, sp)
     local result = {}
-    local idx = 0
+    local idx
     while true do
         idx, _ = string.find(str, sp)
         if idx == nil then

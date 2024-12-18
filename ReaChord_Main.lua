@@ -55,16 +55,16 @@ local B_FULL_CHORD_PATTERNS = ""
 local B_CHORD_PATTERNS = ""
 
 local CURRENT_SCALE_ROOT = "C"
+r.SetExtState("ReaChord", "ScaleRoot", "C", false)
 local CURRENT_SCALE_NAME = "Natural Maj"
+r.SetExtState("ReaChord", "ScaleName", "Natural Maj", false)
 local CURRENT_SCALE_ALL_NOTES = {}
 local CURRENT_SCALE_NICE_NOTES = {}
 local CURRENT_OCT = "0"
 local CURRENT_INSERT_BEATS = 4
 
 local CURRENT_CHORD_ROOT = "C"
-r.SetExtState("ReaChord", "ScaleRoot", "C", false)
 local CURRENT_CHORD_NAME = ""
-r.SetExtState("ReaChord", "ScaleName", "", false)
 local CURRENT_CHORD_FULL_NAME = ""
 local CURRENT_CHORD_BASS = "C"
 local CURRENT_CHORD_DEFAULT_VOICING = ""
@@ -273,7 +273,7 @@ local function PlayPiano()
   R_StopPlay()
   local midi_notes = {}
   for _, midi_index in ipairs(note_midi_index) do
-    table.insert(midi_notes, midi_index + 48 + CURRENT_OCT * 12)
+    table.insert(midi_notes, midi_index + BASE_NOTE_OFFSET + CURRENT_OCT * 12)
   end
   R_Play(midi_notes)
 end
@@ -293,7 +293,7 @@ local function playChordPad(key_idx)
     _, note_midi_index = T_NotePitched(note_split, oct_shift_after_first_note)
     local midi_notes = {}
     for _, midi_index in ipairs(note_midi_index) do
-      table.insert(midi_notes, midi_index + 48 + oct * 12)
+      table.insert(midi_notes, midi_index + BASE_NOTE_OFFSET + oct * 12)
     end
     R_Play(midi_notes)
   end
@@ -1260,7 +1260,7 @@ local function uiSimilarChords()
             R_StopPlay()
             local midi_notes = {}
             for _, midi_index in ipairs(note_midi_index) do
-              table.insert(midi_notes, midi_index + 48 + (CURRENT_OCT + 1) * 12)
+              table.insert(midi_notes, midi_index + BASE_NOTE_OFFSET + (CURRENT_OCT + 1) * 12)
             end
             R_Play(midi_notes)
           end
@@ -1625,7 +1625,7 @@ end
 local function uiChordSelector()
 
   if MIDI_INPUT_ENABLE then
-    local chords, chord_details = R_GetMIDIInputChord(CURRENT_SCALE_ROOT)
+    local chords, chord_details = R_GetMIDIInputChord(CURRENT_SCALE_ROOT, CURRENT_SCALE_NAME)
     -- use first chord
     if #chords>0 then
       local pure_chord = StringSplit(chords[1], "/")[1]
@@ -1944,31 +1944,35 @@ local function uiExtension()
   local hh = h
   uiReadOnlyColorBtn("Actions", ColorGray, ww)
 
-  if uiColorBtn("Up 1 Semitone" .. "##trans", ColorPink, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Up 1 Semitone" .. "##trans", ColorPink, (ww - 3 * w_default_space) / 4, 50) then
     R_ChordItemTrans(1)
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Down 1 Semitone" .. "##trans", ColorPink, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Down 1 Semitone" .. "##trans", ColorPink, (ww - 3 * w_default_space) / 4, 50) then
     R_ChordItemTrans(-1)
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Refresh Items" .. "##tempo", ColorYellow, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Refresh Items" .. "##refresh", ColorYellow, (ww - 3 * w_default_space) / 4, 50) then
     R_ChordItemRefresh()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Items To Markers" .. "##tag", ColorDarkPink, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Midi Item To Chord Track" .. "##midi2track", ColorYellow, (ww - 3 * w_default_space) / 4, 50) then
+    R_MIDI2ChordTrack(CURRENT_SCALE_ROOT, CURRENT_SCALE_NAME)
+  end
+
+  if uiColorBtn("Items To Markers" .. "##tag", ColorDarkPink, (ww - 3 * w_default_space) / 4, 50) then
     R_ChordItem2Marker()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Delete Markers" .. "##tag", ColorRed, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Delete Markers" .. "##tag", ColorRed, (ww - 3 * w_default_space) / 4, 50) then
     R_DeleteAllChordMarker()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Items To Region" .. "##tag", ColorDarkPink, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Items To Region" .. "##tag", ColorDarkPink, (ww - 3 * w_default_space) / 4, 50) then
     R_ChordItem2Region()
   end
   r.ImGui_SameLine(ctx)
-  if uiColorBtn("Delete Regions" .. "##tag", ColorRed, (ww - 6 * w_default_space) / 7, 50) then
+  if uiColorBtn("Delete Regions" .. "##tag", ColorRed, (ww - 3 * w_default_space) / 4, 50) then
     R_DeleteAllChordRegion()
   end
 
@@ -2083,7 +2087,7 @@ local function uiExtension()
     end
   end
 
-  if r.ImGui_BeginListBox(ctx, '##bank', -FLT_MIN, hh - 30 - 2 * 7 - 50 * 2 - 25 * 4) then
+  if r.ImGui_BeginListBox(ctx, '##bank', -FLT_MIN, hh - 30 - 2 * 8 - 50 * 3 - 25 * 4) then
     for idx, v in ipairs(CHORD_PROGRESSION_SIMPLE_LIST_FILTERED) do
       local is_selected = CHORD_PROGRESSION_SELECTED_INDEX == CHORD_PROGRESSION_SIMPLE_LIST_FILTERED_INDEX_MAP[idx]
       if r.ImGui_Selectable(ctx, v, is_selected) then
