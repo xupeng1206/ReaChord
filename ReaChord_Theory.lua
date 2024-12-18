@@ -1028,3 +1028,47 @@ function T_NotesToChords(notes, scale_root)
     end
     return chords, chord_details
 end
+
+function T_SelectSimplestChord(chords)
+    if #chords == 0 then
+        return -1
+    end
+    local short_chords = {}
+    local short_length = math.huge
+    for idx, chord in ipairs(chords) do
+        if #chord < short_length then
+            short_length = #chord
+            short_chords = {}
+        end
+        if #chord == short_length then
+            table.insert(short_chords, idx)
+        end
+    end
+    if #short_chords == 1 {
+        return ListIndex(chords, short_chords[1])
+    }
+    local chord_complexity = {}
+    for idx, chord in ipairs(short_chords) do
+        if ListIndex(chord_complexity, chord) == -1 then
+            chord_complexity[chord] = 0
+        end
+        if string.find(chord, "/") ~= nil then  -- contains
+            chord_complexity[chord] = chord_complexity[chord] + 1
+        end
+        if string.find(chord, "omit") ~=nil then
+            chord_complexity[chord] = chord_complexity[chord] + 2
+        end
+    end
+    local simple_chords = {}
+    local lowest_nun = math.huge
+    for chord, num in ipairs(simple_chords) do
+        if num < lowest_nun then
+            lowest_nun = num
+            simple_chords = {}
+        end
+        if num == lowest_nun then
+            table.insert(simple_chords, chord)
+        end
+    end
+    return ListIndex(chords, simple_chords[1])
+end
