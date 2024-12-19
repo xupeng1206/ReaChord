@@ -577,7 +577,7 @@ end
 
 function R_ChordItemOverlapAndRefresh()
     R_ChordItemOverlap()
-    -- R_ChordItemRefresh()
+    R_ChordItemRefresh()
 end
 
 function R_DeleteMarkerByName(target)
