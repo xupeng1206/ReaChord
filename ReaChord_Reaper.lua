@@ -485,11 +485,6 @@ function R_ChordItemRefresh()
         local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
         local full_meta_split = StringSplit(full_meta, "|")
         full_meta_split[4] = tostring(beats)
-        local chord2 = full_meta_split[3]
-        if chord ~= chord2 then
-            print("chord track name item count and chord track midi item count mismatched. for chord: " .. chord .. "\n")
-            return
-        end
         local new_full_meta = ListJoinToString(full_meta_split, "|")
         _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
 
