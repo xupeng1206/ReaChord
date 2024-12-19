@@ -1628,8 +1628,10 @@ local function uiChordSelector()
     local chords, chord_details = R_GetMIDIInputChord(CURRENT_SCALE_ROOT, CURRENT_SCALE_NAME)
     -- use first chord
     if #chords>0 then
+      local chord_idx = T_SelectSimplestChord(chords, CURRENT_SCALE_ROOT, CURRENT_SCALE_NAME)
+      local chord = chords[chord_idx]
+      local details = chord_details[chord_idx]
       local pure_chord = StringSplit(chords[1], "/")[1]
-      local details = chord_details[1]
       local chord_root = details[1]
       local chord_tag = details[2]
       local chord_bass = details[3]
@@ -1827,7 +1829,7 @@ local function bindKeyBoard()
   -- number
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad0()) then
     CURRENT_INSERT_BEATS = 4
-    R_ChordItemRefresh()
+    R_ChordItemOverlapAndRefresh()
   end
   if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Keypad1()) then
     CURRENT_INSERT_BEATS = 1
@@ -1953,7 +1955,7 @@ local function uiExtension()
   end
   r.ImGui_SameLine(ctx)
   if uiColorBtn("Refresh Items" .. "##refresh", ColorYellow, (ww - 3 * w_default_space) / 4, 50) then
-    R_ChordItemRefresh()
+    R_ChordItemOverlapAndRefresh()
   end
   r.ImGui_SameLine(ctx)
   if uiColorBtn("Midi Item To Chord Track" .. "##midi2track", ColorYellow, (ww - 3 * w_default_space) / 4, 50) then
@@ -2016,7 +2018,7 @@ local function uiExtension()
   if r.ImGui_BeginPopupModal(ctx, 'Save Selected Chord Progression', nil, add_bank_win_flags) then
     -- input text & button
     if r.ImGui_Button(ctx, "Refresh", 80) then
-      R_ChordItemRefresh()
+      R_ChordItemOverlapAndRefresh()
     end
     r.ImGui_SameLine(ctx)
     initChordProgression()

@@ -180,6 +180,30 @@ function R_CutAndSelectLeftChordItem(end_pos)
     end
 end
 
+function R_SelectAllChordItemBetweenStartEnd(start_pos, end_pos)
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord_item_start = r.GetMediaItemInfo_Value(chord_item, "D_POSITION")
+        local chord_item_end = chord_item_start + r.GetMediaItemInfo_Value(chord_item, "D_LENGTH")
+        if start_pos <= chord_item_start and chord_item_end <= end_pos then
+            r.SetMediaItemSelected(chord_item, true)
+        end
+    end
+    for idx = 0, midi_item_count - 1 do
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local midi_item_start = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        local midi_item_end = midi_item_start + r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        if start_pos <= midi_item_start and midi_item_end <= end_pos then
+            r.SetMediaItemSelected(midi_item, true)
+        end
+    end
+end
+
 function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
@@ -219,6 +243,7 @@ function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note
         -- try to cut the chord item overlap
         R_CutAndSelectRightChordItem(start_position)
         R_CutAndSelectLeftChordItem(end_position)
+        R_SelectAllChordItemBetweenStartEnd(start_position, end_position)
         R_DeleteSelectChordItems()
     end
 
@@ -268,34 +293,14 @@ function R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_afte
     local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
 
-    local deleted, d_position, d_length, d_beats = R_DeleteFirstSelectChordItem()
-
     r.SelectAllMediaItems(0, false)
 
-    local item_length = -1
-    local start_position = -1
-    local end_position = -1
-    local use_beats = -1
-
-    if deleted then
-        -- replace the select item
-        item_length = d_length
-        start_position = d_position
-        end_position = start_position + item_length
-        -- use the delete beats
-        use_beats = d_beats
-    else
-        -- insert item at cursor
-        use_beats = beats
-        item_length = R_GetLengthForOneBeat() * use_beats
-        start_position = r.GetCursorPosition()
-        end_position = start_position + item_length
-
-        -- try to cut the chord item overlap
-        R_CutAndSelectRightChordItem(start_position)
-        R_CutAndSelectLeftChordItem(end_position)
-        R_DeleteSelectChordItems()
-    end
+    local item_length = end_position - start_position
+    -- try to cut the chord item overlap
+    R_CutAndSelectRightChordItem(start_position)
+    R_CutAndSelectLeftChordItem(end_position)
+    R_SelectAllChordItemBetweenStartEnd(start_position, end_position)
+    R_DeleteSelectChordItems()
 
     -- chord item
     local chord_item = r.AddMediaItemToTrack(chord_track)
@@ -318,7 +323,7 @@ function R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_afte
         )
     end
     local note_str = ListJoinToString(notes, ",")
-    local full_meta = ListJoinToString({ meta, note_str, chord, use_beats, oct_shift_after_first_note }, "|")
+    local full_meta = ListJoinToString({ meta, note_str, chord, beats, oct_shift_after_first_note }, "|")
     _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", full_meta, true)
     r.SetMediaItemSelected(midi_item, true)
     -- group item
@@ -454,7 +459,12 @@ end
 function R_ChordItemRefresh()
     local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
     local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
-    local chord_item_count = r.CountTrackMediaItems(midi_track)
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    if chord_item_count ~= midi_item_count then
+        print("chord track name item count and chord track midi item count mismatched.\n")
+        return
+    end
     local chord_lst = {}
     for _ = 0, chord_item_count - 1 do
         local chord_item = r.GetTrackMediaItem(chord_track, 0)
@@ -463,6 +473,10 @@ function R_ChordItemRefresh()
         r.DeleteTrackMediaItem(chord_track, chord_item)
     end
     for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord = r.ULT_GetMediaItemNote(chord_item)
+        chord = StringSplit(chord, NewLineTag())[1]
+
         local midi_item = r.GetTrackMediaItem(midi_track, idx)
         local pos = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
         local len = r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
@@ -471,6 +485,11 @@ function R_ChordItemRefresh()
         local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
         local full_meta_split = StringSplit(full_meta, "|")
         full_meta_split[4] = tostring(beats)
+        local chord2 = full_meta_split[3]
+        if chord ~= chord2 then
+            print("chord track name item count and chord track midi item count mismatched. for chord: " .. chord .. "\n")
+            return
+        end
         local new_full_meta = ListJoinToString(full_meta_split, "|")
         _, _ = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", new_full_meta, true)
 
@@ -491,6 +510,74 @@ end
 
 function R_ChordItemOverlap()
     -- todo
+    local chord_track = R_GetOrCreateTrackByName(R_ChordTrackName)
+    local midi_track = R_GetOrCreateTrackByName(R_ChordTrackMidi)
+
+    local chord_item_count = r.CountTrackMediaItems(chord_track)
+    local midi_item_count = r.CountTrackMediaItems(midi_track)
+    if chord_item_count ~= midi_item_count then
+        print("chord track name item count and chord track midi item count mismatched.\n")
+        return
+    end
+    local first_start_pos
+    local params = {}
+    for idx = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, idx)
+        local chord = r.ULT_GetMediaItemNote(chord_item)
+        chord = StringSplit(chord, NewLineTag())[1]
+
+        local midi_item = r.GetTrackMediaItem(midi_track, idx)
+        local start_pos = r.GetMediaItemInfo_Value(midi_item, "D_POSITION")
+        if first_start_pos == nil then
+            first_start_pos = start_pos
+        end
+        local end_pos = start_pos
+        if idx < chord_item_count - 1 then
+            local next_midi_item = r.GetTrackMediaItem(midi_track, idx+1)
+            end_pos = r.GetMediaItemInfo_Value(next_midi_item, "D_POSITION")
+        else
+            end_pos = start_pos + r.GetMediaItemInfo_Value(midi_item, "D_LENGTH")
+        end
+
+        local new_beats = (end_pos - start_pos) / R_GetLengthForOneBeat()
+
+        local midi_take = r.GetActiveTake(midi_item)
+        local _, full_meta = r.GetSetMediaItemTakeInfo_String(midi_take, "P_NAME", "", false)
+        local full_meta_split = StringSplit(full_meta, "|")
+        local meta = full_meta_split[1]
+        local notes = StringSplit(full_meta_split[2], ',')
+        local chord2 = full_meta_split[3]
+        local oct_shift_after_first_note = full_meta_split[5]
+        if chord ~= chord2 then
+            print("chord track name item count and chord track midi item count mismatched. for chord: " .. chord .. "\n")
+            return
+        end
+        local param = {
+            chord = chord,
+            meta = meta,
+            notes = notes,
+            beats = new_beats,
+            oct_shift_after_first_note = oct_shift_after_first_note,
+            start_pos = start_pos,
+            end_pos = end_pos,
+        }
+        table.insert(params, param)
+    end
+
+    for _ = 0, chord_item_count - 1 do
+        local chord_item = r.GetTrackMediaItem(chord_track, 0)
+        r.DeleteTrackMediaItem(chord_track, chord_item)
+        local midi_item = r.GetTrackMediaItem(midi_track, 0)
+        r.DeleteTrackMediaItem(midi_track, midi_item)
+    end
+    for _, param in ipairs(params) do
+        R_InsertChordItemWithPosition(param.chord, param.meta, param.notes, param.beats, param.oct_shift_after_first_note, param.start_pos, param.end_pos)
+    end
+end
+
+function R_ChordItemOverlapAndRefresh()
+    R_ChordItemOverlap()
+    -- R_ChordItemRefresh()
 end
 
 function R_DeleteMarkerByName(target)
@@ -897,6 +984,7 @@ function R_FTCBuildChord(notes, scale_root, scale_name)
     --     }
     -- .....
     --
+
     local pitchs = {}
     for _, note in ipairs(notes) do
         table.insert(pitchs, note.pitch)
@@ -946,7 +1034,7 @@ function R_FTCGetChordsByTake(take, scale_root, scale_name)
 
             if sppq >= chord_min_eppq then
                 local new_notes = {}
-                if #notes >= 2 then
+                if #notes >= 3 then
                     local chord = R_FTCBuildChord(notes, scale_root, scale_name)
                     if chord then chords[#chords + 1] = chord end
                     for n = 3, #notes do
@@ -957,15 +1045,17 @@ function R_FTCGetChordsByTake(take, scale_root, scale_name)
                             end
                         end
                         -- Try to build chords
-                        chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
-                        if chord then
-                            chord.sppq = chord_min_eppq
-                            chord.eppq = math.min(chord.eppq, sppq)
-                            -- Ignore short chords
-                            if chord.eppq - chord.sppq >= 240 then
-                                chords[#chords + 1] = chord
+                        if #new_notes >= 3 then
+                            chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
+                            if chord then
+                                chord.sppq = chord_min_eppq
+                                chord.eppq = math.min(chord.eppq, sppq)
+                                -- Ignore short chords
+                                if chord.eppq - chord.sppq >= 240 then
+                                    chords[#chords + 1] = chord
+                                end
+                                chord_min_eppq = chord.eppq
                             end
-                            chord_min_eppq = chord.eppq
                         end
                         new_notes = {}
                     end
@@ -984,7 +1074,7 @@ function R_FTCGetChordsByTake(take, scale_root, scale_name)
                 end
                 notes = new_notes
             else
-                if #notes >= 2 then
+                if #notes >= 3 then
                     local chord = R_FTCBuildChord(notes, scale_root, scale_name)
                     if chord then
                         chord.eppq = math.min(chord.eppq, sppq)
@@ -1000,10 +1090,10 @@ function R_FTCGetChordsByTake(take, scale_root, scale_name)
     end
 
     local sel_chord
-    if #sel_notes >= 2 then
+    if #sel_notes >= 3 then
         sel_chord = R_FTCBuildChord(sel_notes, scale_root, scale_name) or {name = 'none'}
     end
-    if #notes >= 2 then
+    if #notes >= 3 then
         local chord = R_FTCBuildChord(notes, scale_root, scale_name)
         if chord then chords[#chords + 1] = chord end
         for n = 3, #notes do
@@ -1015,14 +1105,16 @@ function R_FTCGetChordsByTake(take, scale_root, scale_name)
                 end
             end
             -- Try to build chords
-            chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
-            if chord then
-                chord.sppq = chord_min_eppq
-                -- Ignore short chords
-                if chord.eppq - chord.sppq >= 240 then
-                    chords[#chords + 1] = chord
+            if #new_notes >= 3 then
+                chord = R_FTCBuildChord(new_notes, scale_root, scale_name)
+                if chord then
+                    chord.sppq = chord_min_eppq
+                    -- Ignore short chords
+                    if chord.eppq - chord.sppq >= 240 then
+                        chords[#chords + 1] = chord
+                    end
+                    chord_min_eppq = chord.eppq
                 end
-                chord_min_eppq = chord.eppq
             end
         end
     end
@@ -1080,5 +1172,6 @@ function R_MIDI2ChordTrack(scale_root, scale_name)
         local meta = scale_root .. "/" .. scale_name .. "/" .. oct
         R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_after_first_note, start_pos, end_pos)
     end
+    R_ChordItemOverlapAndRefresh()
 end
 

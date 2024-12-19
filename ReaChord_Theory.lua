@@ -1033,9 +1033,46 @@ function T_SelectSimplestChord(chords, scale_root, scale_name)
     if #chords == 0 then
         return -1
     end
+
+    if #chords == 1 then
+        return 1
+    end
+
+    -- select most nice note in scale
+    local p_s_notes, _ = T_MakeScale(scale_root .. "/" .. scale_name)
+    local nice_chords = {}
+    local nice_note_count = 0
+    for _, chord in ipairs(chords) do
+        local count = - 1
+        local chord_split = StringSplit(chord, "/")
+        if #chord_split > 1 then
+            local pure_chord = chord_split[1]
+            local chord_bass = chord_split[2]
+            local p_c_notes, _ = T_MakeChord(pure_chord)
+            count = AListInBListLen(p_c_notes, p_s_notes)
+            if ListIndex(p_s_notes, chord_bass) > 0 then
+                count = count + 1
+            end
+        else
+            local p_c_notes, _ = T_MakeChord(chord)
+            count = AListInBListLen(p_c_notes, p_s_notes)
+        end
+        if count > nice_note_count then
+            nice_note_count = count
+            nice_chords = {}
+        end
+        if count == nice_note_count then
+            table.insert(nice_chords, chord)
+        end
+    end
+    if #nice_chords == 1 then
+        return ListIndex(chords, nice_chords[1])
+    end
+
+    -- select lest length chord name
     local short_chords = {}
     local short_length = math.huge
-    for idx, chord in ipairs(chords) do
+    for _, chord in ipairs(nice_chords) do
         if #chord < short_length then
             short_length = #chord
             short_chords = {}
@@ -1047,8 +1084,10 @@ function T_SelectSimplestChord(chords, scale_root, scale_name)
     if #short_chords == 1 then
         return ListIndex(chords, short_chords[1])
     end
+
+    -- select simplest chord
     local chord_complexity = {}
-    for idx, chord in ipairs(short_chords) do
+    for _, chord in ipairs(short_chords) do
         if ListIndex(chord_complexity, chord) == -1 then
             chord_complexity[chord] = 0
         end
