@@ -22,7 +22,9 @@ dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
-local ctx = r.ImGui_CreateContext('ReaChord', r.ImGui_ConfigFlags_DockingEnable())
+REACHORD_NAME = "ReaChord v1.3.7"
+
+local ctx = r.ImGui_CreateContext(REACHORD_NAME, r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
 r.ImGui_Attach(ctx, G_FONT)
 
@@ -107,7 +109,7 @@ local ColorPieBtnD2 = 0x00aaaaaa
 local ColorPieBtnHoverd = 0x4772B3FF
 
 local min_w = 850
-local min_h = 600
+local min_h = 700
 local main_window_w_padding = 10
 local main_window_h_padding = 5
 local w
@@ -248,9 +250,9 @@ end
 
 local function changeWindowSizeForCircle()
   if CIRCLE_OF5 then
-    r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w+w_circle_of_5, h)
+    r.ImGui_SetWindowSizeEx( ctx, REACHORD_NAME, w+w_circle_of_5, h)
   else
-    r.ImGui_SetWindowSizeEx( ctx, "ReaChord", w-w_circle_of_5, h)
+    r.ImGui_SetWindowSizeEx( ctx, REACHORD_NAME, w-w_circle_of_5, h)
   end
 end
 
@@ -2154,7 +2156,7 @@ local function loop()
   window_flags = window_flags | r.ImGui_WindowFlags_NoNav()
   window_flags = window_flags | r.ImGui_WindowFlags_NoDocking()
 
-  local visible, open = r.ImGui_Begin(ctx, 'ReaChord v1.3.6', true, window_flags)
+  local visible, open = r.ImGui_Begin(ctx, REACHORD_NAME, true, window_flags)
   if visible then
     refreshWindowSize()
     uiMain()
