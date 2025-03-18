@@ -1165,7 +1165,27 @@ function R_MIDI2ChordTrack(scale_root, scale_name)
             table.insert(notes, T_NotePitchToNote(pitch, scale_root, scale_name))
         end
         local meta = scale_root .. "/" .. scale_name .. "/" .. oct
-        R_InsertChordItemWithPosition(chord, meta, notes, beats, oct_shift_after_first_note, start_pos, end_pos)
+
+
+        -- try build chord notes by reachord system not the true midi take note
+        local default_notes = {}
+        local chord_bass
+        local pure_chord_notes
+        local chord_split = StringSplit(chord, "/")
+        if #chord_split > 1 then
+            local pure_chord = chord_split[1]
+            chord_bass = chord_split[2]
+            pure_chord_notes, _ = T_MakeChord(pure_chord)
+        else
+            pure_chord_notes, _ = T_MakeChord(chord)
+            chord_bass = pure_chord_notes[1]
+        end
+        table.insert(default_notes, chord_bass)
+        for _, nt in ipairs(pure_chord_notes) do
+            table.insert(default_notes, nt)
+        end
+
+        R_InsertChordItemWithPosition(chord, meta, default_notes, beats, oct_shift_after_first_note, start_pos, end_pos)
     end
     R_ChordItemOverlapAndRefresh()
 end

@@ -1,6 +1,6 @@
 -- @description ReaChord
 -- @author xupeng1206
--- @version 1.0.13
+-- @version 1.5.0
 -- @changelog
 --  Update
 -- @provides
@@ -22,7 +22,7 @@ dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
-REACHORD_NAME = "ReaChord v1.4.0"
+REACHORD_NAME = "ReaChord v1.5.0"
 
 local ctx = r.ImGui_CreateContext(REACHORD_NAME, r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)

@@ -66,6 +66,9 @@ post_4_chord_txt = ""
 post_4_simple_chord_txt = ""
 post_4_full_chord_txt = ""
 
+
+tk_diff = 0.01
+
 -- Performance
 local reaper = reaper
 
@@ -379,7 +382,7 @@ function run()
         -- get pre post item
         -- pre 1
         local ret, item_start, item_end, item_chord
-        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_start - 1)
+        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_start - tk_diff)
         if ret then
             local item_chord_split = StringSplit(item_chord, NewLineTag())
             pre_1_full_chord_txt = item_chord
@@ -388,7 +391,7 @@ function run()
         end
         -- pre 2
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 pre_2_full_chord_txt = item_chord
@@ -399,7 +402,7 @@ function run()
 
         -- pre 3
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 pre_3_full_chord_txt = item_chord
@@ -410,7 +413,7 @@ function run()
 
         -- pre 4
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_start - tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 pre_4_full_chord_txt = item_chord
@@ -421,7 +424,7 @@ function run()
 
         -- post 1
 
-        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_end + 1)
+        ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(region_end + tk_diff)
         if ret then
             local item_chord_split = StringSplit(item_chord, NewLineTag())
             post_1_full_chord_txt = item_chord
@@ -429,7 +432,7 @@ function run()
             post_1_simple_chord_txt = item_chord_split[2]
         end
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 post_2_full_chord_txt = item_chord
@@ -439,7 +442,7 @@ function run()
         end
 
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 post_3_full_chord_txt = item_chord
@@ -449,7 +452,7 @@ function run()
         end
 
         if ret then
-            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + 1)
+            ret, item_start, item_end, item_chord = R_GetChordItemInfoByPosition(item_end + tk_diff)
             if ret then
                 local item_chord_split = StringSplit(item_chord, NewLineTag())
                 post_4_full_chord_txt = item_chord

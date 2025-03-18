@@ -2,19 +2,19 @@
 <index version="1" name="ReaChord">
   <category name="Tracks">
     <reapack name="ReaChord: a chord track solution for REAPER 7" type="script">
-      <version name="1.4.0" author="xupeng1206" time="2024-11-17T15:22:16Z">
-        <source main="main" file="../ReaChord_Main.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Main.lua</source>
-        <source main="main" file="../ReaChord_Act_Item2Sound.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Act_Item2Sound.lua</source>
-        <source main="main" file="../ReaChord_Reader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Reader.lua</source>
-        <source main="main" file="../ReaChord_ColorPalette.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_ColorPalette.lua</source>
-        <source main="main" file="../ReaChord_NoteReader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_NoteReader.lua</source>
-        <source main="main" file="../ReaChord_InputChordReader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_InputChordReader.lua</source>
-        <source file="../README.md" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/README.md</source>
-        <source file="../ReaChord_About.jpg" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_About.jpg</source>
-        <source file="../ReaChord_Reaper.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Reaper.lua</source>
-        <source file="../ReaChord_Theory.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Theory.lua</source>
-        <source file="../ReaChord_Util.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ReaChord_Util.lua</source>
-        <source file="../ChordTrack.RTrackTemplate" type="tracktpl">https://github.com/xupeng1206/ReaChord/raw/v1.4.0/ChordTrack.RTrackTemplate</source>
+      <version name="1.5.0" author="xupeng1206" time="2025-03-18T02:40:18Z">
+        <source main="main" file="../ReaChord_Main.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Main.lua</source>
+        <source main="main" file="../ReaChord_Act_Item2Sound.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Act_Item2Sound.lua</source>
+        <source main="main" file="../ReaChord_Reader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Reader.lua</source>
+        <source main="main" file="../ReaChord_ColorPalette.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_ColorPalette.lua</source>
+        <source main="main" file="../ReaChord_NoteReader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_NoteReader.lua</source>
+        <source main="main" file="../ReaChord_InputChordReader.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_InputChordReader.lua</source>
+        <source file="../README.md" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/README.md</source>
+        <source file="../ReaChord_About.jpg" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_About.jpg</source>
+        <source file="../ReaChord_Reaper.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Reaper.lua</source>
+        <source file="../ReaChord_Theory.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Theory.lua</source>
+        <source file="../ReaChord_Util.lua" type="script">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ReaChord_Util.lua</source>
+        <source file="../ChordTrack.RTrackTemplate" type="tracktpl">https://github.com/xupeng1206/ReaChord/raw/v1.5.0/ChordTrack.RTrackTemplate</source>
       </version>
       <metadata>
         <description>ReaChord</description>
