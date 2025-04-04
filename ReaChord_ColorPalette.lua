@@ -1,6 +1,6 @@
 -- @description ReaChord
 -- @author xupeng1206
--- @version 1.5.0
+-- @version 1.6.0
 -- @changelog
 --  Update
 -- @provides

@@ -1,6 +1,6 @@
 -- @description ReaChord
 -- @author xupeng1206
--- @version 1.5.0
+-- @version 1.6.0
 -- @changelog
 --  Update
 -- @provides
@@ -22,7 +22,7 @@ dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Util.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Theory.lua')
 dofile(r.GetResourcePath() .. '/Scripts/ReaChord/ReaChord_Reaper.lua')
 
-REACHORD_NAME = "ReaChord v1.5.0"
+REACHORD_NAME = "ReaChord v1.6.0"
 
 local ctx = r.ImGui_CreateContext(REACHORD_NAME, r.ImGui_ConfigFlags_DockingEnable())
 local G_FONT = r.ImGui_CreateFont('sans-serif', 15)
@@ -108,7 +108,7 @@ local ColorPieBtnD1 = 0x00aaaaff
 local ColorPieBtnD2 = 0x00aaaaaa
 local ColorPieBtnHoverd = 0x4772B3FF
 
-local min_w = 850
+local min_w = 900
 local min_h = 700
 local main_window_w_padding = 10
 local main_window_h_padding = 5
@@ -126,6 +126,7 @@ local w_chord_pad
 local w_chord_pad_half
 local h_chord_pad = 30
 
+local FREE_TRACK = false
 local MIDI_INPUT_ENABLE = false
 
 --! CIRCLE OF FIFTS VARS
@@ -516,7 +517,7 @@ end
 local function onInsertClick()
   local meta = CURRENT_SCALE_ROOT .. "/" .. CURRENT_SCALE_NAME .. "/" .. CURRENT_OCT
   local notes = ListExtend({ CURRENT_CHORD_BASS }, StringSplit(CURRENT_CHORD_VOICING, ","))
-  R_InsertChordItem(CURRENT_CHORD_FULL_NAME, meta, notes, CURRENT_INSERT_BEATS, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE)
+  R_InsertChord(CURRENT_CHORD_FULL_NAME, meta, notes, CURRENT_INSERT_BEATS, CURRENT_OCT_SHIFT_AFTER_FIRST_NOTE, FREE_TRACK)
 end
 
 local function onChordPadAssign(key)
@@ -1001,6 +1002,14 @@ local function uiOctSelector()
   end
 end
 
+
+local function uiFreeTrack()
+  if uiColorBtn("Free Track", FREE_TRACK and ColorBlue or ColorNormalNote, 80, 0) then
+    FREE_TRACK = not FREE_TRACK
+  end
+end
+
+
 local function uiMidiInputSwitch()
   if uiColorBtn("Midi Input", MIDI_INPUT_ENABLE and ColorBlue or ColorNormalNote, 80, 0) then
     MIDI_INPUT_ENABLE = not MIDI_INPUT_ENABLE
@@ -1009,12 +1018,12 @@ end
 
 local function uiCircleOf5Switch()
   if CIRCLE_OF5 then
-    if uiColorBtn("Circle Of Five", ColorBlue, 120, 0) then
+    if uiColorBtn("Circle Of Five", ColorBlue, 100, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
       changeWindowSizeForCircle()
     end
   else
-    if uiColorBtn("Circle Of Five", ColorNormalNote, 120, 0) then
+    if uiColorBtn("Circle Of Five", ColorNormalNote, 100, 0) then
       CIRCLE_OF5 = not CIRCLE_OF5
       changeWindowSizeForCircle()
     end
@@ -1031,12 +1040,15 @@ local function uiTopLine()
   r.ImGui_SameLine(ctx)
   uiReadOnlyColorBtn("ScaleName:", ColorGray, 100)
   r.ImGui_SameLine(ctx)
-  local next_width =  math.max(130,w - 5 * w_default_space - 100 - 50 - 100 - 160 - 3 * w_default_space - 120 - 80)
+  local next_width =  math.max(130, w - 7 * w_default_space - 100 - 50 - 100 - 160 - 3 * w_default_space - 100 - 80 - 80)
   r.ImGui_SetNextItemWidth(ctx, next_width)
   uiScaleNameSelector()
   r.ImGui_SameLine(ctx)
   -- length 3 * w_default_space + 160
   uiOctSelector()
+  r.ImGui_SameLine(ctx)
+
+  uiFreeTrack()
   r.ImGui_SameLine(ctx)
 
   uiMidiInputSwitch()
@@ -2001,7 +2013,7 @@ local function uiExtension()
         if #meta_split>4 then
           oct_shift_after_first_note = tonumber(meta_split[5])
         end
-        R_InsertChordItem(chord_name, meta, notes, beats, oct_shift_after_first_note)
+        R_InsertChord(chord_name, meta, notes, beats, oct_shift_after_first_note, FREE_TRACK)
       end
     end
   end

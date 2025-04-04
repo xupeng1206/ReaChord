@@ -204,7 +204,38 @@ function R_SelectAllChordItemBetweenStartEnd(start_pos, end_pos)
     end
 end
 
-function R_InsertChordItem(chord, meta, notes, beats, oct_shift_after_first_note)
+function R_InsertChord(chord, meta, notes, beats, oct_shift_after_first_note, free)
+    if free then
+        R_InsertMidiToFirstSelectedTrackAtCursor(chord, meta, notes, beats, oct_shift_after_first_note)
+    else
+        R_InsertChordItemInChordTrack(chord, meta, notes, beats, oct_shift_after_first_note)
+    end
+end
+
+function R_InsertMidiToFirstSelectedTrackAtCursor(chord, meta, notes, beats, oct_shift_after_first_note)
+    local midi_track = r.GetSelectedTrack(0, 0)
+    local item_length = R_GetLengthForOneBeat() * beats
+    local start_position = r.GetCursorPosition()
+    local end_position = start_position + item_length
+    -- midi item
+    local midi_item = r.CreateNewMIDIItemInProj(midi_track, start_position, end_position, false)
+    -- midi take
+    local midi_take = r.GetActiveTake(midi_item)
+    local _, note_midi_index = T_NotePitched(notes, oct_shift_after_first_note)
+    local oct = StringSplit(meta, "/")[3]
+    for _, note in ipairs(note_midi_index) do
+        r.MIDI_InsertNote(
+            midi_take, false, false,
+            r.MIDI_GetPPQPosFromProjTime(midi_take, start_position),
+            r.MIDI_GetPPQPosFromProjTime(midi_take, end_position),
+            0, note + BASE_NOTE_OFFSET + oct * 12, 90, false
+        )
+    end
+    -- move cursor
+    r.SetEditCurPos(end_position, true, true)
+end
+
+function R_InsertChordItemInChordTrack(chord, meta, notes, beats, oct_shift_after_first_note)
     local full_split = StringSplit(chord, "/")
     local scale_root = StringSplit(meta, "/")[1]
     local _, chord_pattern = T_SplitChordRootAndPattern(full_split[1])
