@@ -1,6 +1,6 @@
 -- @description ReaChord
 -- @author xupeng1206
--- @version 1.6.0
+-- @version 1.6.1
 -- @changelog
 --  Update
 -- @provides
@@ -162,7 +162,7 @@ local function refreshWindowSize()
 end
 
 local function loop()
-  r.ImGui_PushFont(ctx, G_FONT)
+  r.ImGui_PushFont(ctx, G_FONT, 12)
   r.ImGui_SetWindowSize(ctx, min_w, min_h, r.ImGui_Cond_FirstUseEver())
   r.ImGui_SetNextWindowSizeConstraints(ctx, min_w, min_h, min_w, min_h)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), main_window_w_padding, main_window_h_padding)
